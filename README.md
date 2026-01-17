@@ -16,6 +16,8 @@ This is NOT a classic dating app. The experience prioritizes:
 
 The application follows **Clean Architecture** principles with clear separation of concerns:
 
+### Mobile App Structure
+
 ```
 src/
 ├── domain/              # Business logic layer (framework-independent)
@@ -23,16 +25,32 @@ src/
 │   ├── repositories/    # Repository interfaces
 │   └── usecases/        # Application business rules
 ├── data/                # Data layer
-│   └── repositories/    # Repository implementations
+│   └── repositories/    # Repository implementations (API integration)
 ├── presentation/        # UI layer
 │   ├── screens/         # Screen components
 │   ├── components/      # Reusable UI components
 │   ├── navigation/      # Navigation configuration
 │   └── theme/           # Design system
 └── infrastructure/      # External interfaces
-    ├── di/              # Dependency injection
-    └── config/          # Configuration files
+    └── api/             # API client & WebSocket
 ```
+
+### Backend Structure
+
+```
+backend/
+├── src/
+│   ├── config/          # Database & WebSocket configuration
+│   ├── controllers/     # Request handlers
+│   ├── middleware/      # Express middleware
+│   ├── routes/          # API route definitions
+│   ├── services/        # Business logic
+│   ├── types/           # TypeScript type definitions
+│   └── utils/           # Utility functions
+└── data/                # SQLite database (auto-created)
+```
+
+See [backend/README.md](backend/README.md) for detailed backend documentation.
 
 ### Architecture Layers
 
@@ -110,6 +128,8 @@ The UI follows a **book-like, intimate aesthetic**:
 
 ## 🚀 Getting Started
 
+**👉 [See QUICK_START.md for a step-by-step guide](QUICK_START.md)**
+
 ### Prerequisites
 
 - Node.js 18+
@@ -124,21 +144,54 @@ The UI follows a **book-like, intimate aesthetic**:
 git clone https://github.com/leny1711/CHAT.git
 cd CHAT
 
-# Install dependencies
+# Install mobile app dependencies
 npm install
 
 # iOS only - Install pods
 cd ios && pod install && cd ..
 
+# Install backend dependencies
+cd backend
+npm install
+cd ..
+```
+
+### Running the Application
+
+#### Start the Backend Server
+
+```bash
+# Navigate to backend directory
+cd backend
+
+# Create .env file (first time only)
+cp .env.example .env
+
+# Start the backend in development mode
+npm run dev
+```
+
+The backend will start on http://localhost:3000
+
+#### Start the Mobile App
+
+```bash
+# In a new terminal, navigate to project root
+cd CHAT
+
 # Start Metro bundler
 npm start
 
-# Run on iOS
+# Run on iOS (in another terminal)
 npm run ios
 
-# Run on Android
+# Run on Android (in another terminal)
 npm run android
 ```
+
+**Important**: For Android emulator, update `src/infrastructure/api/config.ts` to use `http://10.0.2.2:3000` instead of `localhost`.
+
+For physical devices, use your computer's IP address (e.g., `http://192.168.1.100:3000`).
 
 ### Development
 
@@ -195,7 +248,8 @@ The chat is designed as a **first-class domain** with:
 - [x] Matching system
 - [x] Chat with infinite history
 - [x] Settings screen
-- [ ] Real backend API integration
+- [x] **Real backend API integration** ✨
+- [x] **WebSocket real-time messaging** ✨
 - [ ] Push notifications
 - [ ] Photo upload and reveal mechanics
 - [ ] User blocking and reporting
@@ -227,7 +281,11 @@ All data access goes through repository interfaces:
 - `IMessageRepository`
 - `IMatchRepository`
 
-Current implementations use AsyncStorage (mock data), but can be easily replaced with real API calls.
+**NEW**: Repository implementations now connect to the real backend API with:
+- JWT authentication
+- WebSocket for real-time messaging
+- Cursor-based pagination for infinite message history
+- Automatic reconnection handling
 
 ## 🤝 Contributing
 

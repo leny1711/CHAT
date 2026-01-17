@@ -1,53 +1,108 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Match, Like, DiscoveryProfile, MatchStatus } from '../../domain/entities/Match';
 import { IMatchRepository } from '../../domain/repositories/IMatchRepository';
+import { apiClient } from '../../infrastructure/api/client';
+
+interface MatchResponse {
+  matched: boolean;
+  matchId?: string;
+}
+
+interface DiscoveryResponse {
+  profiles: Array<{
+    id: string;
+    name: string;
+    age: number;
+    bio: string;
+  }>;
+}
+
+interface MatchesResponse {
+  matches: Array<{
+    id: string;
+    user_id_1: string;
+    user_id_2: string;
+    created_at: string;
+    status: string;
+    conversationId: string;
+    otherUser: {
+      id: string;
+      name: string;
+      age: number;
+      bio: string;
+    };
+  }>;
+}
 
 /**
- * Mock implementation of Match Repository
- * In production, this would connect to a real backend API
+ * Match Repository with real backend API integration
  */
 export class MatchRepository implements IMatchRepository {
-  private readonly MATCHES_KEY = '@matches';
-  private readonly LIKES_KEY = '@likes';
-  private readonly DISCOVERY_KEY = '@discovery_profiles';
-
   async getDiscoveryProfiles(limit: number = 10): Promise<DiscoveryProfile[]> {
     try {
-      const data = await AsyncStorage.getItem(this.DISCOVERY_KEY);
-      const profiles: DiscoveryProfile[] = data ? JSON.parse(data) : this.generateMockProfiles();
-      return profiles.slice(0, limit);
+      const response = await apiClient.get<DiscoveryResponse>(
+        `/api/matches/discovery?limit=${limit}`
+      );
+
+      return response.profiles.map(profile => ({
+        userId: profile.id,
+        name: profile.name,
+        age: profile.age,
+        bio: profile.bio,
+        previewPhoto: undefined,
+      }));
     } catch (error) {
       console.error('Error getting discovery profiles:', error);
-      return this.generateMockProfiles().slice(0, limit);
+      return [];
     }
   }
 
   async likeUser(userId: string): Promise<Like> {
-    const like: Like = {
-      id: `like_${Date.now()}`,
-      fromUserId: 'current_user', // In production, get from auth
-      toUserId: userId,
-      createdAt: new Date(),
-    };
+    try {
+      const response = await apiClient.post<MatchResponse>('/api/matches/like', {
+        targetUserId: userId,
+      });
 
-    // Save like
-    const data = await AsyncStorage.getItem(this.LIKES_KEY);
-    const likes: Like[] = data ? JSON.parse(data) : [];
-    likes.push(like);
-    await AsyncStorage.setItem(this.LIKES_KEY, JSON.stringify(likes));
+      const like: Like = {
+        id: `like_${Date.now()}`,
+        fromUserId: 'current_user', // This would come from auth context
+        toUserId: userId,
+        createdAt: new Date(),
+      };
 
-    return like;
+      // If matched, you might want to handle this differently
+      if (response.matched) {
+        console.log('Match created!', response.matchId);
+      }
+
+      return like;
+    } catch (error) {
+      console.error('Error liking user:', error);
+      throw error;
+    }
   }
 
   async passUser(userId: string): Promise<void> {
-    // In a real app, we'd save this to avoid showing again
-    console.log('Passed on user:', userId);
+    try {
+      await apiClient.post('/api/matches/pass', {
+        targetUserId: userId,
+      });
+    } catch (error) {
+      console.error('Error passing user:', error);
+      // Don't throw - passing is not critical
+    }
   }
 
   async getMatches(): Promise<Match[]> {
     try {
-      const data = await AsyncStorage.getItem(this.MATCHES_KEY);
-      return data ? JSON.parse(data) : [];
+      const response = await apiClient.get<MatchesResponse>('/api/matches');
+
+      return response.matches.map(match => ({
+        id: match.id,
+        userIds: [match.user_id_1, match.user_id_2] as [string, string],
+        createdAt: new Date(match.created_at),
+        conversationId: match.conversationId,
+        status: match.status as MatchStatus,
+      }));
     } catch (error) {
       console.error('Error getting matches:', error);
       return [];
@@ -60,62 +115,9 @@ export class MatchRepository implements IMatchRepository {
   }
 
   async checkMatch(userId1: string, userId2: string): Promise<Match | null> {
-    // Check if both users have liked each other
-    const data = await AsyncStorage.getItem(this.LIKES_KEY);
-    const likes: Like[] = data ? JSON.parse(data) : [];
-
-    const user1LikesUser2 = likes.some(
-      l => l.fromUserId === userId1 && l.toUserId === userId2
-    );
-    const user2LikesUser1 = likes.some(
-      l => l.fromUserId === userId2 && l.toUserId === userId1
-    );
-
-    if (user1LikesUser2 && user2LikesUser1) {
-      // Create a match
-      const match: Match = {
-        id: `match_${Date.now()}`,
-        userIds: [userId1, userId2],
-        createdAt: new Date(),
-        conversationId: `conv_${Date.now()}`,
-        status: MatchStatus.ACTIVE,
-      };
-
-      const matchesData = await AsyncStorage.getItem(this.MATCHES_KEY);
-      const matches: Match[] = matchesData ? JSON.parse(matchesData) : [];
-      matches.push(match);
-      await AsyncStorage.setItem(this.MATCHES_KEY, JSON.stringify(matches));
-
-      return match;
-    }
-
+    // This is handled automatically by the backend when users like each other
+    // We just return null here as this method is not needed with the backend
     return null;
   }
-
-  private generateMockProfiles(): DiscoveryProfile[] {
-    // Generate mock profiles for discovery
-    return [
-      {
-        userId: 'user1',
-        name: 'Alex',
-        age: 28,
-        bio: 'Love reading and long conversations about life',
-        previewPhoto: undefined,
-      },
-      {
-        userId: 'user2',
-        name: 'Sam',
-        age: 26,
-        bio: 'Writer and coffee enthusiast',
-        previewPhoto: undefined,
-      },
-      {
-        userId: 'user3',
-        name: 'Jordan',
-        age: 30,
-        bio: 'Looking for meaningful connections',
-        previewPhoto: undefined,
-      },
-    ];
-  }
 }
+

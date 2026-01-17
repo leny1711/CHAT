@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Message,
   MessagePage,
@@ -7,21 +6,98 @@ import {
   MessageType,
 } from '../../domain/entities/Message';
 import { IMessageRepository } from '../../domain/repositories/IMessageRepository';
+import { apiClient } from '../../infrastructure/api/client';
+import { wsClient } from '../../infrastructure/api/websocket';
+
+interface ConversationsResponse {
+  conversations: Array<{
+    id: string;
+    match_id: string;
+    created_at: string;
+    last_message_at: string;
+    otherUser: {
+      id: string;
+      name: string;
+      age: number;
+      bio: string;
+    };
+    lastMessage?: {
+      id: string;
+      conversation_id: string;
+      sender_id: string;
+      content: string;
+      type: string;
+      status: string;
+      created_at: string;
+    };
+  }>;
+}
+
+interface MessagePageResponse {
+  messages: Array<{
+    id: string;
+    conversation_id: string;
+    sender_id: string;
+    content: string;
+    type: string;
+    status: string;
+    created_at: string;
+  }>;
+  hasMore: boolean;
+  nextCursor?: string;
+  totalCount: number;
+}
+
+interface SendMessageResponse {
+  message: {
+    id: string;
+    conversation_id: string;
+    sender_id: string;
+    content: string;
+    type: string;
+    status: string;
+    created_at: string;
+  };
+}
 
 /**
- * Mock implementation of Message Repository
+ * Message Repository with real backend API integration
  * Critical: Handles pagination for infinite message history
- * In production, this would connect to a real backend with proper pagination
  */
 export class MessageRepository implements IMessageRepository {
-  private readonly CONVERSATIONS_KEY = '@conversations';
-  private readonly MESSAGES_PREFIX = '@messages_';
   private listeners: Map<string, Set<(message: Message) => void>> = new Map();
+
+  constructor() {
+    // Subscribe to WebSocket messages
+    wsClient.subscribe((message: Message) => {
+      this.notifyListeners(message.conversationId, message);
+    });
+  }
 
   async getConversations(): Promise<Conversation[]> {
     try {
-      const data = await AsyncStorage.getItem(this.CONVERSATIONS_KEY);
-      return data ? JSON.parse(data) : [];
+      const response = await apiClient.get<ConversationsResponse>('/api/conversations');
+
+      return response.conversations.map(conv => {
+        const conversation: Conversation = {
+          id: conv.id,
+          participantIds: ['current_user', conv.otherUser.id] as [string, string],
+          matchId: conv.match_id,
+          createdAt: new Date(conv.created_at),
+          lastMessageAt: new Date(conv.last_message_at),
+          lastMessage: conv.lastMessage ? {
+            id: conv.lastMessage.id,
+            conversationId: conv.lastMessage.conversation_id,
+            senderId: conv.lastMessage.sender_id,
+            content: conv.lastMessage.content,
+            createdAt: new Date(conv.lastMessage.created_at),
+            status: conv.lastMessage.status as MessageStatus,
+            type: conv.lastMessage.type as MessageType,
+          } : undefined,
+          unreadCount: 0, // TODO: Get from backend
+        };
+        return conversation;
+      });
     } catch (error) {
       console.error('Error getting conversations:', error);
       return [];
@@ -42,32 +118,25 @@ export class MessageRepository implements IMessageRepository {
     cursor?: string
   ): Promise<MessagePage> {
     try {
-      const key = `${this.MESSAGES_PREFIX}${conversationId}`;
-      const data = await AsyncStorage.getItem(key);
-      const allMessages: Message[] = data ? JSON.parse(data) : [];
-
-      // Sort by createdAt descending (newest first)
-      allMessages.sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-
-      // Find cursor position
-      let startIndex = 0;
-      if (cursor) {
-        startIndex = allMessages.findIndex(m => m.id === cursor) + 1;
-      }
-
-      // Get page of messages
-      const messages = allMessages.slice(startIndex, startIndex + limit);
-      const hasMore = startIndex + limit < allMessages.length;
-      const nextCursor = messages.length > 0 ? messages[messages.length - 1].id : undefined;
+      const url = `/api/conversations/${conversationId}/messages?limit=${limit}${
+        cursor ? `&cursor=${cursor}` : ''
+      }`;
+      
+      const response = await apiClient.get<MessagePageResponse>(url);
 
       return {
-        messages,
-        hasMore,
-        nextCursor,
-        totalCount: allMessages.length,
+        messages: response.messages.map(msg => ({
+          id: msg.id,
+          conversationId: msg.conversation_id,
+          senderId: msg.sender_id,
+          content: msg.content,
+          createdAt: new Date(msg.created_at),
+          status: msg.status as MessageStatus,
+          type: msg.type as MessageType,
+        })),
+        hasMore: response.hasMore,
+        nextCursor: response.nextCursor,
+        totalCount: response.totalCount,
       };
     } catch (error) {
       console.error('Error getting messages:', error);
@@ -79,56 +148,44 @@ export class MessageRepository implements IMessageRepository {
     conversationId: string,
     content: string
   ): Promise<Message> {
-    const message: Message = {
-      id: `msg_${Date.now()}_${Math.random()}`,
-      conversationId,
-      senderId: 'current_user', // In production, get from auth
-      content,
-      createdAt: new Date(),
-      status: MessageStatus.SENT,
-      type: MessageType.TEXT,
-    };
-
-    // Save message
-    const key = `${this.MESSAGES_PREFIX}${conversationId}`;
-    const data = await AsyncStorage.getItem(key);
-    const messages: Message[] = data ? JSON.parse(data) : [];
-    messages.push(message);
-    await AsyncStorage.setItem(key, JSON.stringify(messages));
-
-    // Update conversation
-    const conversations = await this.getConversations();
-    const convIndex = conversations.findIndex(c => c.id === conversationId);
-    if (convIndex >= 0) {
-      conversations[convIndex].lastMessageAt = new Date();
-      conversations[convIndex].lastMessage = message;
-      await AsyncStorage.setItem(
-        this.CONVERSATIONS_KEY,
-        JSON.stringify(conversations)
+    try {
+      const response = await apiClient.post<SendMessageResponse>(
+        `/api/conversations/${conversationId}/messages`,
+        { content }
       );
+
+      const message: Message = {
+        id: response.message.id,
+        conversationId: response.message.conversation_id,
+        senderId: response.message.sender_id,
+        content: response.message.content,
+        createdAt: new Date(response.message.created_at),
+        status: response.message.status as MessageStatus,
+        type: response.message.type as MessageType,
+      };
+
+      // Notify local listeners
+      this.notifyListeners(conversationId, message);
+
+      return message;
+    } catch (error) {
+      console.error('Error sending message:', error);
+      throw error;
     }
-
-    // Notify listeners
-    this.notifyListeners(conversationId, message);
-
-    return message;
   }
 
   async markAsRead(
     conversationId: string,
     messageIds: string[]
   ): Promise<void> {
-    const key = `${this.MESSAGES_PREFIX}${conversationId}`;
-    const data = await AsyncStorage.getItem(key);
-    const messages: Message[] = data ? JSON.parse(data) : [];
-
-    messages.forEach(msg => {
-      if (messageIds.includes(msg.id)) {
-        msg.status = MessageStatus.READ;
-      }
-    });
-
-    await AsyncStorage.setItem(key, JSON.stringify(messages));
+    try {
+      await apiClient.post(`/api/conversations/${conversationId}/read`, {
+        messageIds,
+      });
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
+      // Don't throw - marking as read is not critical
+    }
   }
 
   subscribeToConversation(
@@ -150,10 +207,13 @@ export class MessageRepository implements IMessageRepository {
   }
 
   async getMessageCount(conversationId: string): Promise<number> {
-    const key = `${this.MESSAGES_PREFIX}${conversationId}`;
-    const data = await AsyncStorage.getItem(key);
-    const messages: Message[] = data ? JSON.parse(data) : [];
-    return messages.length;
+    try {
+      const result = await this.getMessages(conversationId, 1);
+      return result.totalCount;
+    } catch (error) {
+      console.error('Error getting message count:', error);
+      return 0;
+    }
   }
 
   private notifyListeners(conversationId: string, message: Message): void {
@@ -163,3 +223,4 @@ export class MessageRepository implements IMessageRepository {
     }
   }
 }
+

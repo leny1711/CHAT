@@ -1,19 +1,42 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User, Profile } from '../../domain/entities/User';
 import { IUserRepository } from '../../domain/repositories/IUserRepository';
+import { apiClient } from '../../infrastructure/api/client';
+import { wsClient } from '../../infrastructure/api/websocket';
+
+interface AuthResponse {
+  token: string;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    age: number;
+    bio: string;
+    created_at: string;
+    last_active: string;
+  };
+}
 
 /**
- * Mock implementation of User Repository
- * In production, this would connect to a real backend API
+ * User Repository with real backend API integration
  */
 export class UserRepository implements IUserRepository {
+  private readonly TOKEN_KEY = '@auth_token';
   private readonly CURRENT_USER_KEY = '@current_user';
-  private readonly USERS_KEY = '@users';
 
   async getCurrentUser(): Promise<User | null> {
     try {
       const userData = await AsyncStorage.getItem(this.CURRENT_USER_KEY);
-      return userData ? JSON.parse(userData) : null;
+      if (!userData) return null;
+
+      const user = JSON.parse(userData);
+      
+      // Convert date strings to Date objects
+      return {
+        ...user,
+        createdAt: new Date(user.createdAt),
+        lastActive: new Date(user.lastActive),
+      };
     } catch (error) {
       console.error('Error getting current user:', error);
       return null;
@@ -22,9 +45,13 @@ export class UserRepository implements IUserRepository {
 
   async getUserById(userId: string): Promise<User | null> {
     try {
-      const usersData = await AsyncStorage.getItem(this.USERS_KEY);
-      const users: User[] = usersData ? JSON.parse(usersData) : [];
-      return users.find(u => u.id === userId) || null;
+      // For now, return current user if IDs match
+      // In a full implementation, fetch from API
+      const currentUser = await this.getCurrentUser();
+      if (currentUser?.id === userId) {
+        return currentUser;
+      }
+      return null;
     } catch (error) {
       console.error('Error getting user by ID:', error);
       return null;
@@ -62,15 +89,6 @@ export class UserRepository implements IUserRepository {
       JSON.stringify(updatedUser)
     );
 
-    // Update in users list
-    const usersData = await AsyncStorage.getItem(this.USERS_KEY);
-    const users: User[] = usersData ? JSON.parse(usersData) : [];
-    const userIndex = users.findIndex(u => u.id === currentUser.id);
-    if (userIndex >= 0) {
-      users[userIndex] = updatedUser;
-      await AsyncStorage.setItem(this.USERS_KEY, JSON.stringify(users));
-    }
-
     return updatedUser;
   }
 
@@ -79,44 +97,135 @@ export class UserRepository implements IUserRepository {
     password: string,
     userData: Partial<User>
   ): Promise<User> {
-    const newUser: User = {
-      id: Date.now().toString(),
-      email,
-      name: userData.name || '',
-      age: userData.age || 18,
-      bio: userData.bio || '',
-      photos: userData.photos || [],
-      createdAt: new Date(),
-      lastActive: new Date(),
-    };
+    try {
+      const response = await apiClient.post<AuthResponse>('/api/auth/register', {
+        email,
+        password,
+        name: userData.name || '',
+        age: userData.age || 18,
+        bio: userData.bio || '',
+      });
 
-    // Save to users list
-    const usersData = await AsyncStorage.getItem(this.USERS_KEY);
-    const users: User[] = usersData ? JSON.parse(usersData) : [];
-    users.push(newUser);
-    await AsyncStorage.setItem(this.USERS_KEY, JSON.stringify(users));
+      // Save token
+      await AsyncStorage.setItem(this.TOKEN_KEY, response.token);
+      apiClient.setToken(response.token);
 
-    // Set as current user
-    await AsyncStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(newUser));
+      // Convert API response to User entity
+      const user: User = {
+        id: response.user.id,
+        email: response.user.email,
+        name: response.user.name,
+        age: response.user.age,
+        bio: response.user.bio,
+        photos: [],
+        createdAt: new Date(response.user.created_at),
+        lastActive: new Date(response.user.last_active),
+      };
 
-    return newUser;
+      // Save user locally
+      await AsyncStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(user));
+
+      // Connect WebSocket
+      wsClient.connect(response.token);
+
+      return user;
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    }
   }
 
   async login(email: string, password: string): Promise<User> {
-    // Mock authentication - in production, verify with backend
-    const usersData = await AsyncStorage.getItem(this.USERS_KEY);
-    const users: User[] = usersData ? JSON.parse(usersData) : [];
-    
-    const user = users.find(u => u.email === email);
-    if (!user) {
-      throw new Error('Invalid credentials');
-    }
+    try {
+      const response = await apiClient.post<AuthResponse>('/api/auth/login', {
+        email,
+        password,
+      });
 
-    await AsyncStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(user));
-    return user;
+      // Save token
+      await AsyncStorage.setItem(this.TOKEN_KEY, response.token);
+      apiClient.setToken(response.token);
+
+      // Convert API response to User entity
+      const user: User = {
+        id: response.user.id,
+        email: response.user.email,
+        name: response.user.name,
+        age: response.user.age,
+        bio: response.user.bio,
+        photos: [],
+        createdAt: new Date(response.user.created_at),
+        lastActive: new Date(response.user.last_active),
+      };
+
+      // Save user locally
+      await AsyncStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(user));
+
+      // Connect WebSocket
+      wsClient.connect(response.token);
+
+      return user;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
   }
 
   async logout(): Promise<void> {
     await AsyncStorage.removeItem(this.CURRENT_USER_KEY);
+    await AsyncStorage.removeItem(this.TOKEN_KEY);
+    apiClient.setToken(null);
+    wsClient.disconnect();
+  }
+
+  /**
+   * Initialize authentication from stored token
+   */
+  async initializeAuth(): Promise<User | null> {
+    try {
+      const token = await AsyncStorage.getItem(this.TOKEN_KEY);
+      if (!token) return null;
+
+      apiClient.setToken(token);
+
+      // Verify token by fetching current user
+      interface MeResponse {
+        user: {
+          id: string;
+          email: string;
+          name: string;
+          age: number;
+          bio: string;
+          created_at: string;
+          last_active: string;
+        };
+      }
+      
+      const response = await apiClient.get<MeResponse>('/api/auth/me');
+      
+      const user: User = {
+        id: response.user.id,
+        email: response.user.email,
+        name: response.user.name,
+        age: response.user.age,
+        bio: response.user.bio,
+        photos: [],
+        createdAt: new Date(response.user.created_at),
+        lastActive: new Date(response.user.last_active),
+      };
+
+      await AsyncStorage.setItem(this.CURRENT_USER_KEY, JSON.stringify(user));
+
+      // Connect WebSocket
+      wsClient.connect(token);
+
+      return user;
+    } catch (error) {
+      console.error('Auth initialization error:', error);
+      // Clear invalid token
+      await this.logout();
+      return null;
+    }
   }
 }
+
