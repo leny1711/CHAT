@@ -38,6 +38,10 @@ DerivedData
 *.xcuserstate
 ios/.xcode.env.local
 
+# Mobile app workspace
+mobile/ios/Pods/
+mobile/ios/build/
+
 # Test
 coverage/
 

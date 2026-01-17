@@ -18,6 +18,12 @@ The application follows **Clean Architecture** principles with clear separation 
 
 ### Mobile App Structure
 
+> React Native CLI app lives in `/mobile` (Android + iOS).
+> Quick commands from repo root:
+> - `cd mobile && npm install`
+> - `npx react-native start`
+> - `npx react-native run-android`
+
 ```
 src/
 ├── domain/              # Business logic layer (framework-independent)
