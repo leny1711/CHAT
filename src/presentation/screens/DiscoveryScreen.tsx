@@ -137,14 +137,14 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
           style={[styles.actionButton, styles.passButton]}
           onPress={() => handleAction('pass')}
           disabled={actionLoading}>
-          <Text style={styles.actionButtonText}>Pass</Text>
+          <Text style={[styles.actionButtonText, styles.passButtonText]}>Pass</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.actionButton, styles.likeButton]}
           onPress={() => handleAction('like')}
           disabled={actionLoading}>
-          <Text style={styles.actionButtonText}>Like</Text>
+          <Text style={[styles.actionButtonText, styles.likeButtonText]}>Like</Text>
         </TouchableOpacity>
       </View>
 
@@ -234,13 +234,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
+  passButtonText: {
+    color: theme.colors.text,
+  },
+  likeButtonText: {
+    color: theme.colors.surface,
+  },
   likeButton: {
     backgroundColor: theme.colors.primary,
   },
   actionButtonText: {
     fontSize: theme.typography.fontSize.md,
     fontWeight: '500',
-    color: theme.colors.text,
   },
   counter: {
     textAlign: 'center',
