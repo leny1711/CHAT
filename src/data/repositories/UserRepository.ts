@@ -189,7 +189,19 @@ export class UserRepository implements IUserRepository {
       apiClient.setToken(token);
 
       // Verify token by fetching current user
-      const response = await apiClient.get<{ user: any }>('/api/auth/me');
+      interface MeResponse {
+        user: {
+          id: string;
+          email: string;
+          name: string;
+          age: number;
+          bio: string;
+          created_at: string;
+          last_active: string;
+        };
+      }
+      
+      const response = await apiClient.get<MeResponse>('/api/auth/me');
       
       const user: User = {
         id: response.user.id,

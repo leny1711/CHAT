@@ -2,8 +2,7 @@ import { WebSocket, WebSocketServer as WSServer } from 'ws';
 import { Server } from 'http';
 import jwt from 'jsonwebtoken';
 import { parse } from 'url';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this-in-production';
+import { config } from './config';
 
 interface AuthenticatedWebSocket extends WebSocket {
   userId?: string;
@@ -31,7 +30,7 @@ export class WebSocketServer {
       }
 
       try {
-        const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+        const decoded = jwt.verify(token, config.jwtSecret) as { userId: string };
         ws.userId = decoded.userId;
         ws.isAlive = true;
 

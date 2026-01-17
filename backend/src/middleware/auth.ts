@@ -1,7 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this-in-production';
+import { config } from '../config/config';
 
 export interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -21,7 +20,7 @@ export const authMiddleware = (
     }
 
     const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+    const decoded = jwt.verify(token, config.jwtSecret) as { userId: string };
     
     req.userId = decoded.userId;
     next();
@@ -31,5 +30,5 @@ export const authMiddleware = (
 };
 
 export const generateToken = (userId: string): string => {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: '30d' });
+  return jwt.sign({ userId }, config.jwtSecret, { expiresIn: '30d' });
 };
