@@ -29,10 +29,13 @@ cd CHAT
 ### Step 2: Install Mobile App Dependencies
 
 ```bash
+cd mobile
 npm install
 
 # For iOS only
 cd ios && pod install && cd ..
+
+cd ..
 ```
 
 ### Step 3: Set Up the Backend
@@ -73,7 +76,9 @@ Environment: development
 
 ### Step 5: Configure Mobile App for Your Platform
 
-The mobile app needs to know where to find the backend.
+The mobile app needs to know where to find the backend. The starter screen in
+`/mobile` runs offline; when you wire up the existing `/src` infrastructure,
+configure the API host below.
 
 #### For iOS Simulator (default)
 No changes needed! Uses `http://localhost:3000`
@@ -126,17 +131,18 @@ Open a **new terminal** (keep the backend running):
 cd CHAT  # Go back to project root
 
 # Start Metro bundler
-npm start
+cd mobile
+npx react-native start
 ```
 
 In **another new terminal**:
 
 ```bash
 # For iOS
-npm run ios
+npx react-native run-ios
 
 # For Android
-npm run android
+npx react-native run-android
 ```
 
 ## ✅ Test the Complete Flow
