@@ -246,12 +246,23 @@ Before deploying to production:
 2. **Use HTTPS** for API endpoints
 3. **Use WSS** for WebSocket connections
 4. **Set up proper CORS** for your frontend domain
-5. **Add rate limiting** to prevent abuse
+5. **Add rate limiting** to prevent abuse (e.g., using express-rate-limit)
 6. **Set up logging** and monitoring
 7. **Consider PostgreSQL** instead of SQLite for higher scale
-8. **Add input validation** middleware
+8. **Add input validation** middleware (e.g., using joi or express-validator)
 9. **Implement proper error logging**
 10. **Set up automated backups** for the database
+
+### ⚠️ Security Note
+
+The current quick start implementation includes basic security measures (JWT authentication, password hashing, WebSocket authentication) but intentionally omits some features for simplicity:
+
+- **Rate limiting** - Should be added to prevent abuse/DoS
+- **Input validation** - Should validate all user inputs
+- **Request size limits** - Should limit payload sizes
+- **CSRF protection** - May be needed depending on clients
+
+These should be added before production deployment. See the "Future Enhancements" section for more details.
 
 ## 📊 Performance
 
