@@ -12,13 +12,11 @@ import { User } from '../../domain/entities/User';
 interface SettingsScreenProps {
   user: User | null;
   onLogout: () => Promise<void>;
-  onEditProfile: () => void;
 }
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   user,
   onLogout,
-  onEditProfile,
 }) => {
   return (
     <ScrollView style={styles.container}>

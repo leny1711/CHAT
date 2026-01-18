@@ -155,9 +155,6 @@ function SettingsScreenWrapper({ navigation }: any) {
           routes: [{ name: 'Auth' }],
         });
       }}
-      onEditProfile={() => {
-        // Navigate to profile edit screen (to be implemented)
-      }}
     />
   );
 }
