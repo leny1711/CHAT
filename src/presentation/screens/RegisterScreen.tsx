@@ -13,7 +13,7 @@ import {
 import { theme } from '../theme/theme';
 
 interface RegisterScreenProps {
-  onRegister: (email: string, password: string, name: string, age: number, bio: string) => Promise<void>;
+  onRegister: (email: string, password: string, name: string, bio: string) => Promise<void>;
   onNavigateToLogin: () => void;
 }
 
@@ -24,20 +24,18 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [age, setAge] = useState('');
   const [bio, setBio] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleRegister = async () => {
-    if (!email || !password || !name || !age) {
+    if (!email || !password || !name || !bio) {
       setError('Please fill in all required fields');
       return;
     }
 
-    const ageNum = parseInt(age, 10);
-    if (isNaN(ageNum) || ageNum < 18) {
-      setError('You must be at least 18 years old');
+    if (bio.length < 10) {
+      setError('Description must be at least 10 characters');
       return;
     }
 
@@ -45,7 +43,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
     setError('');
 
     try {
-      await onRegister(email, password, name, ageNum, bio);
+      await onRegister(email, password, name, bio);
     } catch (err) {
       setError('Registration failed. Please try again.');
     } finally {
@@ -67,20 +65,10 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
           <View style={styles.form}>
             <TextInput
               style={styles.input}
-              placeholder="Name"
+              placeholder="Username"
               placeholderTextColor={theme.colors.textLight}
               value={name}
               onChangeText={setName}
-              editable={!loading}
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder="Age"
-              placeholderTextColor={theme.colors.textLight}
-              value={age}
-              onChangeText={setAge}
-              keyboardType="number-pad"
               editable={!loading}
             />
 
@@ -107,7 +95,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
 
             <TextInput
               style={[styles.input, styles.bioInput]}
-              placeholder="Tell us about yourself (optional)"
+              placeholder="Short description (minimum 10 characters)"
               placeholderTextColor={theme.colors.textLight}
               value={bio}
               onChangeText={setBio}

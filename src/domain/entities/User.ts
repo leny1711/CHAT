@@ -6,7 +6,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  age: number;
+  age?: number;
   bio: string;
   photos: Photo[];
   createdAt: Date;
@@ -30,7 +30,7 @@ export interface Photo {
 export interface Profile {
   userId: string;
   name: string;
-  age: number;
+  age?: number;
   bio: string;
   photos: Photo[];
   revealProgress: RevealProgress;
