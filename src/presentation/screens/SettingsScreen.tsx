@@ -12,65 +12,36 @@ import { User } from '../../domain/entities/User';
 interface SettingsScreenProps {
   user: User | null;
   onLogout: () => Promise<void>;
-  onEditProfile: () => void;
 }
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   user,
   onLogout,
-  onEditProfile,
 }) => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Settings</Text>
-        <Text style={styles.headerSubtitle}>Manage your account</Text>
+        <Text style={styles.headerTitle}>Profile</Text>
+        <Text style={styles.headerSubtitle}>Your information</Text>
       </View>
 
       {user && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Profile</Text>
           <View style={styles.profileCard}>
             <Text style={styles.profileName}>{user.name}</Text>
-            <Text style={styles.profileEmail}>{user.email}</Text>
-            <Text style={styles.profileAge}>Age: {user.age}</Text>
             {user.bio && (
               <Text style={styles.profileBio}>{user.bio}</Text>
             )}
           </View>
-          <TouchableOpacity style={styles.button} onPress={onEditProfile}>
-            <Text style={styles.buttonText}>Edit Profile</Text>
-          </TouchableOpacity>
         </View>
       )}
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Privacy & Safety</Text>
-        <View style={styles.infoCard}>
-          <Text style={styles.infoText}>
-            Your conversations are private and secure. Photos are revealed
-            progressively through meaningful interaction.
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>About</Text>
-        <View style={styles.infoCard}>
-          <Text style={styles.infoText}>
-            This app prioritizes emotional connection through conversation.
-            Take your time, be authentic, and enjoy the journey of getting
-            to know someone.
-          </Text>
-        </View>
-      </View>
 
       <View style={styles.section}>
         <TouchableOpacity
           style={[styles.button, styles.logoutButton]}
           onPress={onLogout}>
           <Text style={[styles.buttonText, styles.logoutButtonText]}>
-            Sign Out
+            Logout
           </Text>
         </TouchableOpacity>
       </View>

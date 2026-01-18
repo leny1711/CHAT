@@ -126,7 +126,7 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
 
         <View style={styles.profileInfo}>
           <Text style={styles.name}>
-            {currentProfile.name}, {currentProfile.age}
+            {currentProfile.name}
           </Text>
           <Text style={styles.bio}>{currentProfile.bio}</Text>
         </View>

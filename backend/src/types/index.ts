@@ -3,7 +3,7 @@ export interface User {
   email: string;
   password_hash: string;
   name: string;
-  age: number;
+  age?: number;
   bio: string;
   created_at: Date;
   last_active: Date;
@@ -13,7 +13,7 @@ export interface UserResponse {
   id: string;
   email: string;
   name: string;
-  age: number;
+  age?: number;
   bio: string;
   created_at: Date;
   last_active: Date;
@@ -65,7 +65,7 @@ export interface AuthRequest {
 
 export interface RegisterRequest extends AuthRequest {
   name: string;
-  age: number;
+  age?: number;
   bio?: string;
 }
 

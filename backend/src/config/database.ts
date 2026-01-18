@@ -36,7 +36,7 @@ export class Database {
         email TEXT UNIQUE NOT NULL,
         password_hash TEXT NOT NULL,
         name TEXT NOT NULL,
-        age INTEGER NOT NULL,
+        age INTEGER,
         bio TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         last_active DATETIME DEFAULT CURRENT_TIMESTAMP

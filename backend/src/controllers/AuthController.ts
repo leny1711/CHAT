@@ -11,7 +11,7 @@ export class AuthController {
       const data: RegisterRequest = req.body;
 
       // Validate input
-      if (!data.email || !data.password || !data.name || !data.age) {
+      if (!data.email || !data.password || !data.name) {
         res.status(400).json({ error: 'Missing required fields' });
         return;
       }

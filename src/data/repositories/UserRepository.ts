@@ -102,7 +102,6 @@ export class UserRepository implements IUserRepository {
         email,
         password,
         name: userData.name || '',
-        age: userData.age || 18,
         bio: userData.bio || '',
       });
 

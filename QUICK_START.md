@@ -29,13 +29,7 @@ cd CHAT
 ### Step 2: Install Mobile App Dependencies
 
 ```bash
-cd mobile
 npm install
-
-# For iOS only
-cd ios && pod install && cd ..
-
-cd ..
 ```
 
 ### Step 3: Set Up the Backend
@@ -76,9 +70,7 @@ Environment: development
 
 ### Step 5: Configure Mobile App for Your Platform
 
-The mobile app needs to know where to find the backend. The starter screen in
-`/mobile` runs offline; when you wire up the existing `/src` infrastructure,
-configure the API host below.
+The mobile app needs to know where to find the backend.
 
 #### For iOS Simulator (default)
 No changes needed! Uses `http://localhost:3000`
@@ -128,16 +120,17 @@ export const API_CONFIG = {
 Open a **new terminal** (keep the backend running):
 
 ```bash
-cd CHAT  # Go back to project root
+cd CHAT  # Project root
 
 # Start Metro bundler
-cd mobile
 npx react-native start
 ```
 
 In **another new terminal**:
 
 ```bash
+cd CHAT  # Project root
+
 # For iOS
 npx react-native run-ios
 
@@ -153,21 +146,19 @@ Once the app is running, you can test the entire flow:
 
 **User 1 - Alice:**
 - Tap "Create Account"
+- Username: `Alice`
 - Email: `alice@test.com`
 - Password: `password123`
-- Name: `Alice`
-- Age: `25`
-- Bio: `Love reading and conversations`
-- Tap "Register"
+- Description: `Love reading and conversations`
+- Tap "Create Account"
 
 **User 2 - Bob:**
-- Log out Alice (Settings → Logout)
+- Log out Alice (Profile → Logout)
 - Register with:
+  - Username: `Bob`
   - Email: `bob@test.com`
   - Password: `password123`
-  - Name: `Bob`
-  - Age: `27`
-  - Bio: `Coffee enthusiast`
+  - Description: `Coffee enthusiast and tech lover`
 
 ### 2. Create a Match
 

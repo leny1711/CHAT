@@ -21,7 +21,7 @@ export class AuthService {
     const userId = generateId('user_');
     await db.run(
       'INSERT INTO users (id, email, password_hash, name, age, bio) VALUES (?, ?, ?, ?, ?, ?)',
-      [userId, data.email, passwordHash, data.name, data.age, data.bio || '']
+      [userId, data.email, passwordHash, data.name, data.age || null, data.bio || '']
     );
 
     // Get created user

@@ -34,7 +34,7 @@ export interface Like {
 export interface DiscoveryProfile {
   userId: string;
   name: string;
-  age: number;
+  age?: number;
   bio: string;
   previewPhoto?: string; // Only one blurred or low-res preview
 }

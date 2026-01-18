@@ -85,7 +85,7 @@ function MainTabs() {
       <Tab.Screen
         name="Discover"
         component={DiscoveryScreenWrapper}
-        options={{ tabBarLabel: 'Discover' }}
+        options={{ tabBarLabel: 'Discovery' }}
       />
       <Tab.Screen
         name="Matches"
@@ -93,9 +93,9 @@ function MainTabs() {
         options={{ tabBarLabel: 'Matches' }}
       />
       <Tab.Screen
-        name="Settings"
+        name="Profile"
         component={SettingsScreenWrapper}
-        options={{ tabBarLabel: 'Settings' }}
+        options={{ tabBarLabel: 'Profile' }}
       />
     </Tab.Navigator>
   );
@@ -155,9 +155,6 @@ function SettingsScreenWrapper({ navigation }: any) {
           routes: [{ name: 'Auth' }],
         });
       }}
-      onEditProfile={() => {
-        // Navigate to profile edit screen (to be implemented)
-      }}
     />
   );
 }
@@ -202,10 +199,9 @@ export function AppNavigation() {
               <Stack.Screen name="Register">
                 {({ navigation }) => (
                   <RegisterScreen
-                    onRegister={async (email, password, name, age, bio) => {
+                    onRegister={async (email, password, name, bio) => {
                       await registerUseCase.execute(email, password, {
                         name,
-                        age,
                         bio,
                       });
                       setIsAuthenticated(true);
