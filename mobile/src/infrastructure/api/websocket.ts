@@ -1,5 +1,5 @@
-import { API_CONFIG } from './config';
-import { Message } from '../../domain/entities/Message';
+import {API_CONFIG} from './config';
+import {Message} from '../../domain/entities/Message';
 
 type MessageListener = (message: Message) => void;
 
@@ -31,10 +31,10 @@ export class WebSocketClient {
         this.reconnectAttempts = 0;
       };
 
-      this.ws.onmessage = (event) => {
+      this.ws.onmessage = event => {
         try {
           const data = JSON.parse(event.data);
-          
+
           if (data.type === 'new_message') {
             this.notifyListeners(data.payload);
           }
@@ -43,7 +43,7 @@ export class WebSocketClient {
         }
       };
 
-      this.ws.onerror = (error) => {
+      this.ws.onerror = error => {
         console.error('WebSocket error:', error);
       };
 
@@ -61,7 +61,7 @@ export class WebSocketClient {
     if (this.reconnectAttempts < this.maxReconnectAttempts && this.token) {
       this.reconnectAttempts++;
       console.log(`Reconnecting... Attempt ${this.reconnectAttempts}`);
-      
+
       setTimeout(() => {
         this.connectWebSocket();
       }, this.reconnectDelay * this.reconnectAttempts);
@@ -79,7 +79,7 @@ export class WebSocketClient {
 
   subscribe(listener: MessageListener): () => void {
     this.listeners.add(listener);
-    
+
     // Return unsubscribe function
     return () => {
       this.listeners.delete(listener);

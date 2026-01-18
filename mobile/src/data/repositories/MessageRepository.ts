@@ -5,9 +5,9 @@ import {
   MessageStatus,
   MessageType,
 } from '../../domain/entities/Message';
-import { IMessageRepository } from '../../domain/repositories/IMessageRepository';
-import { apiClient } from '../../infrastructure/api/client';
-import { wsClient } from '../../infrastructure/api/websocket';
+import {IMessageRepository} from '../../domain/repositories/IMessageRepository';
+import {apiClient} from '../../infrastructure/api/client';
+import {wsClient} from '../../infrastructure/api/websocket';
 
 interface ConversationsResponse {
   conversations: Array<{
@@ -76,24 +76,31 @@ export class MessageRepository implements IMessageRepository {
 
   async getConversations(): Promise<Conversation[]> {
     try {
-      const response = await apiClient.get<ConversationsResponse>('/api/conversations');
+      const response = await apiClient.get<ConversationsResponse>(
+        '/api/conversations',
+      );
 
       return response.conversations.map(conv => {
         const conversation: Conversation = {
           id: conv.id,
-          participantIds: ['current_user', conv.otherUser.id] as [string, string],
+          participantIds: ['current_user', conv.otherUser.id] as [
+            string,
+            string,
+          ],
           matchId: conv.match_id,
           createdAt: new Date(conv.created_at),
           lastMessageAt: new Date(conv.last_message_at),
-          lastMessage: conv.lastMessage ? {
-            id: conv.lastMessage.id,
-            conversationId: conv.lastMessage.conversation_id,
-            senderId: conv.lastMessage.sender_id,
-            content: conv.lastMessage.content,
-            createdAt: new Date(conv.lastMessage.created_at),
-            status: conv.lastMessage.status as MessageStatus,
-            type: conv.lastMessage.type as MessageType,
-          } : undefined,
+          lastMessage: conv.lastMessage
+            ? {
+                id: conv.lastMessage.id,
+                conversationId: conv.lastMessage.conversation_id,
+                senderId: conv.lastMessage.sender_id,
+                content: conv.lastMessage.content,
+                createdAt: new Date(conv.lastMessage.created_at),
+                status: conv.lastMessage.status as MessageStatus,
+                type: conv.lastMessage.type as MessageType,
+              }
+            : undefined,
           unreadCount: 0, // TODO: Get from backend
         };
         return conversation;
@@ -115,13 +122,13 @@ export class MessageRepository implements IMessageRepository {
   async getMessages(
     conversationId: string,
     limit: number = 50,
-    cursor?: string
+    cursor?: string,
   ): Promise<MessagePage> {
     try {
       const url = `/api/conversations/${conversationId}/messages?limit=${limit}${
         cursor ? `&cursor=${cursor}` : ''
       }`;
-      
+
       const response = await apiClient.get<MessagePageResponse>(url);
 
       return {
@@ -140,18 +147,15 @@ export class MessageRepository implements IMessageRepository {
       };
     } catch (error) {
       console.error('Error getting messages:', error);
-      return { messages: [], hasMore: false, totalCount: 0 };
+      return {messages: [], hasMore: false, totalCount: 0};
     }
   }
 
-  async sendMessage(
-    conversationId: string,
-    content: string
-  ): Promise<Message> {
+  async sendMessage(conversationId: string, content: string): Promise<Message> {
     try {
       const response = await apiClient.post<SendMessageResponse>(
         `/api/conversations/${conversationId}/messages`,
-        { content }
+        {content},
       );
 
       const message: Message = {
@@ -176,7 +180,7 @@ export class MessageRepository implements IMessageRepository {
 
   async markAsRead(
     conversationId: string,
-    messageIds: string[]
+    messageIds: string[],
   ): Promise<void> {
     try {
       await apiClient.post(`/api/conversations/${conversationId}/read`, {
@@ -190,7 +194,7 @@ export class MessageRepository implements IMessageRepository {
 
   subscribeToConversation(
     conversationId: string,
-    callback: (message: Message) => void
+    callback: (message: Message) => void,
   ): () => void {
     if (!this.listeners.has(conversationId)) {
       this.listeners.set(conversationId, new Set());
@@ -223,4 +227,3 @@ export class MessageRepository implements IMessageRepository {
     }
   }
 }
-

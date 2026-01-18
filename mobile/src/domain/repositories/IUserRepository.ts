@@ -1,4 +1,4 @@
-import { User, Profile } from '../entities/User';
+import {User, Profile} from '../entities/User';
 
 /**
  * Repository interface for user management
@@ -28,7 +28,11 @@ export interface IUserRepository {
   /**
    * Create new user account
    */
-  createUser(email: string, password: string, userData: Partial<User>): Promise<User>;
+  createUser(
+    email: string,
+    password: string,
+    userData: Partial<User>,
+  ): Promise<User>;
 
   /**
    * Authenticate user

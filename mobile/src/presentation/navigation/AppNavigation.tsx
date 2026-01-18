@@ -1,21 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import React, {useState, useEffect} from 'react';
+import {NavigationContainer} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 // Screens
-import { LoginScreen } from '../screens/LoginScreen';
-import { RegisterScreen } from '../screens/RegisterScreen';
-import { DiscoveryScreen } from '../screens/DiscoveryScreen';
-import { MatchesScreen } from '../screens/MatchesScreen';
-import { ConversationScreen } from '../screens/ConversationScreen';
-import { SettingsScreen } from '../screens/SettingsScreen';
+import {LoginScreen} from '../screens/LoginScreen';
+import {RegisterScreen} from '../screens/RegisterScreen';
+import {DiscoveryScreen} from '../screens/DiscoveryScreen';
+import {MatchesScreen} from '../screens/MatchesScreen';
+import {ConversationScreen} from '../screens/ConversationScreen';
+import {SettingsScreen} from '../screens/SettingsScreen';
 
 // Repositories
-import { UserRepository } from '../../data/repositories/UserRepository';
-import { MessageRepository } from '../../data/repositories/MessageRepository';
-import { MatchRepository } from '../../data/repositories/MatchRepository';
+import {UserRepository} from '../../data/repositories/UserRepository';
+import {MessageRepository} from '../../data/repositories/MessageRepository';
+import {MatchRepository} from '../../data/repositories/MatchRepository';
 
 // Use cases
 import {
@@ -36,10 +36,10 @@ import {
   GetMatchesUseCase,
 } from '../../domain/usecases/MatchUseCases';
 
-import { User } from '../../domain/entities/User';
-import { Match } from '../../domain/entities/Match';
-import { theme } from '../theme/theme';
-import { ActivityIndicator, View } from 'react-native';
+import {User} from '../../domain/entities/User';
+import {Match} from '../../domain/entities/Match';
+import {theme} from '../theme/theme';
+import {ActivityIndicator, View} from 'react-native';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -57,9 +57,13 @@ const logoutUseCase = new LogoutUseCase(userRepository);
 
 const getMessagesUseCase = new GetMessagesUseCase(messageRepository);
 const sendMessageUseCase = new SendMessageUseCase(messageRepository);
-const subscribeToConversationUseCase = new SubscribeToConversationUseCase(messageRepository);
+const subscribeToConversationUseCase = new SubscribeToConversationUseCase(
+  messageRepository,
+);
 
-const getDiscoveryProfilesUseCase = new GetDiscoveryProfilesUseCase(matchRepository);
+const getDiscoveryProfilesUseCase = new GetDiscoveryProfilesUseCase(
+  matchRepository,
+);
 const likeUserUseCase = new LikeUserUseCase(matchRepository);
 const passUserUseCase = new PassUserUseCase(matchRepository);
 const getMatchesUseCase = new GetMatchesUseCase(matchRepository);
@@ -85,17 +89,17 @@ function MainTabs() {
       <Tab.Screen
         name="Discover"
         component={DiscoveryScreenWrapper}
-        options={{ tabBarLabel: 'Discovery' }}
+        options={{tabBarLabel: 'Discovery'}}
       />
       <Tab.Screen
         name="Matches"
         component={MatchesScreenWrapper}
-        options={{ tabBarLabel: 'Matches' }}
+        options={{tabBarLabel: 'Matches'}}
       />
       <Tab.Screen
         name="Profile"
         component={SettingsScreenWrapper}
-        options={{ tabBarLabel: 'Profile' }}
+        options={{tabBarLabel: 'Profile'}}
       />
     </Tab.Navigator>
   );
@@ -104,10 +108,10 @@ function MainTabs() {
 function DiscoveryScreenWrapper() {
   return (
     <DiscoveryScreen
-      onLike={async (userId) => {
+      onLike={async userId => {
         await likeUserUseCase.execute(userId);
       }}
-      onPass={async (userId) => {
+      onPass={async userId => {
         await passUserUseCase.execute(userId);
       }}
       getProfiles={async () => {
@@ -117,7 +121,7 @@ function DiscoveryScreenWrapper() {
   );
 }
 
-function MatchesScreenWrapper({ navigation }: any) {
+function MatchesScreenWrapper({navigation}: any) {
   return (
     <MatchesScreen
       onGetMatches={async () => {
@@ -133,7 +137,7 @@ function MatchesScreenWrapper({ navigation }: any) {
   );
 }
 
-function SettingsScreenWrapper({ navigation }: any) {
+function SettingsScreenWrapper({navigation}: any) {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -152,7 +156,7 @@ function SettingsScreenWrapper({ navigation }: any) {
         await logoutUseCase.execute();
         navigation.reset({
           index: 0,
-          routes: [{ name: 'Auth' }],
+          routes: [{name: 'Auth'}],
         });
       }}
     />
@@ -173,7 +177,7 @@ export function AppNavigation() {
 
   if (isAuthenticated === null) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
@@ -182,11 +186,11 @@ export function AppNavigation() {
   return (
     <SafeAreaProvider>
       <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Navigator screenOptions={{headerShown: false}}>
           {!isAuthenticated ? (
             <>
               <Stack.Screen name="Login">
-                {({ navigation }) => (
+                {({navigation}) => (
                   <LoginScreen
                     onLogin={async (email, password) => {
                       await loginUseCase.execute(email, password);
@@ -197,7 +201,7 @@ export function AppNavigation() {
                 )}
               </Stack.Screen>
               <Stack.Screen name="Register">
-                {({ navigation }) => (
+                {({navigation}) => (
                   <RegisterScreen
                     onRegister={async (email, password, name, bio) => {
                       await registerUseCase.execute(email, password, {
@@ -215,27 +219,27 @@ export function AppNavigation() {
             <>
               <Stack.Screen name="Main" component={MainTabs} />
               <Stack.Screen name="Conversation">
-                {({ route }: any) => (
+                {({route}: any) => (
                   <ConversationScreen
                     conversationId={route.params.conversationId}
                     otherUserName="Match" // In production, fetch user name
-                    onSendMessage={async (content) => {
+                    onSendMessage={async content => {
                       await sendMessageUseCase.execute(
                         route.params.conversationId,
-                        content
+                        content,
                       );
                     }}
-                    onLoadMessages={async (cursor) => {
+                    onLoadMessages={async cursor => {
                       return getMessagesUseCase.execute(
                         route.params.conversationId,
                         50,
-                        cursor
+                        cursor,
                       );
                     }}
-                    onSubscribe={(callback) => {
+                    onSubscribe={callback => {
                       return subscribeToConversationUseCase.execute(
                         route.params.conversationId,
-                        callback
+                        callback,
                       );
                     }}
                   />

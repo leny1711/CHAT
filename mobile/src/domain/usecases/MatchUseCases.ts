@@ -1,5 +1,5 @@
-import { IMatchRepository } from '../repositories/IMatchRepository';
-import { Match, Like, DiscoveryProfile } from '../entities/Match';
+import {IMatchRepository} from '../repositories/IMatchRepository';
+import {Match, Like, DiscoveryProfile} from '../entities/Match';
 
 /**
  * Use case for getting discovery profiles
@@ -18,13 +18,16 @@ export class GetDiscoveryProfilesUseCase {
 export class LikeUserUseCase {
   constructor(private matchRepository: IMatchRepository) {}
 
-  async execute(userId: string): Promise<{ like: Like; match?: Match }> {
+  async execute(userId: string): Promise<{like: Like; match?: Match}> {
     const like = await this.matchRepository.likeUser(userId);
-    
+
     // Check if this creates a match
-    const match = await this.matchRepository.checkMatch(like.fromUserId, userId);
-    
-    return { like, match: match || undefined };
+    const match = await this.matchRepository.checkMatch(
+      like.fromUserId,
+      userId,
+    );
+
+    return {like, match: match || undefined};
   }
 }
 

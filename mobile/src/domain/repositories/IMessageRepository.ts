@@ -1,4 +1,4 @@
-import { Message, MessagePage, Conversation } from '../entities/Message';
+import {Message, MessagePage, Conversation} from '../entities/Message';
 
 /**
  * Repository interface for chat/messaging
@@ -25,16 +25,13 @@ export interface IMessageRepository {
   getMessages(
     conversationId: string,
     limit?: number,
-    cursor?: string
+    cursor?: string,
   ): Promise<MessagePage>;
 
   /**
    * Send a new message
    */
-  sendMessage(
-    conversationId: string,
-    content: string
-  ): Promise<Message>;
+  sendMessage(conversationId: string, content: string): Promise<Message>;
 
   /**
    * Mark messages as read
@@ -46,7 +43,7 @@ export interface IMessageRepository {
    */
   subscribeToConversation(
     conversationId: string,
-    callback: (message: Message) => void
+    callback: (message: Message) => void,
   ): () => void;
 
   /**

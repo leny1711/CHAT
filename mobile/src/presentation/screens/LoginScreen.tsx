@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import { theme } from '../theme/theme';
+import {theme} from '../theme/theme';
 
 interface LoginScreenProps {
   onLogin: (email: string, password: string) => Promise<void>;
@@ -49,9 +49,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <View style={styles.content}>
         <Text style={styles.title}>Welcome</Text>
-        <Text style={styles.subtitle}>
-          A space for meaningful connections
-        </Text>
+        <Text style={styles.subtitle}>A space for meaningful connections</Text>
 
         <View style={styles.form}>
           <TextInput
@@ -124,7 +122,8 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     textAlign: 'center',
     marginBottom: theme.spacing.xxl,
-    lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
+    lineHeight:
+      theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
   },
   form: {
     gap: theme.spacing.md,

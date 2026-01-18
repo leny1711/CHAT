@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -7,8 +7,8 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import { theme } from '../theme/theme';
-import { Match } from '../../domain/entities/Match';
+import {theme} from '../theme/theme';
+import {Match} from '../../domain/entities/Match';
 
 interface MatchesScreenProps {
   onGetMatches: () => Promise<Match[]>;
@@ -24,6 +24,7 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
 
   useEffect(() => {
     loadMatches();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadMatches = async () => {
@@ -38,9 +39,10 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
     }
   };
 
-  const renderMatch = ({ item }: { item: Match }) => {
-    const otherUserId = item.userIds.find(id => id !== 'current_user') || 'Unknown';
-    
+  const renderMatch = ({item}: {item: Match}) => {
+    const otherUserId =
+      item.userIds.find(id => id !== 'current_user') || 'Unknown';
+
     return (
       <TouchableOpacity
         style={styles.matchCard}
@@ -87,7 +89,7 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
         <FlatList
           data={matches}
           renderItem={renderMatch}
-          keyExtractor={(item) => item.id}
+          keyExtractor={item => item.id}
           contentContainerStyle={styles.listContent}
         />
       )}

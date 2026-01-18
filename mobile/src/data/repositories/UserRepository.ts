@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { User, Profile } from '../../domain/entities/User';
-import { IUserRepository } from '../../domain/repositories/IUserRepository';
-import { apiClient } from '../../infrastructure/api/client';
-import { wsClient } from '../../infrastructure/api/websocket';
+import {User, Profile} from '../../domain/entities/User';
+import {IUserRepository} from '../../domain/repositories/IUserRepository';
+import {apiClient} from '../../infrastructure/api/client';
+import {wsClient} from '../../infrastructure/api/websocket';
 
 interface AuthResponse {
   token: string;
@@ -30,7 +30,7 @@ export class UserRepository implements IUserRepository {
       if (!userData) return null;
 
       const user = JSON.parse(userData);
-      
+
       // Convert date strings to Date objects
       return {
         ...user,
@@ -83,10 +83,10 @@ export class UserRepository implements IUserRepository {
       throw new Error('No user logged in');
     }
 
-    const updatedUser = { ...currentUser, ...updates };
+    const updatedUser = {...currentUser, ...updates};
     await AsyncStorage.setItem(
       this.CURRENT_USER_KEY,
-      JSON.stringify(updatedUser)
+      JSON.stringify(updatedUser),
     );
 
     return updatedUser;
@@ -95,15 +95,18 @@ export class UserRepository implements IUserRepository {
   async createUser(
     email: string,
     password: string,
-    userData: Partial<User>
+    userData: Partial<User>,
   ): Promise<User> {
     try {
-      const response = await apiClient.post<AuthResponse>('/api/auth/register', {
-        email,
-        password,
-        name: userData.name || '',
-        bio: userData.bio || '',
-      });
+      const response = await apiClient.post<AuthResponse>(
+        '/api/auth/register',
+        {
+          email,
+          password,
+          name: userData.name || '',
+          bio: userData.bio || '',
+        },
+      );
 
       // Save token
       await AsyncStorage.setItem(this.TOKEN_KEY, response.token);
@@ -199,9 +202,9 @@ export class UserRepository implements IUserRepository {
           last_active: string;
         };
       }
-      
+
       const response = await apiClient.get<MeResponse>('/api/auth/me');
-      
+
       const user: User = {
         id: response.user.id,
         email: response.user.email,
@@ -227,4 +230,3 @@ export class UserRepository implements IUserRepository {
     }
   }
 }
-

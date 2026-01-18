@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -10,8 +10,8 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import { theme } from '../theme/theme';
-import { Message, MessageStatus } from '../../domain/entities/Message';
+import {theme} from '../theme/theme';
+import {Message} from '../../domain/entities/Message';
 
 interface ConversationScreenProps {
   conversationId: string;
@@ -48,15 +48,16 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   // Load initial messages
   useEffect(() => {
     loadInitialMessages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId]);
 
   // Subscribe to new messages
   useEffect(() => {
-    const unsubscribe = onSubscribe((newMessage) => {
-      setMessages((prev) => [newMessage, ...prev]);
+    const unsubscribe = onSubscribe(newMessage => {
+      setMessages(prev => [newMessage, ...prev]);
       // Auto-scroll to bottom for new messages
       setTimeout(() => {
-        flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+        flatListRef.current?.scrollToOffset({offset: 0, animated: true});
       }, 100);
     });
 
@@ -83,7 +84,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
     setLoadingMore(true);
     try {
       const result = await onLoadMessages(cursor);
-      setMessages((prev) => [...prev, ...result.messages]);
+      setMessages(prev => [...prev, ...result.messages]);
       setHasMore(result.hasMore);
       setCursor(result.nextCursor);
     } catch (error) {
@@ -108,7 +109,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
     }
   };
 
-  const renderMessage = ({ item }: { item: Message }) => {
+  const renderMessage = ({item}: {item: Message}) => {
     const isOwn = item.senderId === 'current_user'; // In production, check against actual user ID
 
     return (
@@ -173,7 +174,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
         ref={flatListRef}
         data={messages}
         renderItem={renderMessage}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
         inverted
         contentContainerStyle={styles.messageList}
         onEndReached={loadMoreMessages}
@@ -192,7 +193,10 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
           maxLength={1000}
         />
         <TouchableOpacity
-          style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
+          style={[
+            styles.sendButton,
+            !inputText.trim() && styles.sendButtonDisabled,
+          ]}
           onPress={handleSend}
           disabled={!inputText.trim()}>
           <Text style={styles.sendButtonText}>Send</Text>
@@ -268,7 +272,8 @@ const styles = StyleSheet.create({
   },
   messageText: {
     fontSize: theme.typography.fontSize.md,
-    lineHeight: theme.typography.lineHeight.normal * theme.typography.fontSize.md,
+    lineHeight:
+      theme.typography.lineHeight.normal * theme.typography.fontSize.md,
   },
   ownText: {
     color: theme.colors.surface,

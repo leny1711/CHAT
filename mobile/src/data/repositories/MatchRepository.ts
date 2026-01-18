@@ -1,6 +1,11 @@
-import { Match, Like, DiscoveryProfile, MatchStatus } from '../../domain/entities/Match';
-import { IMatchRepository } from '../../domain/repositories/IMatchRepository';
-import { apiClient } from '../../infrastructure/api/client';
+import {
+  Match,
+  Like,
+  DiscoveryProfile,
+  MatchStatus,
+} from '../../domain/entities/Match';
+import {IMatchRepository} from '../../domain/repositories/IMatchRepository';
+import {apiClient} from '../../infrastructure/api/client';
 
 interface MatchResponse {
   matched: boolean;
@@ -40,7 +45,7 @@ export class MatchRepository implements IMatchRepository {
   async getDiscoveryProfiles(limit: number = 10): Promise<DiscoveryProfile[]> {
     try {
       const response = await apiClient.get<DiscoveryResponse>(
-        `/api/matches/discovery?limit=${limit}`
+        `/api/matches/discovery?limit=${limit}`,
       );
 
       return response.profiles.map(profile => ({
@@ -58,9 +63,12 @@ export class MatchRepository implements IMatchRepository {
 
   async likeUser(userId: string): Promise<Like> {
     try {
-      const response = await apiClient.post<MatchResponse>('/api/matches/like', {
-        targetUserId: userId,
-      });
+      const response = await apiClient.post<MatchResponse>(
+        '/api/matches/like',
+        {
+          targetUserId: userId,
+        },
+      );
 
       const like: Like = {
         id: `like_${Date.now()}`,
@@ -114,10 +122,9 @@ export class MatchRepository implements IMatchRepository {
     return matches.find(m => m.id === matchId) || null;
   }
 
-  async checkMatch(userId1: string, userId2: string): Promise<Match | null> {
+  async checkMatch(_userId1: string, _userId2: string): Promise<Match | null> {
     // This is handled automatically by the backend when users like each other
     // We just return null here as this method is not needed with the backend
     return null;
   }
 }
-

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -7,8 +7,8 @@ import {
   ActivityIndicator,
   Animated,
 } from 'react-native';
-import { theme } from '../theme/theme';
-import { DiscoveryProfile } from '../../domain/entities/Match';
+import {theme} from '../theme/theme';
+import {DiscoveryProfile} from '../../domain/entities/Match';
 
 interface DiscoveryScreenProps {
   onLike: (userId: string) => Promise<void>;
@@ -29,6 +29,7 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
 
   useEffect(() => {
     loadProfiles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadProfiles = async () => {
@@ -117,7 +118,7 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
         <Text style={styles.headerSubtitle}>Take your time</Text>
       </View>
 
-      <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
+      <Animated.View style={[styles.card, {opacity: fadeAnim}]}>
         <View style={styles.photoPlaceholder}>
           <Text style={styles.photoPlaceholderText}>
             Photo reveals through conversation
@@ -125,9 +126,7 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
         </View>
 
         <View style={styles.profileInfo}>
-          <Text style={styles.name}>
-            {currentProfile.name}
-          </Text>
+          <Text style={styles.name}>{currentProfile.name}</Text>
           <Text style={styles.bio}>{currentProfile.bio}</Text>
         </View>
       </Animated.View>
@@ -137,14 +136,18 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
           style={[styles.actionButton, styles.passButton]}
           onPress={() => handleAction('pass')}
           disabled={actionLoading}>
-          <Text style={[styles.actionButtonText, styles.passButtonText]}>Pass</Text>
+          <Text style={[styles.actionButtonText, styles.passButtonText]}>
+            Pass
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.actionButton, styles.likeButton]}
           onPress={() => handleAction('like')}
           disabled={actionLoading}>
-          <Text style={[styles.actionButtonText, styles.likeButtonText]}>Like</Text>
+          <Text style={[styles.actionButtonText, styles.likeButtonText]}>
+            Like
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -214,7 +217,8 @@ const styles = StyleSheet.create({
   bio: {
     fontSize: theme.typography.fontSize.md,
     color: theme.colors.textSecondary,
-    lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
+    lineHeight:
+      theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
   },
   actions: {
     flexDirection: 'row',

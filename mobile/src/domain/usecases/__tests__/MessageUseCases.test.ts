@@ -1,6 +1,11 @@
-import { SendMessageUseCase, GetMessagesUseCase } from '../MessageUseCases';
-import { IMessageRepository } from '../../repositories/IMessageRepository';
-import { Message, MessageStatus, MessageType, MessagePage } from '../../entities/Message';
+import {SendMessageUseCase, GetMessagesUseCase} from '../MessageUseCases';
+import {IMessageRepository} from '../../repositories/IMessageRepository';
+import {
+  Message,
+  MessageStatus,
+  MessageType,
+  MessagePage,
+} from '../../entities/Message';
 
 // Mock repository
 class MockMessageRepository implements IMessageRepository {
@@ -14,8 +19,14 @@ class MockMessageRepository implements IMessageRepository {
     return null;
   }
 
-  async getMessages(conversationId: string, limit = 50, cursor?: string): Promise<MessagePage> {
-    const messages = this.messages.filter(m => m.conversationId === conversationId);
+  async getMessages(
+    conversationId: string,
+    limit = 50,
+    _cursor?: string,
+  ): Promise<MessagePage> {
+    const messages = this.messages.filter(
+      m => m.conversationId === conversationId,
+    );
     return {
       messages: messages.slice(0, limit),
       hasMore: messages.length > limit,
@@ -45,7 +56,8 @@ class MockMessageRepository implements IMessageRepository {
   }
 
   async getMessageCount(conversationId: string): Promise<number> {
-    return this.messages.filter(m => m.conversationId === conversationId).length;
+    return this.messages.filter(m => m.conversationId === conversationId)
+      .length;
   }
 
   // Helper for tests
@@ -73,7 +85,7 @@ describe('MessageUseCases', () => {
       const useCase = new SendMessageUseCase(mockRepo);
 
       await expect(useCase.execute('conv1', '   ')).rejects.toThrow(
-        'Message content cannot be empty'
+        'Message content cannot be empty',
       );
     });
   });
@@ -81,7 +93,7 @@ describe('MessageUseCases', () => {
   describe('GetMessagesUseCase', () => {
     it('should get messages with pagination', async () => {
       const mockRepo = new MockMessageRepository();
-      
+
       // Add test messages
       for (let i = 0; i < 100; i++) {
         mockRepo.addMessage({

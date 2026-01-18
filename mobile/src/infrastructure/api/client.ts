@@ -1,4 +1,4 @@
-import { API_CONFIG } from './config';
+import {API_CONFIG} from './config';
 
 export class ApiClient {
   private token: string | null = null;
@@ -7,15 +7,12 @@ export class ApiClient {
     this.token = token;
   }
 
-  async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
+  async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${API_CONFIG.BASE_URL}${endpoint}`;
-    
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers as Record<string, string>,
+      ...(options.headers as Record<string, string>),
     };
 
     if (this.token) {
@@ -51,7 +48,7 @@ export class ApiClient {
   }
 
   async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'GET' });
+    return this.request<T>(endpoint, {method: 'GET'});
   }
 
   async post<T>(endpoint: string, data?: any): Promise<T> {
@@ -69,7 +66,7 @@ export class ApiClient {
   }
 
   async delete<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'DELETE' });
+    return this.request<T>(endpoint, {method: 'DELETE'});
   }
 }
 

@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import { theme } from '../theme/theme';
-import { User } from '../../domain/entities/User';
+import {theme} from '../theme/theme';
+import {User} from '../../domain/entities/User';
 
 interface SettingsScreenProps {
   user: User | null;
@@ -29,9 +29,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         <View style={styles.section}>
           <View style={styles.profileCard}>
             <Text style={styles.profileName}>{user.name}</Text>
-            {user.bio && (
-              <Text style={styles.profileBio}>{user.bio}</Text>
-            )}
+            {user.bio && <Text style={styles.profileBio}>{user.bio}</Text>}
           </View>
         </View>
       )}
@@ -105,7 +103,8 @@ const styles = StyleSheet.create({
   profileBio: {
     fontSize: theme.typography.fontSize.md,
     color: theme.colors.text,
-    lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
+    lineHeight:
+      theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
     marginTop: theme.spacing.sm,
   },
   infoCard: {
@@ -117,7 +116,8 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: theme.typography.fontSize.md,
     color: theme.colors.textSecondary,
-    lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
+    lineHeight:
+      theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
   },
   button: {
     backgroundColor: theme.colors.primary,

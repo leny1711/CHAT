@@ -1,5 +1,5 @@
-import { IUserRepository } from '../repositories/IUserRepository';
-import { User } from '../entities/User';
+import {IUserRepository} from '../repositories/IUserRepository';
+import {User} from '../entities/User';
 
 /**
  * Use case for user authentication
@@ -21,7 +21,7 @@ export class RegisterUseCase {
   async execute(
     email: string,
     password: string,
-    userData: Partial<User>
+    userData: Partial<User>,
   ): Promise<User> {
     return this.userRepository.createUser(email, password, userData);
   }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -10,10 +10,15 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
-import { theme } from '../theme/theme';
+import {theme} from '../theme/theme';
 
 interface RegisterScreenProps {
-  onRegister: (email: string, password: string, name: string, bio: string) => Promise<void>;
+  onRegister: (
+    email: string,
+    password: string,
+    name: string,
+    bio: string,
+  ) => Promise<void>;
   onNavigateToLogin: () => void;
 }
 
@@ -159,7 +164,8 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     textAlign: 'center',
     marginBottom: theme.spacing.xl,
-    lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
+    lineHeight:
+      theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
   },
   form: {
     gap: theme.spacing.md,

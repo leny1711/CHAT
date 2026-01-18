@@ -1,4 +1,4 @@
-import { Match, Like, DiscoveryProfile } from '../entities/Match';
+import {Match, Like, DiscoveryProfile} from '../entities/Match';
 
 /**
  * Repository interface for discovery and matching

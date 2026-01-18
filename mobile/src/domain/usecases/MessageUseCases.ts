@@ -1,5 +1,5 @@
-import { IMessageRepository } from '../repositories/IMessageRepository';
-import { Message, MessagePage, Conversation } from '../entities/Message';
+import {IMessageRepository} from '../repositories/IMessageRepository';
+import {Message, MessagePage, Conversation} from '../entities/Message';
 
 /**
  * Use case for getting conversations
@@ -22,7 +22,7 @@ export class GetMessagesUseCase {
   async execute(
     conversationId: string,
     limit: number = 50,
-    cursor?: string
+    cursor?: string,
   ): Promise<MessagePage> {
     return this.messageRepository.getMessages(conversationId, limit, cursor);
   }
@@ -61,11 +61,11 @@ export class SubscribeToConversationUseCase {
 
   execute(
     conversationId: string,
-    callback: (message: Message) => void
+    callback: (message: Message) => void,
   ): () => void {
     return this.messageRepository.subscribeToConversation(
       conversationId,
-      callback
+      callback,
     );
   }
 }
