@@ -12,33 +12,39 @@ This is NOT a classic dating app. The experience prioritizes:
 - **Progressive content reveal** - Photos unlock through meaningful interaction
 - **Long-term stability** - Designed to handle infinite message history
 
-## 🏗️ Architecture
+## 🏗️ Project Structure
 
-The application follows **Clean Architecture** principles with clear separation of concerns:
+This is a monorepo containing:
+- `mobile/` - React Native CLI application (Android + iOS)
+- `backend/` - Node.js/Express backend with SQLite
+- `docs/` - Additional documentation
 
-### Mobile App Structure
+The application follows **Clean Architecture** principles with clear separation of concerns.
 
-> React Native CLI app lives in `/mobile` (Android + iOS).
-> Quick commands from repo root:
-> - `cd mobile && npm install`
-> - `npx react-native start`
-> - `npx react-native run-android`
+### Mobile App (React Native CLI)
+
+The React Native application lives in the `mobile/` directory with all its code properly organized:
 
 ```
-src/
-├── domain/              # Business logic layer (framework-independent)
-│   ├── entities/        # Core business entities
-│   ├── repositories/    # Repository interfaces
-│   └── usecases/        # Application business rules
-├── data/                # Data layer
-│   └── repositories/    # Repository implementations (API integration)
-├── presentation/        # UI layer
-│   ├── screens/         # Screen components
-│   ├── components/      # Reusable UI components
-│   ├── navigation/      # Navigation configuration
-│   └── theme/           # Design system
-└── infrastructure/      # External interfaces
-    └── api/             # API client & WebSocket
+mobile/
+├── android/             # Android native code
+├── ios/                 # iOS native code
+├── src/                 # Application source code
+│   ├── domain/          # Business logic layer (framework-independent)
+│   │   ├── entities/    # Core business entities
+│   │   ├── repositories/# Repository interfaces
+│   │   └── usecases/    # Application business rules
+│   ├── data/            # Data layer
+│   │   └── repositories/# Repository implementations (API integration)
+│   ├── presentation/    # UI layer
+│   │   ├── screens/     # Screen components
+│   │   ├── navigation/  # Navigation configuration
+│   │   └── theme/       # Design system
+│   └── infrastructure/  # External interfaces
+│       └── api/         # API client & WebSocket
+├── App.tsx              # Application entry point
+├── index.js             # React Native entry
+└── package.json         # Mobile dependencies
 ```
 
 ### Backend Structure
@@ -150,16 +156,17 @@ The UI follows a **book-like, intimate aesthetic**:
 git clone https://github.com/leny1711/CHAT.git
 cd CHAT
 
-# Install mobile app dependencies
-npm install
-
-# iOS only - Install pods
-cd ios && pod install && cd ..
-
 # Install backend dependencies
 cd backend
 npm install
 cd ..
+
+# Install mobile app dependencies
+cd mobile
+npm install
+
+# iOS only - Install pods
+cd ios && pod install && cd ../..
 ```
 
 ### Running the Application
@@ -182,34 +189,30 @@ The backend will start on http://localhost:3000
 #### Start the Mobile App
 
 ```bash
-# In a new terminal, navigate to project root
-cd CHAT
+# In a new terminal, navigate to mobile directory
+cd mobile
 
 # Start Metro bundler
-npm start
+npx react-native start
 
-# Run on iOS (in another terminal)
-npm run ios
-
-# Run on Android (in another terminal)
-npm run android
+# In another terminal, run on Android
+cd mobile
+npx react-native run-android
 ```
 
-**Important**: For Android emulator, update `src/infrastructure/api/config.ts` to use `http://10.0.2.2:3000` instead of `localhost`.
+**Important**: For Android emulator, update `mobile/src/infrastructure/api/config.ts` to use `http://10.0.2.2:3000` instead of `localhost`.
 
 For physical devices, use your computer's IP address (e.g., `http://192.168.1.100:3000`).
 
 ### Development
 
 ```bash
-# Run tests
+# Run tests (from mobile directory)
+cd mobile
 npm test
 
 # Lint code
 npm run lint
-
-# Format code
-npm run format
 ```
 
 ## 📐 Technical Decisions
