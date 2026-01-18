@@ -1,0 +1,130 @@
+import {
+  Match,
+  Like,
+  DiscoveryProfile,
+  MatchStatus,
+} from '../../domain/entities/Match';
+import {IMatchRepository} from '../../domain/repositories/IMatchRepository';
+import {apiClient} from '../../infrastructure/api/client';
+
+interface MatchResponse {
+  matched: boolean;
+  matchId?: string;
+}
+
+interface DiscoveryResponse {
+  profiles: Array<{
+    id: string;
+    name: string;
+    age: number;
+    bio: string;
+  }>;
+}
+
+interface MatchesResponse {
+  matches: Array<{
+    id: string;
+    user_id_1: string;
+    user_id_2: string;
+    created_at: string;
+    status: string;
+    conversationId: string;
+    otherUser: {
+      id: string;
+      name: string;
+      age: number;
+      bio: string;
+    };
+  }>;
+}
+
+/**
+ * Match Repository with real backend API integration
+ */
+export class MatchRepository implements IMatchRepository {
+  async getDiscoveryProfiles(limit: number = 10): Promise<DiscoveryProfile[]> {
+    try {
+      const response = await apiClient.get<DiscoveryResponse>(
+        `/api/matches/discovery?limit=${limit}`,
+      );
+
+      return response.profiles.map(profile => ({
+        userId: profile.id,
+        name: profile.name,
+        age: profile.age,
+        bio: profile.bio,
+        previewPhoto: undefined,
+      }));
+    } catch (error) {
+      console.error('Error getting discovery profiles:', error);
+      return [];
+    }
+  }
+
+  async likeUser(userId: string): Promise<Like> {
+    try {
+      const response = await apiClient.post<MatchResponse>(
+        '/api/matches/like',
+        {
+          targetUserId: userId,
+        },
+      );
+
+      const like: Like = {
+        id: `like_${Date.now()}`,
+        fromUserId: 'current_user', // This would come from auth context
+        toUserId: userId,
+        createdAt: new Date(),
+      };
+
+      // If matched, you might want to handle this differently
+      if (response.matched) {
+        console.log('Match created!', response.matchId);
+      }
+
+      return like;
+    } catch (error) {
+      console.error('Error liking user:', error);
+      throw error;
+    }
+  }
+
+  async passUser(userId: string): Promise<void> {
+    try {
+      await apiClient.post('/api/matches/pass', {
+        targetUserId: userId,
+      });
+    } catch (error) {
+      console.error('Error passing user:', error);
+      // Don't throw - passing is not critical
+    }
+  }
+
+  async getMatches(): Promise<Match[]> {
+    try {
+      const response = await apiClient.get<MatchesResponse>('/api/matches');
+
+      return response.matches.map(match => ({
+        id: match.id,
+        userIds: [match.user_id_1, match.user_id_2] as [string, string],
+        createdAt: new Date(match.created_at),
+        conversationId: match.conversationId,
+        status: match.status as MatchStatus,
+      }));
+    } catch (error) {
+      console.error('Error getting matches:', error);
+      return [];
+    }
+  }
+
+  async getMatch(matchId: string): Promise<Match | null> {
+    const matches = await this.getMatches();
+    return matches.find(m => m.id === matchId) || null;
+  }
+
+  async checkMatch(_userId1: string, _userId2: string): Promise<Match | null> {
+    // This is handled automatically by the backend when users like each other
+    // We just return null here as this method is not needed with the backend
+    return null;
+  }
+}
