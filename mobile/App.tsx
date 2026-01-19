@@ -1,6 +1,6 @@
 /**
  * Minimal Dating App Core
- * 
+ *
  * Simple state-based navigation without external libraries
  * No animations, no complex navigation, just the essentials
  */
@@ -25,7 +25,6 @@ import {InMemoryMatchRepository} from './src/data/repositories/InMemoryMatchRepo
 import {
   LoginUseCase,
   RegisterUseCase,
-  GetCurrentUserUseCase,
   LogoutUseCase,
 } from './src/domain/usecases/AuthUseCases';
 import {
@@ -52,7 +51,6 @@ const matchRepository = new InMemoryMatchRepository();
 // Initialize use cases
 const loginUseCase = new LoginUseCase(userRepository);
 const registerUseCase = new RegisterUseCase(userRepository);
-const getCurrentUserUseCase = new GetCurrentUserUseCase(userRepository);
 const logoutUseCase = new LogoutUseCase(userRepository);
 
 const getMessagesUseCase = new GetMessagesUseCase(messageRepository);
@@ -82,41 +80,46 @@ interface ConversationParams {
   otherUserName: string;
 }
 
+interface TabBarProps {
+  currentScreen: Screen;
+  onNavigate: (screen: Screen) => void;
+}
+
+// Simple tab bar for main screens
+const TabBar: React.FC<TabBarProps> = ({currentScreen, onNavigate}) => (
+  <View style={styles.tabBar}>
+    <Text
+      style={[
+        styles.tabItem,
+        currentScreen === 'Discovery' && styles.tabItemActive,
+      ]}
+      onPress={() => onNavigate('Discovery')}>
+      Discovery
+    </Text>
+    <Text
+      style={[
+        styles.tabItem,
+        currentScreen === 'Matches' && styles.tabItemActive,
+      ]}
+      onPress={() => onNavigate('Matches')}>
+      Matches
+    </Text>
+    <Text
+      style={[
+        styles.tabItem,
+        currentScreen === 'Profile' && styles.tabItemActive,
+      ]}
+      onPress={() => onNavigate('Profile')}>
+      Profile
+    </Text>
+  </View>
+);
+
 function App(): React.JSX.Element {
   const [currentScreen, setCurrentScreen] = useState<Screen>('Login');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [conversationParams, setConversationParams] =
     useState<ConversationParams | null>(null);
-
-  // Simple tab bar for main screens
-  const TabBar = () => (
-    <View style={styles.tabBar}>
-      <Text
-        style={[
-          styles.tabItem,
-          currentScreen === 'Discovery' && styles.tabItemActive,
-        ]}
-        onPress={() => setCurrentScreen('Discovery')}>
-        Discovery
-      </Text>
-      <Text
-        style={[
-          styles.tabItem,
-          currentScreen === 'Matches' && styles.tabItemActive,
-        ]}
-        onPress={() => setCurrentScreen('Matches')}>
-        Matches
-      </Text>
-      <Text
-        style={[
-          styles.tabItem,
-          currentScreen === 'Profile' && styles.tabItemActive,
-        ]}
-        onPress={() => setCurrentScreen('Profile')}>
-        Profile
-      </Text>
-    </View>
-  );
 
   const handleLogin = async (email: string, password: string) => {
     const user = await loginUseCase.execute(email, password);
@@ -190,7 +193,10 @@ function App(): React.JSX.Element {
                 return getDiscoveryProfilesUseCase.execute();
               }}
             />
-            <TabBar />
+            <TabBar
+              currentScreen={currentScreen}
+              onNavigate={setCurrentScreen}
+            />
           </>
         );
 
@@ -203,7 +209,10 @@ function App(): React.JSX.Element {
               }}
               onSelectMatch={handleSelectMatch}
             />
-            <TabBar />
+            <TabBar
+              currentScreen={currentScreen}
+              onNavigate={setCurrentScreen}
+            />
           </>
         );
 
@@ -211,7 +220,10 @@ function App(): React.JSX.Element {
         return (
           <>
             <SettingsScreen user={currentUser} onLogout={handleLogout} />
-            <TabBar />
+            <TabBar
+              currentScreen={currentScreen}
+              onNavigate={setCurrentScreen}
+            />
           </>
         );
 
@@ -254,7 +266,10 @@ function App(): React.JSX.Element {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={theme.colors.background}
+      />
       {renderScreen()}
     </SafeAreaView>
   );

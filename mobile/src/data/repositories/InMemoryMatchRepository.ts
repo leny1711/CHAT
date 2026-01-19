@@ -1,4 +1,9 @@
-import {Match, DiscoveryProfile} from '../../domain/entities/Match';
+import {
+  Match,
+  Like,
+  DiscoveryProfile,
+  MatchStatus,
+} from '../../domain/entities/Match';
 import {IMatchRepository} from '../../domain/repositories/IMatchRepository';
 
 /**
@@ -6,9 +11,10 @@ import {IMatchRepository} from '../../domain/repositories/IMatchRepository';
  */
 export class InMemoryMatchRepository implements IMatchRepository {
   private matches: Map<string, Match> = new Map();
-  private likes: Map<string, Set<string>> = new Map(); // userId -> Set of liked user IDs
+  private likes: Map<string, Map<string, Like>> = new Map(); // fromUserId -> toUserId -> Like
   private passes: Map<string, Set<string>> = new Map(); // userId -> Set of passed user IDs
   private nextMatchId = 1;
+  private nextLikeId = 1;
   private currentUserId: string | null = null;
 
   // Mock discovery profiles
@@ -39,27 +45,40 @@ export class InMemoryMatchRepository implements IMatchRepository {
     this.currentUserId = userId;
   }
 
-  async getDiscoveryProfiles(): Promise<DiscoveryProfile[]> {
-    if (!this.currentUserId) return [];
+  async getDiscoveryProfiles(_limit?: number): Promise<DiscoveryProfile[]> {
+    if (!this.currentUserId) {
+      return [];
+    }
 
-    const userLikes = this.likes.get(this.currentUserId) || new Set();
+    const userLikes = this.likes.get(this.currentUserId);
     const userPasses = this.passes.get(this.currentUserId) || new Set();
 
     // Filter out already liked/passed profiles
-    return this.mockProfiles.filter(
-      profile =>
-        !userLikes.has(profile.userId) && !userPasses.has(profile.userId),
-    );
+    return this.mockProfiles.filter(profile => {
+      const hasLiked = userLikes && userLikes.has(profile.userId);
+      const hasPassed = userPasses.has(profile.userId);
+      return !hasLiked && !hasPassed;
+    });
   }
 
-  async likeUser(targetUserId: string): Promise<Match | null> {
-    if (!this.currentUserId) return null;
-
-    // Add to likes
-    if (!this.likes.has(this.currentUserId)) {
-      this.likes.set(this.currentUserId, new Set());
+  async likeUser(targetUserId: string): Promise<Like> {
+    if (!this.currentUserId) {
+      throw new Error('No user logged in');
     }
-    this.likes.get(this.currentUserId)!.add(targetUserId);
+
+    // Create like
+    const like: Like = {
+      id: `like_${this.nextLikeId++}`,
+      fromUserId: this.currentUserId,
+      toUserId: targetUserId,
+      createdAt: new Date(),
+    };
+
+    // Store like
+    if (!this.likes.has(this.currentUserId)) {
+      this.likes.set(this.currentUserId, new Map());
+    }
+    this.likes.get(this.currentUserId)!.set(targetUserId, like);
 
     // Check if it's a mutual match
     const targetLikes = this.likes.get(targetUserId);
@@ -71,17 +90,19 @@ export class InMemoryMatchRepository implements IMatchRepository {
         userIds: [this.currentUserId, targetUserId],
         conversationId: `conv_${matchId}`,
         createdAt: new Date(),
+        status: MatchStatus.ACTIVE,
       };
 
       this.matches.set(matchId, match);
-      return match;
     }
 
-    return null;
+    return like;
   }
 
   async passUser(targetUserId: string): Promise<void> {
-    if (!this.currentUserId) return;
+    if (!this.currentUserId) {
+      return;
+    }
 
     if (!this.passes.has(this.currentUserId)) {
       this.passes.set(this.currentUserId, new Set());
@@ -90,14 +111,25 @@ export class InMemoryMatchRepository implements IMatchRepository {
   }
 
   async getMatches(): Promise<Match[]> {
-    if (!this.currentUserId) return [];
+    if (!this.currentUserId) {
+      return [];
+    }
 
     return Array.from(this.matches.values()).filter(match =>
       match.userIds.includes(this.currentUserId!),
     );
   }
 
-  async getMatchById(matchId: string): Promise<Match | null> {
+  async getMatch(matchId: string): Promise<Match | null> {
     return this.matches.get(matchId) || null;
+  }
+
+  async checkMatch(userId1: string, userId2: string): Promise<Match | null> {
+    return (
+      Array.from(this.matches.values()).find(
+        match =>
+          match.userIds.includes(userId1) && match.userIds.includes(userId2),
+      ) || null
+    );
   }
 }

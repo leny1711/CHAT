@@ -27,7 +27,9 @@ export class UserRepository implements IUserRepository {
   async getCurrentUser(): Promise<User | null> {
     try {
       const userData = await AsyncStorage.getItem(this.CURRENT_USER_KEY);
-      if (!userData) return null;
+      if (!userData) {
+        return null;
+      }
 
       const user = JSON.parse(userData);
 
@@ -60,7 +62,9 @@ export class UserRepository implements IUserRepository {
 
   async getProfile(userId: string): Promise<Profile | null> {
     const user = await this.getUserById(userId);
-    if (!user) return null;
+    if (!user) {
+      return null;
+    }
 
     return {
       userId: user.id,
@@ -186,7 +190,9 @@ export class UserRepository implements IUserRepository {
   async initializeAuth(): Promise<User | null> {
     try {
       const token = await AsyncStorage.getItem(this.TOKEN_KEY);
-      if (!token) return null;
+      if (!token) {
+        return null;
+      }
 
       apiClient.setToken(token);
 

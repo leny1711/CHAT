@@ -48,7 +48,9 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
   const currentProfile = profiles[currentIndex];
 
   const handleAction = async (action: 'like' | 'pass') => {
-    if (!currentProfile || actionLoading) return;
+    if (!currentProfile || actionLoading) {
+      return;
+    }
 
     setActionLoading(true);
 

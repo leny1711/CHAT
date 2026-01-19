@@ -1,4 +1,10 @@
-import {Message} from '../../domain/entities/Message';
+import {
+  Message,
+  MessagePage,
+  MessageStatus,
+  MessageType,
+  Conversation,
+} from '../../domain/entities/Message';
 import {IMessageRepository} from '../../domain/repositories/IMessageRepository';
 
 /**
@@ -7,24 +13,28 @@ import {IMessageRepository} from '../../domain/repositories/IMessageRepository';
  */
 export class InMemoryMessageRepository implements IMessageRepository {
   private messages: Map<string, Message[]> = new Map(); // conversationId -> messages
+  private conversations: Map<string, Conversation> = new Map();
   private nextMessageId = 1;
   private currentUserId: string | null = null;
-  private subscribers: Map<string, Set<(message: Message) => void>> =
-    new Map();
+  private subscribers: Map<string, Set<(message: Message) => void>> = new Map();
 
   setCurrentUser(userId: string | null) {
     this.currentUserId = userId;
+  }
+
+  async getConversations(): Promise<Conversation[]> {
+    return Array.from(this.conversations.values());
+  }
+
+  async getConversation(conversationId: string): Promise<Conversation | null> {
+    return this.conversations.get(conversationId) || null;
   }
 
   async getMessages(
     conversationId: string,
     limit: number = 50,
     cursor?: string,
-  ): Promise<{
-    messages: Message[];
-    hasMore: boolean;
-    nextCursor?: string;
-  }> {
+  ): Promise<MessagePage> {
     const allMessages = this.messages.get(conversationId) || [];
 
     // Sort by date descending (newest first)
@@ -42,13 +52,15 @@ export class InMemoryMessageRepository implements IMessageRepository {
     const hasMore = startIndex + limit < sorted.length;
     const nextCursor = hasMore ? String(startIndex + limit) : undefined;
 
-    return {messages, hasMore, nextCursor};
+    return {
+      messages,
+      hasMore,
+      nextCursor,
+      totalCount: sorted.length,
+    };
   }
 
-  async sendMessage(
-    conversationId: string,
-    content: string,
-  ): Promise<Message> {
+  async sendMessage(conversationId: string, content: string): Promise<Message> {
     if (!this.currentUserId) {
       throw new Error('No user logged in');
     }
@@ -59,7 +71,8 @@ export class InMemoryMessageRepository implements IMessageRepository {
       senderId: this.currentUserId,
       content,
       createdAt: new Date(),
-      status: 'sent',
+      status: MessageStatus.SENT,
+      type: MessageType.TEXT,
     };
 
     // Add to conversation
@@ -67,6 +80,13 @@ export class InMemoryMessageRepository implements IMessageRepository {
       this.messages.set(conversationId, []);
     }
     this.messages.get(conversationId)!.push(message);
+
+    // Update conversation
+    const conversation = this.conversations.get(conversationId);
+    if (conversation) {
+      conversation.lastMessageAt = message.createdAt;
+      conversation.lastMessage = message;
+    }
 
     // Notify subscribers
     const conversationSubscribers = this.subscribers.get(conversationId);
@@ -77,10 +97,18 @@ export class InMemoryMessageRepository implements IMessageRepository {
     return message;
   }
 
-  async subscribeToConversation(
+  async markAsRead(
+    _conversationId: string,
+    _messageIds: string[],
+  ): Promise<void> {
+    // Simple implementation - just acknowledge
+    return Promise.resolve();
+  }
+
+  subscribeToConversation(
     conversationId: string,
     callback: (message: Message) => void,
-  ): Promise<() => void> {
+  ): () => void {
     if (!this.subscribers.has(conversationId)) {
       this.subscribers.set(conversationId, new Set());
     }
@@ -94,5 +122,10 @@ export class InMemoryMessageRepository implements IMessageRepository {
         conversationSubscribers.delete(callback);
       }
     };
+  }
+
+  async getMessageCount(conversationId: string): Promise<number> {
+    const messages = this.messages.get(conversationId) || [];
+    return messages.length;
   }
 }

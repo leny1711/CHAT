@@ -20,7 +20,9 @@ export class InMemoryUserRepository implements IUserRepository {
 
   async getProfile(userId: string): Promise<Profile | null> {
     const user = await this.getUserById(userId);
-    if (!user) return null;
+    if (!user) {
+      return null;
+    }
 
     return {
       userId: user.id,
@@ -71,9 +73,9 @@ export class InMemoryUserRepository implements IUserRepository {
     return user;
   }
 
-  async login(email: string, password: string): Promise<User> {
+  async login(_email: string, _password: string): Promise<User> {
     // Simple in-memory login - find user by email
-    const user = Array.from(this.users.values()).find(u => u.email === email);
+    const user = Array.from(this.users.values()).find(u => u.email === _email);
 
     if (!user) {
       throw new Error('User not found');

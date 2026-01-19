@@ -81,7 +81,9 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   };
 
   const loadMoreMessages = async () => {
-    if (!hasMore || loadingMore || !cursor) return;
+    if (!hasMore || loadingMore || !cursor) {
+      return;
+    }
 
     setLoadingMore(true);
     try {
@@ -97,7 +99,9 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   };
 
   const handleSend = async () => {
-    if (!inputText.trim()) return;
+    if (!inputText.trim()) {
+      return;
+    }
 
     const messageText = inputText.trim();
     setInputText('');
@@ -145,7 +149,9 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   };
 
   const renderFooter = () => {
-    if (!loadingMore) return null;
+    if (!loadingMore) {
+      return null;
+    }
     return (
       <View style={styles.loadingMore}>
         <ActivityIndicator size="small" color={theme.colors.primary} />
