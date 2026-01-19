@@ -1,79 +1,161 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Clean React Native CLI Mobile Application
 
-# Getting Started
+A **minimal, stable, and clean** React Native CLI project for Android development.
 
->**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
+## 🎯 Project Philosophy
 
-## Step 1: Start the Metro Server
+This project follows these principles:
+- **Stability over features** - Only essential dependencies
+- **Minimal setup** - No navigation, no animations, no extra libraries
+- **Clean foundation** - Ready for incremental feature additions
 
-First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
+## 📦 What's Included
 
-To start Metro, run the following command from the _root_ of your React Native project:
+- React Native 0.73.0 (CLI, not Expo)
+- Default React Native screen with simple UI
+- Android build configuration (Java 17)
+- Hermes JavaScript engine enabled
+
+## ❌ What's NOT Included
+
+This project explicitly avoids:
+- ❌ React Navigation
+- ❌ react-native-reanimated
+- ❌ react-native-gesture-handler
+- ❌ react-native-screens
+- ❌ AsyncStorage or other storage libraries
+- ❌ Any animation libraries
+- ❌ Any navigation libraries
+
+These can be added later if needed, one at a time, with careful consideration.
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+1. **Node.js 18+** installed
+2. **Java 17** (OpenJDK 17 recommended)
+3. **Android SDK** properly configured
+4. Set `ANDROID_HOME` environment variable
+5. A **real Android device** with USB debugging enabled (or Android emulator)
+
+### Installation
 
 ```bash
-# using npm
+# Install dependencies
+npm install
+```
+
+### Running the App
+
+#### Option 1: Using React Native CLI (Recommended)
+
+```bash
+# Start Metro bundler in one terminal
 npm start
 
-# OR using Yarn
-yarn start
-```
-
-## Step 2: Start your Application
-
-Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _root_ of your React Native project. Run the following command to start your _Android_ or _iOS_ app:
-
-### For Android
-
-```bash
-# using npm
+# In another terminal, build and run on Android
 npm run android
-
-# OR using Yarn
-yarn android
 ```
 
-### For iOS
+#### Option 2: Using Gradle directly
 
 ```bash
-# using npm
-npm run ios
+# Build the APK
+cd android
+./gradlew assembleDebug
 
-# OR using Yarn
-yarn ios
+# Install on connected device
+adb install app/build/outputs/apk/debug/app-debug.apk
 ```
 
-If everything is set up _correctly_, you should see your new app running in your _Android Emulator_ or _iOS Simulator_ shortly provided you have set up your emulator/simulator correctly.
+#### Option 3: Manual APK installation
 
-This is one way to run your app — you can also run it directly from within Android Studio and Xcode respectively.
+If you already built the APK, you can:
 
-## Step 3: Modifying your App
+1. Connect your Android device via USB
+2. Enable USB debugging on your device
+3. Copy the APK: `android/app/build/outputs/apk/debug/app-debug.apk`
+4. Install it: `adb install android/app/build/outputs/apk/debug/app-debug.apk`
 
-Now that you have successfully run the app, let's modify it.
+Or transfer the APK to your device and install it manually.
 
-1. Open `App.tsx` in your text editor of choice and edit some lines.
-2. For **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Developer Menu** (<kbd>Ctrl</kbd> + <kbd>M</kbd> (on Window and Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (on macOS)) to see your changes!
+### Development
 
-   For **iOS**: Hit <kbd>Cmd ⌘</kbd> + <kbd>R</kbd> in your iOS Simulator to reload the app and see your changes!
+Once the app is running:
 
-## Congratulations! :tada:
+1. Edit `App.tsx` to make changes
+2. Shake your device or press <kbd>Ctrl</kbd> + <kbd>M</kbd> to open the Developer Menu
+3. Select **"Reload"** to see your changes
 
-You've successfully run and modified your React Native App. :partying_face:
+## 📂 Project Structure
 
-### Now what?
+```
+mobile/
+├── android/           # Android native code
+├── App.tsx            # Main application component (simple, clean)
+├── index.js           # React Native entry point
+├── package.json       # Dependencies (minimal)
+└── babel.config.js    # Babel configuration (no plugins)
+```
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [Introduction to React Native](https://reactnative.dev/docs/getting-started).
+## ✅ Verification
 
-# Troubleshooting
+The app successfully:
+- ✅ Builds on Android without errors
+- ✅ Creates a working APK (52MB debug build)
+- ✅ Runs on real Android devices
+- ✅ Displays a clean default screen
+- ✅ Uses only React and React Native core dependencies
 
-If you can't get this to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+## 🔨 Building
 
-# Learn More
+```bash
+# Debug build
+cd android && ./gradlew assembleDebug
 
-To learn more about React Native, take a look at the following resources:
+# The APK will be at:
+# android/app/build/outputs/apk/debug/app-debug.apk
+```
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+## 📝 Next Steps
+
+Now that you have a stable foundation, you can:
+
+1. ✅ **Add features incrementally** - One dependency at a time
+2. ✅ **Test thoroughly** - Ensure each addition doesn't break the build
+3. ✅ **Keep it simple** - Only add what you actually need
+
+### Adding Features Later (Carefully)
+
+When you're ready to add features:
+
+- **Navigation**: Consider React Navigation or simple component switching
+- **Storage**: Add AsyncStorage only when needed
+- **Animations**: Only if required for UX, test thoroughly
+- **Backend**: Add API client libraries when connecting to services
+
+## 🛠️ Troubleshooting
+
+### Metro bundler issues
+```bash
+# Clear cache
+npm start -- --reset-cache
+```
+
+### Build issues
+```bash
+# Clean build
+cd android && ./gradlew clean
+```
+
+### Device not detected
+```bash
+# Check connected devices
+adb devices
+```
+
+## 📚 Learn More
+
+- [React Native Website](https://reactnative.dev) - Official documentation
+- [React Native Environment Setup](https://reactnative.dev/docs/environment-setup) - Setup guide
