@@ -115,8 +115,9 @@ export class InMemoryMatchRepository implements IMatchRepository {
       return [];
     }
 
+    const userId = this.currentUserId;
     return Array.from(this.matches.values()).filter(match =>
-      match.userIds.includes(this.currentUserId!),
+      match.userIds.includes(userId),
     );
   }
 
