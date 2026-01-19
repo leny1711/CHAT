@@ -23,6 +23,7 @@ interface ConversationScreenProps {
     nextCursor?: string;
   }>;
   onSubscribe: (callback: (message: Message) => void) => () => void;
+  onBack?: () => void;
 }
 
 /**
@@ -36,6 +37,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   onSendMessage,
   onLoadMessages,
   onSubscribe,
+  onBack,
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
@@ -166,8 +168,15 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{otherUserName}</Text>
-        <Text style={styles.headerSubtitle}>Private conversation</Text>
+        {onBack && (
+          <TouchableOpacity style={styles.backButton} onPress={onBack}>
+            <Text style={styles.backButtonText}>← Back</Text>
+          </TouchableOpacity>
+        )}
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>{otherUserName}</Text>
+          <Text style={styles.headerSubtitle}>Private conversation</Text>
+        </View>
       </View>
 
       <FlatList
@@ -230,6 +239,18 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
+  },
+  backButton: {
+    paddingVertical: theme.spacing.xs,
+    marginBottom: theme.spacing.xs,
+  },
+  backButtonText: {
+    fontSize: theme.typography.fontSize.md,
+    color: theme.colors.primary,
+    fontWeight: '500',
+  },
+  headerContent: {
+    // Empty for now, just a wrapper
   },
   headerTitle: {
     fontSize: theme.typography.fontSize.lg,

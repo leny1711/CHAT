@@ -1,108 +1,288 @@
 /**
- * Clean React Native CLI Application
+ * Minimal Dating App Core
  * 
- * A minimal, stable foundation for Android mobile development.
- * No navigation, no animations, no external dependencies.
+ * Simple state-based navigation without external libraries
+ * No animations, no complex navigation, just the essentials
  */
 
-import React from 'react';
+import React, {useState} from 'react';
+import {SafeAreaView, StatusBar, StyleSheet, View, Text} from 'react-native';
+
+// Screens
+import {LoginScreen} from './src/presentation/screens/LoginScreen';
+import {RegisterScreen} from './src/presentation/screens/RegisterScreen';
+import {SimpleDiscoveryScreen} from './src/presentation/screens/SimpleDiscoveryScreen';
+import {MatchesScreen} from './src/presentation/screens/MatchesScreen';
+import {ConversationScreen} from './src/presentation/screens/ConversationScreen';
+import {SettingsScreen} from './src/presentation/screens/SettingsScreen';
+
+// Repositories
+import {InMemoryUserRepository} from './src/data/repositories/InMemoryUserRepository';
+import {InMemoryMessageRepository} from './src/data/repositories/InMemoryMessageRepository';
+import {InMemoryMatchRepository} from './src/data/repositories/InMemoryMatchRepository';
+
+// Use cases
 import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+  LoginUseCase,
+  RegisterUseCase,
+  GetCurrentUserUseCase,
+  LogoutUseCase,
+} from './src/domain/usecases/AuthUseCases';
+import {
+  GetMessagesUseCase,
+  SendMessageUseCase,
+  SubscribeToConversationUseCase,
+} from './src/domain/usecases/MessageUseCases';
+import {
+  GetDiscoveryProfilesUseCase,
+  LikeUserUseCase,
+  PassUserUseCase,
+  GetMatchesUseCase,
+} from './src/domain/usecases/MatchUseCases';
+
+import {User} from './src/domain/entities/User';
+import {Match} from './src/domain/entities/Match';
+import {theme} from './src/presentation/theme/theme';
+
+// Initialize repositories
+const userRepository = new InMemoryUserRepository();
+const messageRepository = new InMemoryMessageRepository();
+const matchRepository = new InMemoryMatchRepository();
+
+// Initialize use cases
+const loginUseCase = new LoginUseCase(userRepository);
+const registerUseCase = new RegisterUseCase(userRepository);
+const getCurrentUserUseCase = new GetCurrentUserUseCase(userRepository);
+const logoutUseCase = new LogoutUseCase(userRepository);
+
+const getMessagesUseCase = new GetMessagesUseCase(messageRepository);
+const sendMessageUseCase = new SendMessageUseCase(messageRepository);
+const subscribeToConversationUseCase = new SubscribeToConversationUseCase(
+  messageRepository,
+);
+
+const getDiscoveryProfilesUseCase = new GetDiscoveryProfilesUseCase(
+  matchRepository,
+);
+const likeUserUseCase = new LikeUserUseCase(matchRepository);
+const passUserUseCase = new PassUserUseCase(matchRepository);
+const getMatchesUseCase = new GetMatchesUseCase(matchRepository);
+
+type Screen =
+  | 'Login'
+  | 'Register'
+  | 'Discovery'
+  | 'Matches'
+  | 'Profile'
+  | 'Conversation';
+
+interface ConversationParams {
+  conversationId: string;
+  matchId: string;
+  otherUserName: string;
+}
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  const [currentScreen, setCurrentScreen] = useState<Screen>('Login');
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [conversationParams, setConversationParams] =
+    useState<ConversationParams | null>(null);
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? '#1a1a1a' : '#f5f5f5',
-    flex: 1,
+  // Simple tab bar for main screens
+  const TabBar = () => (
+    <View style={styles.tabBar}>
+      <Text
+        style={[
+          styles.tabItem,
+          currentScreen === 'Discovery' && styles.tabItemActive,
+        ]}
+        onPress={() => setCurrentScreen('Discovery')}>
+        Discovery
+      </Text>
+      <Text
+        style={[
+          styles.tabItem,
+          currentScreen === 'Matches' && styles.tabItemActive,
+        ]}
+        onPress={() => setCurrentScreen('Matches')}>
+        Matches
+      </Text>
+      <Text
+        style={[
+          styles.tabItem,
+          currentScreen === 'Profile' && styles.tabItemActive,
+        ]}
+        onPress={() => setCurrentScreen('Profile')}>
+        Profile
+      </Text>
+    </View>
+  );
+
+  const handleLogin = async (email: string, password: string) => {
+    const user = await loginUseCase.execute(email, password);
+    setCurrentUser(user);
+    messageRepository.setCurrentUser(user.id);
+    matchRepository.setCurrentUser(user.id);
+    setCurrentScreen('Discovery');
   };
 
-  const textColor = isDarkMode ? '#ffffff' : '#000000';
+  const handleRegister = async (
+    email: string,
+    password: string,
+    name: string,
+    bio: string,
+  ) => {
+    const user = await registerUseCase.execute(email, password, {name, bio});
+    setCurrentUser(user);
+    messageRepository.setCurrentUser(user.id);
+    matchRepository.setCurrentUser(user.id);
+    setCurrentScreen('Discovery');
+  };
+
+  const handleLogout = async () => {
+    await logoutUseCase.execute();
+    setCurrentUser(null);
+    messageRepository.setCurrentUser(null);
+    matchRepository.setCurrentUser(null);
+    setCurrentScreen('Login');
+  };
+
+  const handleSelectMatch = (match: Match) => {
+    setConversationParams({
+      conversationId: match.conversationId,
+      matchId: match.id,
+      otherUserName: `Match #${match.id.slice(-6)}`,
+    });
+    setCurrentScreen('Conversation');
+  };
+
+  const renderScreen = () => {
+    if (!currentUser) {
+      if (currentScreen === 'Register') {
+        return (
+          <RegisterScreen
+            onRegister={handleRegister}
+            onNavigateToLogin={() => setCurrentScreen('Login')}
+          />
+        );
+      }
+      return (
+        <LoginScreen
+          onLogin={handleLogin}
+          onNavigateToRegister={() => setCurrentScreen('Register')}
+        />
+      );
+    }
+
+    // Authenticated screens
+    switch (currentScreen) {
+      case 'Discovery':
+        return (
+          <>
+            <SimpleDiscoveryScreen
+              onLike={async userId => {
+                await likeUserUseCase.execute(userId);
+              }}
+              onPass={async userId => {
+                await passUserUseCase.execute(userId);
+              }}
+              getProfiles={async () => {
+                return getDiscoveryProfilesUseCase.execute();
+              }}
+            />
+            <TabBar />
+          </>
+        );
+
+      case 'Matches':
+        return (
+          <>
+            <MatchesScreen
+              onGetMatches={async () => {
+                return getMatchesUseCase.execute();
+              }}
+              onSelectMatch={handleSelectMatch}
+            />
+            <TabBar />
+          </>
+        );
+
+      case 'Profile':
+        return (
+          <>
+            <SettingsScreen user={currentUser} onLogout={handleLogout} />
+            <TabBar />
+          </>
+        );
+
+      case 'Conversation':
+        if (!conversationParams) {
+          setCurrentScreen('Matches');
+          return null;
+        }
+        return (
+          <ConversationScreen
+            conversationId={conversationParams.conversationId}
+            otherUserName={conversationParams.otherUserName}
+            onSendMessage={async content => {
+              await sendMessageUseCase.execute(
+                conversationParams.conversationId,
+                content,
+              );
+            }}
+            onLoadMessages={async cursor => {
+              return getMessagesUseCase.execute(
+                conversationParams.conversationId,
+                50,
+                cursor,
+              );
+            }}
+            onSubscribe={callback => {
+              return subscribeToConversationUseCase.execute(
+                conversationParams.conversationId,
+                callback,
+              );
+            }}
+            onBack={() => setCurrentScreen('Matches')}
+          />
+        );
+
+      default:
+        return null;
+    }
+  };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <View style={styles.container}>
-          <Text style={[styles.title, {color: textColor}]}>
-            Welcome to React Native
-          </Text>
-          <Text style={[styles.subtitle, {color: textColor}]}>
-            Clean Foundation
-          </Text>
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, {color: textColor}]}>
-              ✓ React Native CLI
-            </Text>
-            <Text style={[styles.sectionDescription, {color: textColor}]}>
-              Stable, minimal setup without external dependencies
-            </Text>
-          </View>
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, {color: textColor}]}>
-              ✓ Android Build
-            </Text>
-            <Text style={[styles.sectionDescription, {color: textColor}]}>
-              Successfully builds and runs on real devices
-            </Text>
-          </View>
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, {color: textColor}]}>
-              ✓ Ready for Development
-            </Text>
-            <Text style={[styles.sectionDescription, {color: textColor}]}>
-              Add features incrementally as needed
-            </Text>
-          </View>
-        </View>
-      </ScrollView>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
+      {renderScreen()}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
+    flex: 1,
+    backgroundColor: theme.colors.background,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 8,
+  tabBar: {
+    flexDirection: 'row',
+    backgroundColor: theme.colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+  },
+  tabItem: {
+    flex: 1,
     textAlign: 'center',
+    fontSize: 14,
+    color: theme.colors.textLight,
+    paddingVertical: 8,
   },
-  subtitle: {
-    fontSize: 18,
-    marginBottom: 32,
-    textAlign: 'center',
-    opacity: 0.7,
-  },
-  section: {
-    marginBottom: 24,
-    padding: 16,
-    borderRadius: 8,
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  sectionDescription: {
-    fontSize: 16,
-    opacity: 0.8,
-    lineHeight: 24,
+  tabItemActive: {
+    color: theme.colors.primary,
+    fontWeight: '500',
   },
 });
 
