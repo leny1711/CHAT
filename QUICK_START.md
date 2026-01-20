@@ -153,6 +153,22 @@ cd CHAT/mobile
 npm install
 ```
 
+#### Required Dependencies
+
+The mobile app requires several key dependencies that enable core functionality:
+
+**AsyncStorage** - Critical for authentication and session management:
+```bash
+npm install @react-native-async-storage/async-storage
+```
+
+**Why AsyncStorage is needed:**
+- **Authentication persistence**: Keeps users logged in between app launches
+- **Session restoration**: Automatically restores user sessions when the app reopens
+- **Offline support**: Stores user data locally for immediate access
+
+**Note:** All required dependencies are already listed in `mobile/package.json` and will be installed with `npm install`.
+
 ### Step 5: Configure Mobile App for Your Device
 
 The mobile app needs to know where to find the backend.
@@ -318,6 +334,52 @@ To test WebSocket real-time messaging:
   createdb dating_app
   npm run dev  # Backend will recreate tables
   ```
+
+### Resetting the Database (Development Only)
+
+During development, you may need to completely reset your database to start fresh with clean data.
+
+**⚠️ WARNING: This will DELETE ALL DATA including users, matches, conversations, and messages!**
+
+**Method 1: Using the reset script (Recommended)**
+
+The backend includes a dedicated database reset script:
+
+```bash
+cd backend
+npm run db:reset
+```
+
+This script will:
+- Drop all existing tables (users, matches, conversations, messages, likes)
+- Recreate all tables with the correct schema
+- Set up all indexes
+- Give you a clean slate
+
+**Method 2: Manual PostgreSQL command**
+
+If you prefer, you can manually reset using PostgreSQL:
+
+```bash
+# Drop and recreate the database
+dropdb dating_app
+createdb dating_app
+
+# Then restart the backend - it will recreate tables automatically
+cd backend
+npm run dev
+```
+
+**When to use database reset:**
+- Starting a new test session with fresh data
+- After schema changes (though migrations would be better in production)
+- Clearing test users and conversations
+- Troubleshooting data-related issues
+
+**After resetting:**
+1. The backend will automatically recreate all tables when you run `npm run dev`
+2. You'll need to create new test users
+3. All previous matches and messages will be gone
 
 ### Can't build Android app
 - Make sure Android SDK is installed
