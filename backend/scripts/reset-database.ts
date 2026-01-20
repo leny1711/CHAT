@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node
 
 /**
  * Database Reset Script
@@ -15,6 +15,9 @@
  * - Recreates tables with fresh schema
  * - Should only be used in DEVELOPMENT
  */
+
+// This script requires ts-node to be available
+// It will be executed via: npx ts-node scripts/reset-database.ts
 
 import { Pool } from 'pg';
 import * as dotenv from 'dotenv';

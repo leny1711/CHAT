@@ -122,6 +122,9 @@ function DiscoveryScreenWrapper() {
 }
 
 function MatchesScreenWrapper({navigation}: any) {
+  // Note: User loading is duplicated in multiple wrappers by design
+  // Each screen needs its own state. In a production app, this would use
+  // a shared auth context/hook to avoid duplication.
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -244,6 +247,8 @@ export function AppNavigation() {
               <Stack.Screen name="Main" component={MainTabs} />
               <Stack.Screen name="Conversation">
                 {({route, navigation}: any) => {
+                  // Note: User loading duplicated here by design for screen isolation
+                  // In production, use auth context to share user state
                   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
                   useEffect(() => {
