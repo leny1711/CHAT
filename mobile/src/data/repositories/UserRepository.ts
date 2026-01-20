@@ -139,8 +139,16 @@ export class UserRepository implements IUserRepository {
 
       return user;
     } catch (error) {
+      // Log for debugging but preserve original error
       console.error('Registration error:', error);
-      throw error;
+
+      // Re-throw with more context if needed
+      if (error instanceof Error) {
+        throw error;
+      }
+
+      // If it's not an Error object, wrap it
+      throw new Error('Registration failed');
     }
   }
 

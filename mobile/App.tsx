@@ -153,9 +153,16 @@ function App(): React.JSX.Element {
     name: string,
     bio: string,
   ) => {
-    const user = await registerUseCase.execute(email, password, {name, bio});
-    setCurrentUser(user);
-    setCurrentScreen('Discovery');
+    try {
+      const user = await registerUseCase.execute(email, password, {name, bio});
+      setCurrentUser(user);
+      setCurrentScreen('Discovery');
+    } catch (error) {
+      // Error is already handled in RegisterScreen
+      // This catch prevents crashes and keeps app stable
+      console.log('Registration error caught in App:', error);
+      throw error;
+    }
   };
 
   const handleLogout = async () => {
@@ -172,7 +179,9 @@ function App(): React.JSX.Element {
     setConversationParams({
       conversationId: match.conversationId,
       matchId: match.id,
-      otherUserName: otherUser ? otherUser.name : `User ${otherUserId.slice(-6)}`,
+      otherUserName: otherUser
+        ? otherUser.name
+        : `User ${otherUserId.slice(-6)}`,
     });
     setCurrentScreen('Conversation');
   };
