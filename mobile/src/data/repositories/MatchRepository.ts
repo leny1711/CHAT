@@ -10,6 +10,7 @@ import {apiClient} from '../../infrastructure/api/client';
 interface MatchResponse {
   matched: boolean;
   matchId?: string;
+  conversationId?: string;
 }
 
 interface DiscoveryResponse {
@@ -77,9 +78,12 @@ export class MatchRepository implements IMatchRepository {
         createdAt: new Date(),
       };
 
-      // If matched, you might want to handle this differently
+      // If matched, log the match and conversation IDs
       if (response.matched) {
-        console.log('Match created!', response.matchId);
+        console.log('Match created!', {
+          matchId: response.matchId,
+          conversationId: response.conversationId,
+        });
       }
 
       return like;

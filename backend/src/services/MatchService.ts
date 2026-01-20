@@ -3,7 +3,7 @@ import { Match, Like, Conversation, UserResponse } from '../types';
 import { generateId } from '../utils/crypto';
 
 export class MatchService {
-  async likeUser(fromUserId: string, toUserId: string): Promise<{ matched: boolean; matchId?: string }> {
+  async likeUser(fromUserId: string, toUserId: string): Promise<{ matched: boolean; matchId?: string; conversationId?: string }> {
     // Check if already liked
     const existingLike = await db.get<Like>(
       'SELECT * FROM likes WHERE from_user_id = $1 AND to_user_id = $2',
@@ -42,7 +42,7 @@ export class MatchService {
           [matchId, user1, user2]
         );
 
-        // Create conversation
+        // Create conversation automatically for every match
         const conversationId = generateId('conv_');
         await client.query(
           'INSERT INTO conversations (id, match_id) VALUES ($1, $2)',
@@ -50,7 +50,7 @@ export class MatchService {
         );
 
         await client.query('COMMIT');
-        return { matched: true, matchId };
+        return { matched: true, matchId, conversationId };
       } catch (error) {
         await client.query('ROLLBACK');
         throw error;
