@@ -122,9 +122,9 @@ function DiscoveryScreenWrapper() {
 }
 
 function MatchesScreenWrapper({navigation}: any) {
-  // Note: User loading is duplicated in multiple wrappers by design
-  // Each screen needs its own state. In a production app, this would use
-  // a shared auth context/hook to avoid duplication.
+  // TODO: Technical debt - User loading duplicated across components
+  // Production solution: Extract to custom useCurrentUser hook or AuthContext
+  // Keeping minimal for MVP fix - each screen needs isolated state
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -137,7 +137,8 @@ function MatchesScreenWrapper({navigation}: any) {
   };
 
   const getUserById = async (userId: string): Promise<User | null> => {
-    // This should ideally be a proper use case, but for now we'll use the repository
+    // TODO: Technical debt - Direct repository usage violates clean architecture
+    // Should create a GetUserByIdUseCase for consistency with existing patterns
     try {
       return await userRepository.getUserById(userId);
     } catch (error) {
@@ -247,8 +248,8 @@ export function AppNavigation() {
               <Stack.Screen name="Main" component={MainTabs} />
               <Stack.Screen name="Conversation">
                 {({route, navigation}: any) => {
-                  // Note: User loading duplicated here by design for screen isolation
-                  // In production, use auth context to share user state
+                  // TODO: Technical debt - Duplicated user loading (see MatchesScreenWrapper)
+                  // Production solution: Shared auth context/custom hook
                   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
                   useEffect(() => {
