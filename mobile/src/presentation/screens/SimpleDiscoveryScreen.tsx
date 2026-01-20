@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
     borderRadius: theme.borderRadius.md,
-    marginTop: 4,
+    marginTop: theme.spacing.xs,
   },
   refreshButtonText: {
     color: theme.colors.surface,

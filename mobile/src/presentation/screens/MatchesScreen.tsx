@@ -41,18 +41,27 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
       const data = await onGetMatches();
       setMatches(data);
 
-      // Load user details for each match
+      // Load user details for each match in parallel
       const userMap = new Map<string, User>();
-      for (const match of data) {
+      const userPromises = data.map(async match => {
         const otherUserId =
           match.userIds.find(id => id !== currentUserId) || '';
         if (otherUserId) {
           const user = await getUserById(otherUserId);
           if (user) {
-            userMap.set(otherUserId, user);
+            return [otherUserId, user] as const;
           }
         }
-      }
+        return null;
+      });
+
+      const results = await Promise.all(userPromises);
+      results.forEach(result => {
+        if (result) {
+          userMap.set(result[0], result[1]);
+        }
+      });
+
       setMatchedUsers(userMap);
     } catch (error) {
       console.error('Error loading matches:', error);

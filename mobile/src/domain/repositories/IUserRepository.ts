@@ -18,7 +18,7 @@ export interface IUserRepository {
   /**
    * Get all users (for discovery)
    */
-  getAllUsers?(): Promise<User[]>;
+  getAllUsers(): Promise<User[]>;
 
   /**
    * Get user profile (public view)

@@ -36,7 +36,7 @@ export class InMemoryMatchRepository implements IMatchRepository {
     const userPasses = this.passes.get(this.currentUserId) || new Set();
 
     // Get all users from UserRepository
-    const allUsers = await this.userRepository.getAllUsers?.() || [];
+    const allUsers = await this.userRepository.getAllUsers();
 
     // Filter and map to discovery profiles
     return allUsers
