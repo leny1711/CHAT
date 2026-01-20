@@ -122,17 +122,45 @@ function DiscoveryScreenWrapper() {
 }
 
 function MatchesScreenWrapper({navigation}: any) {
+  // TODO: Technical debt - User loading duplicated across components
+  // Production solution: Extract to custom useCurrentUser hook or AuthContext
+  // Keeping minimal for MVP fix - each screen needs isolated state
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    loadCurrentUser();
+  }, []);
+
+  const loadCurrentUser = async () => {
+    const user = await getCurrentUserUseCase.execute();
+    setCurrentUser(user);
+  };
+
+  const getUserById = async (userId: string): Promise<User | null> => {
+    // TODO: Technical debt - Direct repository usage violates clean architecture
+    // Should create a GetUserByIdUseCase for consistency with existing patterns
+    try {
+      return await userRepository.getUserById(userId);
+    } catch (error) {
+      console.error('Error getting user:', error);
+      return null;
+    }
+  };
+
   return (
     <MatchesScreen
       onGetMatches={async () => {
         return getMatchesUseCase.execute();
       }}
-      onSelectMatch={(match: Match) => {
+      onSelectMatch={(match: Match, otherUser?: User) => {
         navigation.navigate('Conversation', {
           conversationId: match.conversationId,
           matchId: match.id,
+          otherUserName: otherUser?.name || 'New user',
         });
       }}
+      getUserById={getUserById}
+      currentUserId={currentUser?.id || ''}
     />
   );
 }
@@ -219,31 +247,48 @@ export function AppNavigation() {
             <>
               <Stack.Screen name="Main" component={MainTabs} />
               <Stack.Screen name="Conversation">
-                {({route}: any) => (
-                  <ConversationScreen
-                    conversationId={route.params.conversationId}
-                    otherUserName="Match" // In production, fetch user name
-                    onSendMessage={async content => {
-                      await sendMessageUseCase.execute(
-                        route.params.conversationId,
-                        content,
-                      );
-                    }}
-                    onLoadMessages={async cursor => {
-                      return getMessagesUseCase.execute(
-                        route.params.conversationId,
-                        50,
-                        cursor,
-                      );
-                    }}
-                    onSubscribe={callback => {
-                      return subscribeToConversationUseCase.execute(
-                        route.params.conversationId,
-                        callback,
-                      );
-                    }}
-                  />
-                )}
+                {({route, navigation}: any) => {
+                  // TODO: Technical debt - Duplicated user loading (see MatchesScreenWrapper)
+                  // Production solution: Shared auth context/custom hook
+                  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+                  useEffect(() => {
+                    loadCurrentUser();
+                  }, []);
+
+                  const loadCurrentUser = async () => {
+                    const user = await getCurrentUserUseCase.execute();
+                    setCurrentUser(user);
+                  };
+
+                  return (
+                    <ConversationScreen
+                      conversationId={route.params.conversationId}
+                      otherUserName={route.params.otherUserName || 'New user'}
+                      currentUserId={currentUser?.id || ''}
+                      onSendMessage={async content => {
+                        await sendMessageUseCase.execute(
+                          route.params.conversationId,
+                          content,
+                        );
+                      }}
+                      onLoadMessages={async cursor => {
+                        return getMessagesUseCase.execute(
+                          route.params.conversationId,
+                          50,
+                          cursor,
+                        );
+                      }}
+                      onSubscribe={callback => {
+                        return subscribeToConversationUseCase.execute(
+                          route.params.conversationId,
+                          callback,
+                        );
+                      }}
+                      onBack={() => navigation.goBack()}
+                    />
+                  );
+                }}
               </Stack.Screen>
             </>
           )}

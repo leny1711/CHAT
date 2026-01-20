@@ -13,7 +13,7 @@ import {User} from '../../domain/entities/User';
 
 interface MatchesScreenProps {
   onGetMatches: () => Promise<Match[]>;
-  onSelectMatch: (match: Match) => void;
+  onSelectMatch: (match: Match, otherUser?: User) => void;
   getUserById: (userId: string) => Promise<User | null>;
   currentUserId: string;
 }
@@ -78,7 +78,7 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
     return (
       <TouchableOpacity
         style={styles.matchCard}
-        onPress={() => onSelectMatch(item)}>
+        onPress={() => onSelectMatch(item, otherUser || undefined)}>
         <View style={styles.matchAvatar}>
           <Text style={styles.matchAvatarText}>
             {otherUser
@@ -88,7 +88,7 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
         </View>
         <View style={styles.matchInfo}>
           <Text style={styles.matchName}>
-            {otherUser ? otherUser.name : `User ${otherUserId.slice(-6)}`}
+            {otherUser?.name || 'New user'}
           </Text>
           <Text style={styles.matchDate}>
             Matched {new Date(item.createdAt).toLocaleDateString()}
