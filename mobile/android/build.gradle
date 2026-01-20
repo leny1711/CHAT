@@ -1,3 +1,6 @@
+// ⚠️  STABILITY LOCKDOWN: These versions are frozen for React Native 0.73.0 compatibility
+// DO NOT modify these versions without thorough testing on real devices
+// Kotlin 1.8.0 is compatible with RN 0.73.0 - DO NOT upgrade casually
 buildscript {
     ext {
         buildToolsVersion = "34.0.0"
@@ -5,7 +8,7 @@ buildscript {
         compileSdkVersion = 34
         targetSdkVersion = 33
         ndkVersion = "25.1.8937393"
-        kotlinVersion = "1.8.0"
+        kotlinVersion = "1.8.0"  // FROZEN - Compatible with RN 0.73.0
     }
     repositories {
         maven { url "/usr/local/lib/android/sdk/extras/google/m2repository" }
@@ -14,9 +17,9 @@ buildscript {
         google()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:8.1.1")
+        classpath("com.android.tools.build:gradle:8.1.1")  // FROZEN - Compatible with Gradle 8.3 and RN 0.73.0
         classpath("com.facebook.react:react-native-gradle-plugin")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.0")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.0")  // FROZEN - Must match kotlinVersion
     }
 }
 
