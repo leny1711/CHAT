@@ -1,33 +1,46 @@
 # Clean React Native CLI Mobile Application
 
-A **minimal, stable, and clean** React Native CLI project for Android development.
+A **minimal, stable, and frozen** React Native CLI project for Android development.
 
 ## 🎯 Project Philosophy
 
 This project follows these principles:
-- **Stability over features** - Only essential dependencies
-- **Minimal setup** - No navigation, no animations, no extra libraries
+- **Stability over features** - All dependencies are FROZEN at exact versions
+- **No casual upgrades** - Version changes require compatibility verification
+- **Minimal setup** - Essential dependencies only
 - **Clean foundation** - Ready for incremental feature additions
 
 ## 📦 What's Included
 
-- React Native 0.73.0 (CLI, not Expo)
-- Default React Native screen with simple UI
-- Android build configuration (Java 17)
+- React Native 0.73.0 (CLI, not Expo) - **FROZEN**
+- React Navigation for screen navigation
+- AsyncStorage for local data persistence
+- React Native Screens and Safe Area Context
+- Android build configuration (Java 17, Gradle 8.3, Kotlin 1.8.0)
 - Hermes JavaScript engine enabled
 
-## ❌ What's NOT Included
+## ⚠️  CRITICAL STABILITY WARNINGS
 
-This project explicitly avoids:
-- ❌ React Navigation
-- ❌ react-native-reanimated
-- ❌ react-native-gesture-handler
-- ❌ react-native-screens
-- ❌ AsyncStorage or other storage libraries
-- ❌ Any animation libraries
-- ❌ Any navigation libraries
+### Dependency Management
+- **DO NOT upgrade React Native or native dependencies** without thorough compatibility testing
+- **DO NOT use `npm update` or `npm upgrade`** - versions are intentionally frozen
+- **DO NOT delete package-lock.json** - it ensures reproducible builds
+- **DO NOT change versions using `^` or `~`** - only exact versions are allowed
 
-These can be added later if needed, one at a time, with careful consideration.
+### Android Configuration
+- **DO NOT enable new architecture** (newArchEnabled must stay false)
+- **DO NOT enable Fabric or TurboModules**
+- **DO NOT modify Kotlin, Gradle, or Android Gradle Plugin versions** without review
+- **DO NOT add experimental flags**
+
+### Why These Restrictions?
+This project prioritizes **build stability and reliability** over new features. Casual dependency upgrades can introduce:
+- Native module incompatibilities
+- Kotlin compilation errors
+- Build failures
+- Runtime crashes on devices
+
+All versions have been tested and verified to work together on real Android devices.
 
 ## 🚀 Getting Started
 
@@ -42,9 +55,18 @@ These can be added later if needed, one at a time, with careful consideration.
 ### Installation
 
 ```bash
-# Install dependencies
+# Install ALL dependencies (including native modules)
 npm install
+
+# ⚠️  REQUIRED: Install AsyncStorage native module
+# This is a peer dependency that must be explicitly installed
+npm install @react-native-async-storage/async-storage
 ```
+
+**⚠️  IMPORTANT NOTES:**
+- Always run `npm install` (not `npm ci`) to ensure native linking
+- Never delete `package-lock.json` - it guarantees consistent builds
+- All dependency versions are frozen - do not upgrade without testing
 
 ### Running the App
 
@@ -92,21 +114,50 @@ Once the app is running:
 
 ```
 mobile/
-├── android/           # Android native code
-├── App.tsx            # Main application component (simple, clean)
+├── android/           # Android native code (FROZEN configuration)
+├── App.tsx            # Main application component
 ├── index.js           # React Native entry point
-├── package.json       # Dependencies (minimal)
-└── babel.config.js    # Babel configuration (no plugins)
+├── package.json       # Dependencies (ALL FROZEN at exact versions)
+├── package-lock.json  # Lockfile (NEVER delete this)
+└── babel.config.js    # Babel configuration
 ```
+
+## 🔒 Frozen Dependencies
+
+All dependencies are locked at exact versions for maximum stability:
+
+### Core
+- **react**: 18.2.0
+- **react-native**: 0.73.0
+
+### Navigation (Native Dependencies)
+- **@react-navigation/native**: 6.1.9
+- **@react-navigation/native-stack**: 6.9.17
+- **@react-navigation/bottom-tabs**: 6.5.11
+- **react-native-screens**: 3.29.0 ⚠️  Native module
+- **react-native-safe-area-context**: 4.8.2 ⚠️  Native module
+
+### Storage
+- **@react-native-async-storage/async-storage**: 1.21.0 ⚠️  Native module
+
+### Android Build Environment
+- **Gradle**: 8.3
+- **Android Gradle Plugin**: 8.1.1
+- **Kotlin**: 1.8.0
+- **Java**: 17
+
+**These versions are verified compatible with React Native 0.73.0 on real Android devices.**
 
 ## ✅ Verification
 
 The app successfully:
 - ✅ Builds on Android without errors
-- ✅ Creates a working APK (52MB debug build)
+- ✅ Creates a working APK (debug build)
 - ✅ Runs on real Android devices
-- ✅ Displays a clean default screen
-- ✅ Uses only React and React Native core dependencies
+- ✅ Uses Hermes JavaScript engine
+- ✅ All dependencies frozen at exact compatible versions
+- ✅ No Kotlin compilation errors
+- ✅ No native module conflicts
 
 ## 🔨 Building
 
@@ -120,20 +171,32 @@ cd android && ./gradlew assembleDebug
 
 ## 📝 Next Steps
 
-Now that you have a stable foundation, you can:
+Now that you have a stable, frozen foundation:
 
-1. ✅ **Add features incrementally** - One dependency at a time
-2. ✅ **Test thoroughly** - Ensure each addition doesn't break the build
-3. ✅ **Keep it simple** - Only add what you actually need
+1. ✅ **Build features with existing dependencies** - Use what's already installed
+2. ✅ **Test thoroughly on real devices** - Every change must be validated
+3. ✅ **Avoid adding new dependencies** - Use built-in capabilities first
+4. ⚠️  **Never upgrade casually** - Stability over new features
 
-### Adding Features Later (Carefully)
+### If You MUST Add/Upgrade Dependencies (Not Recommended)
 
-When you're ready to add features:
+**Only proceed if absolutely necessary:**
 
-- **Navigation**: Consider React Navigation or simple component switching
-- **Storage**: Add AsyncStorage only when needed
-- **Animations**: Only if required for UX, test thoroughly
-- **Backend**: Add API client libraries when connecting to services
+1. Research React Native 0.73.0 compatibility thoroughly
+2. Check native module requirements (Kotlin, Gradle versions)
+3. Test on multiple real Android devices
+4. Verify no Kotlin compilation errors
+5. Update package.json with exact version (no `^` or `~`)
+6. Regenerate package-lock.json
+7. Document the change and reason
+8. **Be prepared to rollback if issues occur**
+
+### Priority Order for Changes
+
+1. **Highest**: Bug fixes using existing dependencies
+2. **Medium**: UI/UX improvements with current libraries
+3. **Low**: Adding new dependencies (requires thorough review)
+4. **Avoid**: Upgrading React Native or core native modules
 
 ## 🛠️ Troubleshooting
 

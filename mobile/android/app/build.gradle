@@ -2,6 +2,11 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
+// ⚠️  STABILITY WARNING
+// This Android configuration is frozen for React Native 0.73.0 compatibility
+// DO NOT enable new architecture, Fabric, or experimental features
+// DO NOT modify these settings without review and device testing
+
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
