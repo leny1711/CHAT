@@ -109,7 +109,7 @@ Your `.env` file contains the following PostgreSQL configuration variables:
 # Database Configuration
 # IMPORTANT: You must update these values to match your PostgreSQL setup
 
-# Example: postgresql://username:password@host:port/database_name
+# Example format: postgresql://username:password@host:port/database_name
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/dating_app
 
 # Other configuration
@@ -117,6 +117,8 @@ PORT=3000
 JWT_SECRET=your-secret-key-change-this-in-production
 NODE_ENV=development
 ```
+
+⚠️ **Security Note**: The default credentials (`postgres:postgres`) are commonly used for local development but should NEVER be used in production. Always use strong, unique credentials for production environments.
 
 **Understanding each part of DATABASE_URL:**
 
@@ -255,7 +257,13 @@ Environment: development
    # - macOS: /usr/local/var/postgresql@14/pg_hba.conf
    # - Linux: /etc/postgresql/14/main/pg_hba.conf
    
-   # Add this line if missing:
+   # For local development, add these lines if missing:
+   # local   all   all   md5
+   # host    all   all   127.0.0.1/32   md5
+   
+   # ⚠️ SECURITY WARNING: Never use 'trust' authentication in production
+   # as it allows connections without password verification.
+   # For local development only, you can temporarily use:
    # local   all   all   trust
    # host    all   all   127.0.0.1/32   trust
    
