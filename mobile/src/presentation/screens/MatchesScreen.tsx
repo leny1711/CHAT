@@ -83,18 +83,24 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
     return (
       <TouchableOpacity
         style={styles.matchCard}
-        onPress={() => onSelectMatch(item, otherUser || undefined)}>
+        onPress={() => {
+          // BUG FIX: conversationId used to be lost between match list and chat navigation.
+          // Guarding here prevents navigating without the backend-provided ID.
+          if (!item.conversationId) {
+            console.error('Missing conversationId on match selection', {
+              matchId: item.id,
+            });
+            return;
+          }
+          onSelectMatch(item, otherUser || undefined);
+        }}>
         <View style={styles.matchAvatar}>
           <Text style={styles.matchAvatarText}>
-            {otherUser
-              ? otherUser.name.charAt(0).toUpperCase()
-              : '?'}
+            {otherUser ? otherUser.name.charAt(0).toUpperCase() : '?'}
           </Text>
         </View>
         <View style={styles.matchInfo}>
-          <Text style={styles.matchName}>
-            {displayName}
-          </Text>
+          <Text style={styles.matchName}>{displayName}</Text>
           <Text style={styles.matchDate}>
             Matched {new Date(item.createdAt).toLocaleDateString()}
           </Text>

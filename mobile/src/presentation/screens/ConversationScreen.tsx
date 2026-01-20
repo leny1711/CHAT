@@ -41,6 +41,11 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   onSubscribe,
   onBack,
 }) => {
+  useEffect(() => {
+    if (__DEV__ && !conversationId) {
+      throw new Error('ConversationScreen requires conversationId');
+    }
+  }, [conversationId]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -49,14 +54,20 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const [cursor, setCursor] = useState<string | undefined>();
   const flatListRef = useRef<FlatList>(null);
 
-  // Load initial messages
+  // Load initial messages only when conversationId is ready.
   useEffect(() => {
+    if (!conversationId) {
+      return;
+    }
     loadInitialMessages();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId]);
 
   // Subscribe to new messages
   useEffect(() => {
+    if (!conversationId) {
+      return () => {};
+    }
     const unsubscribe = onSubscribe(newMessage => {
       setMessages(prev => [newMessage, ...prev]);
       // Auto-scroll to bottom for new messages
@@ -102,6 +113,13 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
   const handleSend = async () => {
     if (!inputText.trim()) {
+      return;
+    }
+
+    if (!conversationId) {
+      // BUG: chat could send before conversationId was available, creating undefined payloads.
+      // FIX: block sends until conversationId exists, preventing invalid API calls forever.
+      console.error('Cannot send message without conversationId');
       return;
     }
 
@@ -170,6 +188,15 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
     );
   }
 
+  if (!conversationId) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="small" color={theme.colors.primary} />
+        <Text style={styles.initializingText}>Initializing conversation…</Text>
+      </View>
+    );
+  }
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -208,14 +235,15 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
           onChangeText={setInputText}
           multiline
           maxLength={1000}
+          editable={!!conversationId}
         />
         <TouchableOpacity
           style={[
             styles.sendButton,
-            !inputText.trim() && styles.sendButtonDisabled,
+            (!inputText.trim() || !conversationId) && styles.sendButtonDisabled,
           ]}
           onPress={handleSend}
-          disabled={!inputText.trim()}>
+          disabled={!inputText.trim() || !conversationId}>
           <Text style={styles.sendButtonText}>Send</Text>
         </TouchableOpacity>
       </View>
@@ -240,6 +268,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: theme.colors.background,
+  },
+  initializingText: {
+    marginTop: theme.spacing.sm,
+    fontSize: theme.typography.fontSize.md,
+    color: theme.colors.textSecondary,
   },
   header: {
     paddingHorizontal: theme.spacing.lg,

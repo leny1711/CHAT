@@ -39,10 +39,18 @@ import {
 import {User} from '../../domain/entities/User';
 import {Match} from '../../domain/entities/Match';
 import {theme} from '../theme/theme';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, View, StyleSheet} from 'react-native';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+
+const styles = StyleSheet.create({
+  authLoadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
 
 // Initialize repositories
 const userRepository = new UserRepository();
@@ -153,8 +161,26 @@ function MatchesScreenWrapper({navigation}: any) {
         return getMatchesUseCase.execute();
       }}
       onSelectMatch={(match: Match, otherUser?: User) => {
+        // BUG: conversationId was lost between match selection and chat navigation.
+        // FIX: use the match payload as the single source of truth and pass it explicitly.
+        const {conversationId} = match;
+        if (!conversationId) {
+          console.error(
+            'Cannot navigate to conversation without conversationId',
+            {
+              matchId: match.id,
+            },
+          );
+          return;
+        }
+        if (__DEV__) {
+          console.log('Navigating to conversation', {
+            matchId: match.id,
+            conversationId,
+          });
+        }
         navigation.navigate('Conversation', {
-          conversationId: match.conversationId,
+          conversationId,
           matchId: match.id,
           otherUserName: otherUser?.name || 'New user',
         });
@@ -191,6 +217,66 @@ function SettingsScreenWrapper({navigation}: any) {
   );
 }
 
+function ConversationScreenWrapper({route, navigation}: any) {
+  // Single source of truth: always use navigation params for conversationId.
+  const conversationId = route.params?.conversationId;
+  // TODO: Technical debt - Duplicated user loading (see MatchesScreenWrapper)
+  // Production solution: Shared auth context/custom hook
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    loadCurrentUser();
+  }, []);
+
+  const loadCurrentUser = async () => {
+    const user = await getCurrentUserUseCase.execute();
+    setCurrentUser(user);
+  };
+
+  if (!conversationId) {
+    return (
+      <ConversationScreen
+        conversationId=""
+        otherUserName={route.params?.otherUserName || 'New user'}
+        currentUserId={currentUser?.id || ''}
+        onSendMessage={async () => {
+          console.error('Cannot send message without conversationId');
+        }}
+        onLoadMessages={async () => ({
+          messages: [],
+          hasMore: false,
+        })}
+        onSubscribe={() => () => {}}
+        onBack={() => navigation.goBack()}
+      />
+    );
+  }
+
+  return (
+    <ConversationScreen
+      conversationId={conversationId}
+      otherUserName={route.params?.otherUserName || 'New user'}
+      currentUserId={currentUser?.id || ''}
+      onSendMessage={async content => {
+        if (__DEV__) {
+          console.log('Sending message payload', {
+            conversationId,
+            contentLength: content.length,
+          });
+        }
+        await sendMessageUseCase.execute(conversationId, content);
+      }}
+      onLoadMessages={async cursor => {
+        return getMessagesUseCase.execute(conversationId, 50, cursor);
+      }}
+      onSubscribe={callback => {
+        return subscribeToConversationUseCase.execute(conversationId, callback);
+      }}
+      onBack={() => navigation.goBack()}
+    />
+  );
+}
+
 export function AppNavigation() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
@@ -205,7 +291,7 @@ export function AppNavigation() {
 
   if (isAuthenticated === null) {
     return (
-      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+      <View style={styles.authLoadingContainer}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
@@ -246,50 +332,10 @@ export function AppNavigation() {
           ) : (
             <>
               <Stack.Screen name="Main" component={MainTabs} />
-              <Stack.Screen name="Conversation">
-                {({route, navigation}: any) => {
-                  // TODO: Technical debt - Duplicated user loading (see MatchesScreenWrapper)
-                  // Production solution: Shared auth context/custom hook
-                  const [currentUser, setCurrentUser] = useState<User | null>(null);
-
-                  useEffect(() => {
-                    loadCurrentUser();
-                  }, []);
-
-                  const loadCurrentUser = async () => {
-                    const user = await getCurrentUserUseCase.execute();
-                    setCurrentUser(user);
-                  };
-
-                  return (
-                    <ConversationScreen
-                      conversationId={route.params.conversationId}
-                      otherUserName={route.params.otherUserName || 'New user'}
-                      currentUserId={currentUser?.id || ''}
-                      onSendMessage={async content => {
-                        await sendMessageUseCase.execute(
-                          route.params.conversationId,
-                          content,
-                        );
-                      }}
-                      onLoadMessages={async cursor => {
-                        return getMessagesUseCase.execute(
-                          route.params.conversationId,
-                          50,
-                          cursor,
-                        );
-                      }}
-                      onSubscribe={callback => {
-                        return subscribeToConversationUseCase.execute(
-                          route.params.conversationId,
-                          callback,
-                        );
-                      }}
-                      onBack={() => navigation.goBack()}
-                    />
-                  );
-                }}
-              </Stack.Screen>
+              <Stack.Screen
+                name="Conversation"
+                component={ConversationScreenWrapper}
+              />
             </>
           )}
         </Stack.Navigator>
