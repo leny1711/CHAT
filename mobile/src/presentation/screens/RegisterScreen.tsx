@@ -49,8 +49,39 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
 
     try {
       await onRegister(email, password, name, bio);
+      // Success - the parent component will handle navigation
     } catch (err) {
-      setError('Registration failed. Please try again.');
+      // Handle errors locally - never let them propagate
+      console.log('Registration error:', err);
+
+      let errorMessage = 'Registration failed. Please try again.';
+
+      if (err instanceof Error) {
+        // Provide specific error messages based on error type
+        if (err.message.includes('timeout')) {
+          errorMessage =
+            'Request timed out. Please check your connection and try again.';
+        } else if (
+          err.message.includes('network') ||
+          err.message.includes('Failed to fetch')
+        ) {
+          errorMessage =
+            'Network error. Please check your internet connection.';
+        } else if (
+          err.message.includes('already exists') ||
+          err.message.includes('duplicate')
+        ) {
+          errorMessage =
+            'This email is already registered. Please use a different email or sign in.';
+        } else if (err.message.includes('invalid')) {
+          errorMessage =
+            'Invalid registration data. Please check your information.';
+        }
+        // Do not expose raw error messages from backend for security
+      }
+
+      setError(errorMessage);
+      // Do NOT re-throw - keep the error local to prevent app crash
     } finally {
       setLoading(false);
     }

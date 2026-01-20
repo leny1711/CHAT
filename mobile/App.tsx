@@ -172,7 +172,9 @@ function App(): React.JSX.Element {
     setConversationParams({
       conversationId: match.conversationId,
       matchId: match.id,
-      otherUserName: otherUser ? otherUser.name : `User ${otherUserId.slice(-6)}`,
+      otherUserName: otherUser
+        ? otherUser.name
+        : `User ${otherUserId.slice(-6)}`,
     });
     setCurrentScreen('Conversation');
   };
