@@ -5,7 +5,7 @@
  * No animations, no complex navigation, just the essentials
  */
 
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {SafeAreaView, StatusBar, StyleSheet, View, Text} from 'react-native';
 
 // Screens
@@ -17,9 +17,9 @@ import {ConversationScreen} from './src/presentation/screens/ConversationScreen'
 import {SettingsScreen} from './src/presentation/screens/SettingsScreen';
 
 // Repositories
-import {InMemoryUserRepository} from './src/data/repositories/InMemoryUserRepository';
-import {InMemoryMessageRepository} from './src/data/repositories/InMemoryMessageRepository';
-import {InMemoryMatchRepository} from './src/data/repositories/InMemoryMatchRepository';
+import {UserRepository} from './src/data/repositories/UserRepository';
+import {MessageRepository} from './src/data/repositories/MessageRepository';
+import {MatchRepository} from './src/data/repositories/MatchRepository';
 
 // Use cases
 import {
@@ -44,12 +44,9 @@ import {Match} from './src/domain/entities/Match';
 import {theme} from './src/presentation/theme/theme';
 
 // Initialize repositories
-const userRepository = new InMemoryUserRepository();
-const messageRepository = new InMemoryMessageRepository();
-const matchRepository = new InMemoryMatchRepository();
-
-// Connect repositories
-matchRepository.setUserRepository(userRepository);
+const userRepository = new UserRepository();
+const messageRepository = new MessageRepository();
+const matchRepository = new MatchRepository();
 
 // Initialize use cases
 const loginUseCase = new LoginUseCase(userRepository);
@@ -121,14 +118,32 @@ const TabBar: React.FC<TabBarProps> = ({currentScreen, onNavigate}) => (
 function App(): React.JSX.Element {
   const [currentScreen, setCurrentScreen] = useState<Screen>('Login');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [conversationParams, setConversationParams] =
     useState<ConversationParams | null>(null);
+
+  // Initialize auth on app startup
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        const user = await userRepository.initializeAuth();
+        if (user) {
+          setCurrentUser(user);
+          setCurrentScreen('Discovery');
+        }
+      } catch (error) {
+        console.error('Failed to initialize auth:', error);
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+
+    initializeAuth();
+  }, []);
 
   const handleLogin = async (email: string, password: string) => {
     const user = await loginUseCase.execute(email, password);
     setCurrentUser(user);
-    messageRepository.setCurrentUser(user.id);
-    matchRepository.setCurrentUser(user.id);
     setCurrentScreen('Discovery');
   };
 
@@ -140,16 +155,12 @@ function App(): React.JSX.Element {
   ) => {
     const user = await registerUseCase.execute(email, password, {name, bio});
     setCurrentUser(user);
-    messageRepository.setCurrentUser(user.id);
-    matchRepository.setCurrentUser(user.id);
     setCurrentScreen('Discovery');
   };
 
   const handleLogout = async () => {
     await logoutUseCase.execute();
     setCurrentUser(null);
-    messageRepository.setCurrentUser(null);
-    matchRepository.setCurrentUser(null);
     setCurrentScreen('Login');
   };
 
@@ -167,6 +178,15 @@ function App(): React.JSX.Element {
   };
 
   const renderScreen = () => {
+    // Show loading while initializing
+    if (isInitializing) {
+      return (
+        <View style={styles.centerContainer}>
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+      );
+    }
+
     if (!currentUser) {
       if (currentScreen === 'Register') {
         return (
@@ -291,6 +311,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: theme.colors.textLight,
   },
   tabBar: {
     flexDirection: 'row',

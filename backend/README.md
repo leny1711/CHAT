@@ -8,7 +8,7 @@ A production-ready backend service for a private chat dating application, design
 - **User Authentication** - JWT-based secure authentication
 - **Matching System** - Like/Pass mechanism with mutual match detection
 - **Real-time Messaging** - WebSocket-based instant messaging
-- **Message Persistence** - SQLite database with infinite message history
+- **Message Persistence** - PostgreSQL database with infinite message history
 - **Pagination** - Cursor-based pagination for efficient message loading
 
 ### API Endpoints
@@ -37,6 +37,7 @@ A production-ready backend service for a private chat dating application, design
 
 ### Prerequisites
 - Node.js 18+
+- PostgreSQL 14+ (running locally or accessible via connection string)
 - npm or yarn
 
 ### Installation
@@ -51,8 +52,26 @@ npm install
 # Create .env file
 cp .env.example .env
 
-# Edit .env with your configuration
+# Edit .env with your PostgreSQL connection details
 nano .env
+```
+
+### Database Setup
+
+Make sure PostgreSQL is running and create a database:
+
+```bash
+# Create database (using psql)
+createdb dating_app
+
+# Or using SQL
+psql -U postgres -c "CREATE DATABASE dating_app;"
+```
+
+Update your `.env` file with the correct PostgreSQL connection string:
+
+```env
+DATABASE_URL=postgresql://username:password@localhost:5432/dating_app
 ```
 
 ### Running the Server
@@ -98,7 +117,6 @@ backend/
 │   ├── utils/           # Utility functions
 │   │   └── crypto.ts
 │   └── index.ts         # Application entry point
-├── data/                # SQLite database (auto-created)
 ├── dist/                # Compiled JavaScript (auto-generated)
 ├── .env                 # Environment variables
 ├── .env.example         # Example environment file
@@ -107,6 +125,8 @@ backend/
 ```
 
 ## 🗄️ Database Schema
+
+PostgreSQL tables:
 
 ### Users
 - id, email, password_hash, name, age, bio
@@ -217,16 +237,19 @@ curl -X GET "http://localhost:3000/api/conversations/conv_123/messages?limit=50&
 PORT=3000
 JWT_SECRET=your-secret-key-change-this-in-production
 NODE_ENV=development
-DATABASE_PATH=./data/app.db
+DATABASE_URL=postgresql://username:password@localhost:5432/dating_app
 ```
 
 ## 🏗️ Architecture Decisions
 
-### Why SQLite?
-- **Zero configuration** - Perfect for quick start
-- **Single file database** - Easy to backup and deploy
-- **Production-ready** - Can handle thousands of users
-- **Easy migration** - Can switch to PostgreSQL later if needed
+### Why PostgreSQL?
+- **Production-ready** - Industry standard for web applications
+- **Scalability** - Handles millions of records efficiently
+- **ACID compliance** - Ensures data integrity for critical operations
+- **Rich feature set** - Advanced indexing, full-text search, JSON support
+- **Concurrent connections** - Connection pooling for high performance
+- **Data integrity** - Foreign keys, constraints, transactions
+- **Long-term support** - Widely adopted with excellent tooling
 
 ### Why JWT?
 - **Stateless authentication** - Scales horizontally
@@ -248,10 +271,12 @@ Before deploying to production:
 4. **Set up proper CORS** for your frontend domain
 5. **Add rate limiting** to prevent abuse (e.g., using express-rate-limit)
 6. **Set up logging** and monitoring
-7. **Consider PostgreSQL** instead of SQLite for higher scale
+7. **Configure PostgreSQL connection pool** for optimal performance
 8. **Add input validation** middleware (e.g., using joi or express-validator)
 9. **Implement proper error logging**
-10. **Set up automated backups** for the database
+10. **Set up automated database backups**
+11. **Use environment-specific connection strings** (dev, staging, prod)
+12. **Enable SSL for PostgreSQL connections** in production
 
 ### ⚠️ Security Note
 

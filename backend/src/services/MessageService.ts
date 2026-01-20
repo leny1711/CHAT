@@ -16,7 +16,7 @@ export class MessageService {
       `SELECT c.*, m.user_id_1, m.user_id_2
        FROM conversations c
        JOIN matches m ON m.id = c.match_id
-       WHERE m.user_id_1 = ? OR m.user_id_2 = ?
+       WHERE m.user_id_1 = $1 OR m.user_id_2 = $2
        ORDER BY c.last_message_at DESC`,
       [userId, userId]
     );
@@ -26,14 +26,14 @@ export class MessageService {
       conversations.map(async (conv) => {
         const lastMessage = await db.get<Message>(
           `SELECT * FROM messages 
-           WHERE conversation_id = ? 
+           WHERE conversation_id = $1 
            ORDER BY created_at DESC LIMIT 1`,
           [conv.id]
         );
 
         const otherUserId = conv.user_id_1 === userId ? conv.user_id_2 : conv.user_id_1;
         const otherUser = await db.get(
-          'SELECT id, name, age, bio FROM users WHERE id = ?',
+          'SELECT id, name, age, bio FROM users WHERE id = $1',
           [otherUserId]
         );
 
@@ -58,7 +58,7 @@ export class MessageService {
   ): Promise<MessagePage> {
     // Get total count
     const countResult = await db.get<{ count: number }>(
-      'SELECT COUNT(*) as count FROM messages WHERE conversation_id = ?',
+      'SELECT COUNT(*) as count FROM messages WHERE conversation_id = $1',
       [conversationId]
     );
     const totalCount = countResult?.count || 0;
@@ -66,24 +66,24 @@ export class MessageService {
     // Build query
     let query = `
       SELECT * FROM messages 
-      WHERE conversation_id = ?
+      WHERE conversation_id = $1
     `;
     const params: any[] = [conversationId];
 
     // Add cursor condition if provided
     if (cursor) {
       const cursorMessage = await db.get<Message>(
-        'SELECT * FROM messages WHERE id = ?',
+        'SELECT * FROM messages WHERE id = $1',
         [cursor]
       );
       
       if (cursorMessage) {
-        query += ' AND created_at < ?';
+        query += ' AND created_at < $2';
         params.push(cursorMessage.created_at);
       }
     }
 
-    query += ' ORDER BY created_at DESC LIMIT ?';
+    query += ` ORDER BY created_at DESC LIMIT $${params.length + 1}`;
     params.push(limit + 1); // Get one extra to check if there are more
 
     // Get messages
@@ -116,7 +116,7 @@ export class MessageService {
       `SELECT c.*, m.user_id_1, m.user_id_2
        FROM conversations c
        JOIN matches m ON m.id = c.match_id
-       WHERE c.id = ?`,
+       WHERE c.id = $1`,
       [conversationId]
     );
 
@@ -132,19 +132,19 @@ export class MessageService {
     const messageId = generateId('msg_');
     await db.run(
       `INSERT INTO messages (id, conversation_id, sender_id, content, type, status) 
-       VALUES (?, ?, ?, ?, 'text', 'sent')`,
+       VALUES ($1, $2, $3, $4, 'text', 'sent')`,
       [messageId, conversationId, senderId, content]
     );
 
     // Update conversation last_message_at
     await db.run(
-      'UPDATE conversations SET last_message_at = CURRENT_TIMESTAMP WHERE id = ?',
+      'UPDATE conversations SET last_message_at = CURRENT_TIMESTAMP WHERE id = $1',
       [conversationId]
     );
 
     // Get the created message
     const message = await db.get<Message>(
-      'SELECT * FROM messages WHERE id = ?',
+      'SELECT * FROM messages WHERE id = $1',
       [messageId]
     );
 
@@ -174,14 +174,14 @@ export class MessageService {
   ): Promise<void> {
     if (messageIds.length === 0) return;
 
-    const placeholders = messageIds.map(() => '?').join(',');
+    // PostgreSQL uses ANY with array parameter instead of IN
     await db.run(
       `UPDATE messages 
        SET status = 'read' 
-       WHERE id IN (${placeholders}) 
-       AND conversation_id = ? 
-       AND sender_id != ?`,
-      [...messageIds, conversationId, userId]
+       WHERE id = ANY($1::text[]) 
+       AND conversation_id = $2 
+       AND sender_id != $3`,
+      [messageIds, conversationId, userId]
     );
   }
 }

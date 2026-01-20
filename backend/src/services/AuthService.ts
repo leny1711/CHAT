@@ -6,7 +6,7 @@ export class AuthService {
   async register(data: RegisterRequest): Promise<UserResponse> {
     // Check if user exists
     const existingUser = await db.get<User>(
-      'SELECT * FROM users WHERE email = ?',
+      'SELECT * FROM users WHERE email = $1',
       [data.email]
     );
 
@@ -20,19 +20,19 @@ export class AuthService {
     // Create user
     const userId = generateId('user_');
     await db.run(
-      'INSERT INTO users (id, email, password_hash, name, age, bio) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO users (id, email, password_hash, name, age, bio) VALUES ($1, $2, $3, $4, $5, $6)',
       [userId, data.email, passwordHash, data.name, data.age || null, data.bio || '']
     );
 
     // Get created user
-    const user = await db.get<User>('SELECT * FROM users WHERE id = ?', [userId]);
+    const user = await db.get<User>('SELECT * FROM users WHERE id = $1', [userId]);
     if (!user) throw new Error('Failed to create user');
 
     return this.toUserResponse(user);
   }
 
   async login(email: string, password: string): Promise<UserResponse> {
-    const user = await db.get<User>('SELECT * FROM users WHERE email = ?', [email]);
+    const user = await db.get<User>('SELECT * FROM users WHERE email = $1', [email]);
 
     if (!user) {
       throw new Error('Invalid credentials');
@@ -44,13 +44,13 @@ export class AuthService {
     }
 
     // Update last active
-    await db.run('UPDATE users SET last_active = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
+    await db.run('UPDATE users SET last_active = CURRENT_TIMESTAMP WHERE id = $1', [user.id]);
 
     return this.toUserResponse(user);
   }
 
   async getUserById(userId: string): Promise<UserResponse | null> {
-    const user = await db.get<User>('SELECT * FROM users WHERE id = ?', [userId]);
+    const user = await db.get<User>('SELECT * FROM users WHERE id = $1', [userId]);
     return user ? this.toUserResponse(user) : null;
   }
 

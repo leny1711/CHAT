@@ -16,7 +16,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DATABASE_PATH = process.env.DATABASE_PATH || './data/app.db';
+const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/dating_app';
 
 // Middleware
 app.use(cors());
@@ -47,10 +47,10 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 async function start() {
   try {
     // Connect to database
-    console.log('Connecting to database...');
-    await db.connect(DATABASE_PATH);
+    console.log('Connecting to PostgreSQL database...');
+    await db.connect(DATABASE_URL);
     await db.initialize();
-    console.log('Database connected and initialized');
+    console.log('PostgreSQL database connected and initialized');
 
     // Create HTTP server
     const server = createServer(app);
