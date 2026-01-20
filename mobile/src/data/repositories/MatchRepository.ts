@@ -78,9 +78,9 @@ export class MatchRepository implements IMatchRepository {
         createdAt: new Date(),
       };
 
-      // If matched, log the match and conversation IDs
-      if (response.matched) {
-        console.log('Match created!', {
+      // DEV LOG: Match response must include conversationId from backend.
+      if (__DEV__ && response.matched) {
+        console.log('Match received from API', {
           matchId: response.matchId,
           conversationId: response.conversationId,
         });
@@ -107,6 +107,16 @@ export class MatchRepository implements IMatchRepository {
   async getMatches(): Promise<Match[]> {
     try {
       const response = await apiClient.get<MatchesResponse>('/api/matches');
+
+      if (__DEV__) {
+        console.log(
+          'Matches received',
+          response.matches.map(match => ({
+            matchId: match.id,
+            conversationId: match.conversationId,
+          })),
+        );
+      }
 
       return response.matches.map(match => ({
         id: match.id,

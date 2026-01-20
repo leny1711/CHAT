@@ -169,15 +169,28 @@ function App(): React.JSX.Element {
 
   const handleSelectMatch = async (match: Match) => {
     // Get the other user's details
+    // BUG: conversationId was previously dropped before opening chat.
+    // FIX: guard against missing conversationId and log the navigation payload.
+    if (!match.conversationId) {
+      console.error('Cannot open conversation without conversationId', {
+        matchId: match.id,
+      });
+      return;
+    }
     const otherUserId = match.userIds.find(id => id !== currentUser?.id) || '';
     const otherUser = await userRepository.getUserById(otherUserId);
+
+    if (__DEV__) {
+      console.log('Navigating to conversation', {
+        matchId: match.id,
+        conversationId: match.conversationId,
+      });
+    }
 
     setConversationParams({
       conversationId: match.conversationId,
       matchId: match.id,
-      otherUserName: otherUser
-        ? otherUser.name
-        : 'New user',
+      otherUserName: otherUser ? otherUser.name : 'New user',
     });
     setCurrentScreen('Conversation');
   };
@@ -274,6 +287,12 @@ function App(): React.JSX.Element {
             otherUserName={conversationParams.otherUserName}
             currentUserId={currentUser.id}
             onSendMessage={async content => {
+              if (__DEV__) {
+                console.log('Sending message payload', {
+                  conversationId: conversationParams.conversationId,
+                  contentLength: content.length,
+                });
+              }
               await sendMessageUseCase.execute(
                 conversationParams.conversationId,
                 content,
