@@ -9,18 +9,26 @@ import {
 } from 'react-native';
 import {theme} from '../theme/theme';
 import {Match} from '../../domain/entities/Match';
+import {User} from '../../domain/entities/User';
 
 interface MatchesScreenProps {
   onGetMatches: () => Promise<Match[]>;
   onSelectMatch: (match: Match) => void;
+  getUserById: (userId: string) => Promise<User | null>;
+  currentUserId: string;
 }
 
 export const MatchesScreen: React.FC<MatchesScreenProps> = ({
   onGetMatches,
   onSelectMatch,
+  getUserById,
+  currentUserId,
 }) => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
+  const [matchedUsers, setMatchedUsers] = useState<Map<string, User>>(
+    new Map(),
+  );
 
   useEffect(() => {
     loadMatches();
@@ -32,6 +40,29 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
     try {
       const data = await onGetMatches();
       setMatches(data);
+
+      // Load user details for each match in parallel
+      const userMap = new Map<string, User>();
+      const userPromises = data.map(async match => {
+        const otherUserId =
+          match.userIds.find(id => id !== currentUserId) || '';
+        if (otherUserId) {
+          const user = await getUserById(otherUserId);
+          if (user) {
+            return [otherUserId, user] as const;
+          }
+        }
+        return null;
+      });
+
+      const results = await Promise.all(userPromises);
+      results.forEach(result => {
+        if (result) {
+          userMap.set(result[0], result[1]);
+        }
+      });
+
+      setMatchedUsers(userMap);
     } catch (error) {
       console.error('Error loading matches:', error);
     } finally {
@@ -41,7 +72,8 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
 
   const renderMatch = ({item}: {item: Match}) => {
     const otherUserId =
-      item.userIds.find(id => id !== 'current_user') || 'Unknown';
+      item.userIds.find(id => id !== currentUserId) || 'Unknown';
+    const otherUser = matchedUsers.get(otherUserId);
 
     return (
       <TouchableOpacity
@@ -49,11 +81,15 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
         onPress={() => onSelectMatch(item)}>
         <View style={styles.matchAvatar}>
           <Text style={styles.matchAvatarText}>
-            {otherUserId.charAt(0).toUpperCase()}
+            {otherUser
+              ? otherUser.name.charAt(0).toUpperCase()
+              : otherUserId.charAt(0).toUpperCase()}
           </Text>
         </View>
         <View style={styles.matchInfo}>
-          <Text style={styles.matchName}>Match #{item.id.slice(-6)}</Text>
+          <Text style={styles.matchName}>
+            {otherUser ? otherUser.name : `User ${otherUserId.slice(-6)}`}
+          </Text>
           <Text style={styles.matchDate}>
             Matched {new Date(item.createdAt).toLocaleDateString()}
           </Text>

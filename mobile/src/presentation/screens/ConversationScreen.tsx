@@ -16,6 +16,7 @@ import {Message} from '../../domain/entities/Message';
 interface ConversationScreenProps {
   conversationId: string;
   otherUserName: string;
+  currentUserId: string;
   onSendMessage: (content: string) => Promise<void>;
   onLoadMessages: (cursor?: string) => Promise<{
     messages: Message[];
@@ -34,6 +35,7 @@ interface ConversationScreenProps {
 export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   conversationId,
   otherUserName,
+  currentUserId,
   onSendMessage,
   onLoadMessages,
   onSubscribe,
@@ -116,7 +118,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   };
 
   const renderMessage = ({item}: {item: Message}) => {
-    const isOwn = item.senderId === 'current_user'; // In production, check against actual user ID
+    const isOwn = item.senderId === currentUserId;
 
     return (
       <View

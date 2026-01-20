@@ -103,8 +103,16 @@ export const SimpleDiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Discover</Text>
-        <Text style={styles.headerSubtitle}>Take your time</Text>
+        <View style={styles.headerText}>
+          <Text style={styles.headerTitle}>Discover</Text>
+          <Text style={styles.headerSubtitle}>Take your time</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.refreshButton}
+          onPress={loadProfiles}
+          disabled={loading}>
+          <Text style={styles.refreshButtonText}>Refresh</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.card}>
@@ -163,6 +171,12 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: theme.spacing.xl,
     marginBottom: theme.spacing.lg,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  headerText: {
+    flex: 1,
   },
   headerTitle: {
     fontSize: theme.typography.fontSize.xxl,
@@ -173,6 +187,18 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.fontSize.sm,
     color: theme.colors.textSecondary,
     marginTop: theme.spacing.xs,
+  },
+  refreshButton: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.md,
+    marginTop: theme.spacing.xs,
+  },
+  refreshButtonText: {
+    color: theme.colors.surface,
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: '500',
   },
   card: {
     flex: 1,

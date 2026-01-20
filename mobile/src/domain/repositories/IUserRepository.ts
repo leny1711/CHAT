@@ -16,6 +16,11 @@ export interface IUserRepository {
   getUserById(userId: string): Promise<User | null>;
 
   /**
+   * Get all users (for discovery)
+   */
+  getAllUsers(): Promise<User[]>;
+
+  /**
    * Get user profile (public view)
    */
   getProfile(userId: string): Promise<Profile | null>;
