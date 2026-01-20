@@ -42,6 +42,10 @@ psql --version  # Should show PostgreSQL 14.x or higher
 
 ## 🚀 Quick Start Steps
 
+**⚠️ CRITICAL: Always start the backend BEFORE the mobile app!**
+
+The backend must be running for the mobile app to work. Follow these steps in order:
+
 ### Step 1: Clone the Repository
 
 ```bash
@@ -153,55 +157,64 @@ cd CHAT/mobile
 npm install
 ```
 
-#### Required Dependencies
+#### Dependencies Included
 
-**CRITICAL: The mobile app requires AsyncStorage**
+All required dependencies are already listed in `mobile/package.json`, including:
+- ✅ **@react-native-async-storage/async-storage** - Already included (v1.21.0)
+- ✅ **React Navigation** - Already included
+- ✅ **React Native Safe Area Context** - Already included
 
-The mobile app will NOT work without AsyncStorage installed. This package is required for the app to function properly.
+**AsyncStorage is REQUIRED and already included** in the dependencies. Running `npm install` will automatically install it along with all other required packages.
 
-**Install AsyncStorage now:**
+**Why AsyncStorage is critical:**
+- **Authentication persistence**: Keeps users logged in between app launches
+- **Session restoration**: Automatically restores user sessions when app reopens  
+- **Token storage**: Securely stores authentication tokens locally
+- **Without it**: Users will be logged out every time they close the app
+
+**Note:** If you encounter any issues with AsyncStorage, you can manually install it:
 ```bash
 npm install @react-native-async-storage/async-storage
 ```
 
-**Why AsyncStorage is required:**
-- **Authentication persistence**: Keeps users logged in between app launches without requiring re-login
-- **Session restoration**: Automatically restores user sessions when the app reopens  
-- **Token storage**: Securely stores authentication tokens locally
-- **Without it**: Users will be logged out every time they close the app
-
-**Note:** This dependency is already listed in `mobile/package.json`, so running `npm install` in the mobile directory will install it automatically along with all other dependencies.
-
 ### Step 5: Configure Mobile App for Your Device
 
-The mobile app needs to know where to find the backend.
+**IMPORTANT: The mobile app needs to know where to find your backend server.**
 
-#### For Android Emulator (default)
-Edit `mobile/src/infrastructure/api/config.ts`:
+The backend is running on your computer at `http://localhost:3000`, but mobile devices need special configuration to connect to it.
 
-```typescript
-export const API_CONFIG = {
+#### Environment Configuration
+
+Edit `mobile/src/infrastructure/api/config.ts` to configure the API and WebSocket URLs:
+
+**For Android Emulator (default):**
 ```typescript
 export const API_CONFIG = {
   BASE_URL: __DEV__ 
-    ? 'http://10.0.2.2:3000' // For Android emulator
+    ? 'http://10.0.2.2:3000' // For Android emulator - special address to reach host machine
     : 'https://your-production-api.com',
   WS_URL: __DEV__
-    ? 'ws://10.0.2.2:3000/ws' // For Android emulator
+    ? 'ws://10.0.2.2:3000/ws' // For Android emulator WebSocket
     : 'wss://your-production-api.com/ws',
   TIMEOUT: 10000,
 };
 ```
 
-#### For Physical Android Device
-Find your computer's IP address and update the config:
+**Why `10.0.2.2`?** Android emulator uses `10.0.2.2` as a special IP address to access the host machine's `localhost`.
+
+**For Physical Android Device:**
+
+First, find your computer's local IP address:
 
 ```bash
 # On macOS/Linux
 ifconfig | grep "inet " | grep -v 127.0.0.1
 
-# On Windows
+# On Windows (PowerShell or Command Prompt)
 ipconfig
+
+# Look for "IPv4 Address" in your WiFi or Ethernet adapter
+# Example: 192.168.1.100
 ```
 
 Then update `mobile/src/infrastructure/api/config.ts`:
@@ -209,16 +222,20 @@ Then update `mobile/src/infrastructure/api/config.ts`:
 ```typescript
 export const API_CONFIG = {
   BASE_URL: __DEV__ 
-    ? 'http://192.168.1.100:3000' // Use your computer's IP
+    ? 'http://192.168.1.100:3000' // Replace with YOUR computer's IP address
     : 'https://your-production-api.com',
   WS_URL: __DEV__
-    ? 'ws://192.168.1.100:3000/ws' // Use your computer's IP
+    ? 'ws://192.168.1.100:3000/ws' // Replace with YOUR computer's IP address
     : 'wss://your-production-api.com/ws',
   TIMEOUT: 10000,
 };
 ```
 
-**Important:** Make sure your Android device and computer are on the same WiFi network!
+**Critical Requirements:**
+- ✅ Your Android device and computer MUST be on the same WiFi network
+- ✅ Backend server MUST be running before starting the mobile app
+- ✅ Firewall must allow connections on port 3000 (or your custom port)
+- ✅ If you changed the backend PORT in `.env`, update the mobile config to match
 
 ### Step 6: Start Metro Bundler
 
@@ -307,29 +324,29 @@ To test WebSocket real-time messaging:
 
 ### Resetting the Database (Development Only)
 
-**IMPORTANT:** During development, you may need to reset your database to start fresh.
-
 **⚠️ WARNING: This will DELETE ALL DATA including users, matches, conversations, and messages!**
 
-**To reset the database, use this command:**
+During development, you may need to reset your database to start fresh with a clean slate.
+
+**Option 1: Use the reset script (Recommended)**
 
 ```bash
 cd backend
 npm run db:reset
 ```
 
-This script will:
-- Delete all users
-- Delete all matches
-- Delete all conversations
-- Delete all messages
-- Recreate all tables with the correct schema
-- Set up all indexes
+This command (`npm run db:reset`) will:
+1. ✅ Delete all users
+2. ✅ Delete all matches  
+3. ✅ Delete all conversations
+4. ✅ Delete all messages
+5. ✅ Recreate all tables with the correct schema
+6. ✅ Set up all indexes and constraints
 
-**Alternative method - Manual PostgreSQL commands:**
+**Option 2: Manual PostgreSQL reset**
 
 ```bash
-# Drop and recreate the database
+# Drop and recreate the entire database
 dropdb dating_app
 createdb dating_app
 
@@ -338,16 +355,18 @@ cd backend
 npm run dev
 ```
 
-**When to use database reset:**
-- Starting a new test session with fresh data
-- After experiencing data-related errors
-- Clearing test users and conversations
-- Testing the registration flow from scratch
+**When to reset the database:**
+- 🔄 Starting a new test session with fresh data
+- 🐛 After experiencing data-related errors
+- 🧹 Clearing test users and conversations  
+- 🆕 Testing the registration flow from scratch
+- 📊 After schema changes (like adding UNIQUE constraints)
 
 **After resetting:**
 1. All data is gone - you'll need to create new test users
 2. Restart the backend with `npm run dev`
-3. The backend will automatically recreate all tables
+3. The backend will automatically recreate all tables with proper schema
+4. Create at least 2 test users to test the complete flow
 
 ---
 

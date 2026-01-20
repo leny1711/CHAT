@@ -53,10 +53,12 @@ export class Database {
     `);
 
     // Conversations table
+    // CRITICAL: match_id UNIQUE constraint prevents duplicate conversations for same match
+    // This ensures one conversation per match, preventing race conditions
     await this.query(`
       CREATE TABLE IF NOT EXISTS conversations (
         id TEXT PRIMARY KEY,
-        match_id TEXT NOT NULL,
+        match_id TEXT NOT NULL UNIQUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         last_message_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (match_id) REFERENCES matches(id)

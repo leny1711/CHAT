@@ -111,6 +111,22 @@ export class MessageService {
     senderId: string,
     content: string
   ): Promise<Message> {
+    // CRITICAL VALIDATION: conversationId must never be undefined or empty
+    // This is the root cause of "Conversation not found" errors
+    if (!conversationId || conversationId.trim() === '') {
+      console.error('CRITICAL ERROR: conversationId is missing or empty', {
+        conversationId,
+        senderId,
+      });
+      throw new Error('conversationId is required and cannot be empty');
+    }
+
+    console.log('Attempting to send message', {
+      conversationId,
+      senderId,
+      contentLength: content.length,
+    });
+
     // Try to get conversation with match info
     let conversation = await db.get<Conversation & { user_id_1: string; user_id_2: string }>(
       `SELECT c.*, m.user_id_1, m.user_id_2
@@ -139,13 +155,13 @@ export class MessageService {
       );
 
       if (match) {
-        console.log('Match found, creating conversation', {
+        console.log('Match found, looking for or creating conversation', {
           matchId: match.id,
           senderId,
         });
         
         // The provided ID is a match ID, not a conversation ID
-        // Check if a conversation already exists for this match
+        // Check if a conversation already exists for this match (idempotent)
         const existingConv = await db.get<Conversation>(
           `SELECT * FROM conversations WHERE match_id = $1`,
           [match.id]
@@ -164,39 +180,64 @@ export class MessageService {
             matchId: match.id,
           });
         } else {
-          // Create the conversation for this match
+          // Create the conversation for this match (with conflict handling)
+          // Use INSERT ... ON CONFLICT to handle race conditions
           const newConversationId = generateId('conv_');
-          await db.run(
-            'INSERT INTO conversations (id, match_id, created_at, last_message_at) VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)',
-            [newConversationId, match.id]
-          );
-
-          conversation = {
-            id: newConversationId,
-            match_id: match.id,
-            created_at: new Date(),
-            last_message_at: new Date(),
-            user_id_1: match.user_id_1,
-            user_id_2: match.user_id_2,
-          } as Conversation & { user_id_1: string; user_id_2: string };
-          conversationId = newConversationId;
           
-          console.log('Created new conversation for match', {
-            conversationId,
-            matchId: match.id,
-          });
+          try {
+            await db.run(
+              `INSERT INTO conversations (id, match_id, created_at, last_message_at) 
+               VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+               ON CONFLICT (match_id) DO NOTHING`,
+              [newConversationId, match.id]
+            );
+
+            // Verify which conversation ID was actually used (in case of race condition)
+            const createdConv = await db.get<Conversation>(
+              `SELECT * FROM conversations WHERE match_id = $1`,
+              [match.id]
+            );
+
+            if (!createdConv) {
+              console.error('CRITICAL: Conversation not found after INSERT', {
+                newConversationId,
+                matchId: match.id,
+                error: 'Race condition or database constraint violation - conversation was created by another request',
+              });
+              throw new Error('Failed to create conversation - possible race condition. Please retry.');
+            }
+
+            conversation = {
+              ...createdConv,
+              user_id_1: match.user_id_1,
+              user_id_2: match.user_id_2,
+            };
+            conversationId = createdConv.id;
+            
+            console.log('Created new conversation for match', {
+              conversationId,
+              matchId: match.id,
+            });
+          } catch (error) {
+            console.error('Error creating conversation', {
+              error,
+              matchId: match.id,
+            });
+            throw error;
+          }
         }
       }
     }
 
     if (!conversation) {
-      console.error('Conversation not found and cannot be created', {
+      console.error('CRITICAL: Conversation not found and cannot be created', {
         conversationId,
         senderId,
       });
-      throw new Error('Conversation not found');
+      throw new Error('Conversation not found. Please ensure you are in a valid match conversation.');
     }
 
+    // Validate user is a participant before allowing message send
     if (conversation.user_id_1 !== senderId && conversation.user_id_2 !== senderId) {
       console.error('User is not a participant in conversation', {
         conversationId,
@@ -204,6 +245,15 @@ export class MessageService {
         participants: [conversation.user_id_1, conversation.user_id_2],
       });
       throw new Error('Not a participant in this conversation');
+    }
+
+    // FINAL VALIDATION: Ensure conversationId is set and valid before message creation
+    if (!conversationId || conversationId.trim() === '') {
+      console.error('CRITICAL: conversationId is still undefined after resolution', {
+        conversationId,
+        senderId,
+      });
+      throw new Error('Internal error: conversationId could not be resolved');
     }
 
     // Create message
