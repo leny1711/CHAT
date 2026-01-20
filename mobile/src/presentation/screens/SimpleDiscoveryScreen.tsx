@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Animated,
 } from 'react-native';
 import {theme} from '../theme/theme';
 import {DiscoveryProfile} from '../../domain/entities/Match';
@@ -16,7 +15,11 @@ interface DiscoveryScreenProps {
   getProfiles: () => Promise<DiscoveryProfile[]>;
 }
 
-export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
+/**
+ * Discovery Screen - Simple version without animations
+ * Shows one profile at a time with Like/Pass buttons
+ */
+export const SimpleDiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
   onLike,
   onPass,
   getProfiles,
@@ -25,7 +28,6 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-  const fadeAnim = useState(new Animated.Value(1))[0];
 
   useEffect(() => {
     loadProfiles();
@@ -54,40 +56,25 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
 
     setActionLoading(true);
 
-    // Fade out animation
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(async () => {
-      try {
-        if (action === 'like') {
-          await onLike(currentProfile.userId);
-        } else {
-          await onPass(currentProfile.userId);
-        }
-
-        // Move to next profile
-        if (currentIndex < profiles.length - 1) {
-          setCurrentIndex(currentIndex + 1);
-          fadeAnim.setValue(0);
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-          }).start();
-        } else {
-          // No more profiles, reload
-          await loadProfiles();
-          fadeAnim.setValue(1);
-        }
-      } catch (error) {
-        console.error('Error handling action:', error);
-        fadeAnim.setValue(1);
-      } finally {
-        setActionLoading(false);
+    try {
+      if (action === 'like') {
+        await onLike(currentProfile.userId);
+      } else {
+        await onPass(currentProfile.userId);
       }
-    });
+
+      // Move to next profile
+      if (currentIndex < profiles.length - 1) {
+        setCurrentIndex(currentIndex + 1);
+      } else {
+        // No more profiles, reload
+        await loadProfiles();
+      }
+    } catch (error) {
+      console.error('Error handling action:', error);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   if (loading) {
@@ -120,7 +107,7 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
         <Text style={styles.headerSubtitle}>Take your time</Text>
       </View>
 
-      <Animated.View style={[styles.card, {opacity: fadeAnim}]}>
+      <View style={styles.card}>
         <View style={styles.photoPlaceholder}>
           <Text style={styles.photoPlaceholderText}>
             Photo reveals through conversation
@@ -131,7 +118,7 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
           <Text style={styles.name}>{currentProfile.name}</Text>
           <Text style={styles.bio}>{currentProfile.bio}</Text>
         </View>
-      </Animated.View>
+      </View>
 
       <View style={styles.actions}>
         <TouchableOpacity
@@ -193,7 +180,11 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface,
     borderRadius: theme.borderRadius.lg,
     overflow: 'hidden',
-    ...theme.shadows.md,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   photoPlaceholder: {
     height: 400,
