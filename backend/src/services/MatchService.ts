@@ -28,23 +28,35 @@ export class MatchService {
     );
 
     if (mutualLike) {
-      // Create match
-      const matchId = generateId('match_');
-      const [user1, user2] = [fromUserId, toUserId].sort(); // Consistent ordering
+      // Use transaction to ensure match and conversation are created atomically
+      const client = await db.getClient();
+      try {
+        await client.query('BEGIN');
 
-      await db.run(
-        'INSERT INTO matches (id, user_id_1, user_id_2) VALUES ($1, $2, $3)',
-        [matchId, user1, user2]
-      );
+        // Create match
+        const matchId = generateId('match_');
+        const [user1, user2] = [fromUserId, toUserId].sort(); // Consistent ordering
 
-      // Create conversation
-      const conversationId = generateId('conv_');
-      await db.run(
-        'INSERT INTO conversations (id, match_id) VALUES ($1, $2)',
-        [conversationId, matchId]
-      );
+        await client.query(
+          'INSERT INTO matches (id, user_id_1, user_id_2) VALUES ($1, $2, $3)',
+          [matchId, user1, user2]
+        );
 
-      return { matched: true, matchId };
+        // Create conversation
+        const conversationId = generateId('conv_');
+        await client.query(
+          'INSERT INTO conversations (id, match_id) VALUES ($1, $2)',
+          [conversationId, matchId]
+        );
+
+        await client.query('COMMIT');
+        return { matched: true, matchId };
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      } finally {
+        client.release();
+      }
     }
 
     return { matched: false };

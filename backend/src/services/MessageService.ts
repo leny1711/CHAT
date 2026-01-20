@@ -111,14 +111,64 @@ export class MessageService {
     senderId: string,
     content: string
   ): Promise<Message> {
-    // Verify conversation exists and user is participant
-    const conversation = await db.get<Conversation & { user_id_1: string; user_id_2: string }>(
+    // Try to get conversation with match info
+    let conversation = await db.get<Conversation & { user_id_1: string; user_id_2: string }>(
       `SELECT c.*, m.user_id_1, m.user_id_2
        FROM conversations c
        JOIN matches m ON m.id = c.match_id
        WHERE c.id = $1`,
       [conversationId]
     );
+
+    // If conversation doesn't exist, check if the provided ID is actually a match ID
+    // and create/find the conversation for that match
+    if (!conversation) {
+      // Check if a match exists with this ID where the sender is a participant
+      const match = await db.get<{ id: string; user_id_1: string; user_id_2: string }>(
+        `SELECT id, user_id_1, user_id_2 
+         FROM matches 
+         WHERE id = $1 
+         AND status = 'active' 
+         AND (user_id_1 = $2 OR user_id_2 = $2)`,
+        [conversationId, senderId]
+      );
+
+      if (match) {
+        // The provided ID is a match ID, not a conversation ID
+        // Check if a conversation already exists for this match
+        const existingConv = await db.get<Conversation>(
+          `SELECT * FROM conversations WHERE match_id = $1`,
+          [match.id]
+        );
+
+        if (existingConv) {
+          // Conversation exists, use it
+          conversation = {
+            ...existingConv,
+            user_id_1: match.user_id_1,
+            user_id_2: match.user_id_2,
+          };
+          conversationId = existingConv.id;
+        } else {
+          // Create the conversation for this match
+          const newConversationId = generateId('conv_');
+          await db.run(
+            'INSERT INTO conversations (id, match_id, created_at, last_message_at) VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)',
+            [newConversationId, match.id]
+          );
+
+          conversation = {
+            id: newConversationId,
+            match_id: match.id,
+            created_at: new Date(),
+            last_message_at: new Date(),
+            user_id_1: match.user_id_1,
+            user_id_2: match.user_id_2,
+          } as Conversation & { user_id_1: string; user_id_2: string };
+          conversationId = newConversationId;
+        }
+      }
+    }
 
     if (!conversation) {
       throw new Error('Conversation not found');
