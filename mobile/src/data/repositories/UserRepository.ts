@@ -23,6 +23,8 @@ interface AuthResponse {
 export class UserRepository implements IUserRepository {
   private readonly TOKEN_KEY = '@auth_token';
   private readonly CURRENT_USER_KEY = '@current_user';
+  private readonly DEFAULT_AGE = 25;
+  private readonly FALLBACK_AGE = 0;
 
   async getCurrentUser(): Promise<User | null> {
     try {
@@ -108,7 +110,7 @@ export class UserRepository implements IUserRepository {
           email,
           password,
           name: userData.name || '',
-          age: userData.age || 25, // Default age if not provided
+          age: userData.age || this.DEFAULT_AGE,
           bio: userData.bio || '',
         },
       );
@@ -122,7 +124,7 @@ export class UserRepository implements IUserRepository {
         id: response.user.id,
         email: response.user.email,
         name: response.user.name,
-        age: response.user.age || 0,
+        age: response.user.age || this.FALLBACK_AGE,
         bio: response.user.bio,
         photos: [],
         createdAt: new Date(response.user.created_at),
@@ -158,7 +160,7 @@ export class UserRepository implements IUserRepository {
         id: response.user.id,
         email: response.user.email,
         name: response.user.name,
-        age: response.user.age || 0,
+        age: response.user.age || this.FALLBACK_AGE,
         bio: response.user.bio,
         photos: [],
         createdAt: new Date(response.user.created_at),
@@ -216,7 +218,7 @@ export class UserRepository implements IUserRepository {
         id: response.user.id,
         email: response.user.email,
         name: response.user.name,
-        age: response.user.age || 0,
+        age: response.user.age || this.FALLBACK_AGE,
         bio: response.user.bio,
         photos: [],
         createdAt: new Date(response.user.created_at),
