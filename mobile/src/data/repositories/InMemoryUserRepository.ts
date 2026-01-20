@@ -18,6 +18,10 @@ export class InMemoryUserRepository implements IUserRepository {
     return this.users.get(userId) || null;
   }
 
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
+
   async getProfile(userId: string): Promise<Profile | null> {
     const user = await this.getUserById(userId);
     if (!user) {

@@ -5,6 +5,7 @@ import {
   MatchStatus,
 } from '../../domain/entities/Match';
 import {IMatchRepository} from '../../domain/repositories/IMatchRepository';
+import {IUserRepository} from '../../domain/repositories/IUserRepository';
 
 /**
  * Simple in-memory match repository
@@ -16,49 +17,55 @@ export class InMemoryMatchRepository implements IMatchRepository {
   private nextMatchId = 1;
   private nextLikeId = 1;
   private currentUserId: string | null = null;
-
-  // Mock discovery profiles
-  private mockProfiles: DiscoveryProfile[] = [
-    {
-      userId: 'user_1001',
-      name: 'Alex',
-      bio: 'Love hiking and outdoor adventures. Always looking for new trails to explore.',
-    },
-    {
-      userId: 'user_1002',
-      name: 'Jordan',
-      bio: 'Coffee enthusiast and bookworm. Can talk for hours about literature and good espresso.',
-    },
-    {
-      userId: 'user_1003',
-      name: 'Morgan',
-      bio: 'Artist and dreamer. Creating meaningful connections through conversation.',
-    },
-    {
-      userId: 'user_1004',
-      name: 'Taylor',
-      bio: 'Traveler and storyteller. Seeking genuine conversations and authentic connections.',
-    },
-  ];
+  private userRepository: IUserRepository | null = null;
 
   setCurrentUser(userId: string | null) {
     this.currentUserId = userId;
   }
 
+  setUserRepository(userRepository: IUserRepository) {
+    this.userRepository = userRepository;
+  }
+
   async getDiscoveryProfiles(_limit?: number): Promise<DiscoveryProfile[]> {
-    if (!this.currentUserId) {
+    if (!this.currentUserId || !this.userRepository) {
       return [];
     }
 
     const userLikes = this.likes.get(this.currentUserId);
     const userPasses = this.passes.get(this.currentUserId) || new Set();
 
-    // Filter out already liked/passed profiles
-    return this.mockProfiles.filter(profile => {
-      const hasLiked = userLikes && userLikes.has(profile.userId);
-      const hasPassed = userPasses.has(profile.userId);
-      return !hasLiked && !hasPassed;
-    });
+    // Get all users from UserRepository
+    const allUsers = await this.userRepository.getAllUsers?.() || [];
+
+    // Filter and map to discovery profiles
+    return allUsers
+      .filter(user => {
+        // Exclude current user
+        if (user.id === this.currentUserId) {
+          return false;
+        }
+
+        // Exclude already liked users
+        const hasLiked = userLikes && userLikes.has(user.id);
+        if (hasLiked) {
+          return false;
+        }
+
+        // Exclude already passed users
+        const hasPassed = userPasses.has(user.id);
+        if (hasPassed) {
+          return false;
+        }
+
+        return true;
+      })
+      .map(user => ({
+        userId: user.id,
+        name: user.name,
+        age: user.age,
+        bio: user.bio,
+      }));
   }
 
   async likeUser(targetUserId: string): Promise<Like> {

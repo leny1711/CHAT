@@ -48,6 +48,9 @@ const userRepository = new InMemoryUserRepository();
 const messageRepository = new InMemoryMessageRepository();
 const matchRepository = new InMemoryMatchRepository();
 
+// Connect repositories
+matchRepository.setUserRepository(userRepository);
+
 // Initialize use cases
 const loginUseCase = new LoginUseCase(userRepository);
 const registerUseCase = new RegisterUseCase(userRepository);
@@ -150,11 +153,15 @@ function App(): React.JSX.Element {
     setCurrentScreen('Login');
   };
 
-  const handleSelectMatch = (match: Match) => {
+  const handleSelectMatch = async (match: Match) => {
+    // Get the other user's details
+    const otherUserId = match.userIds.find(id => id !== currentUser?.id) || '';
+    const otherUser = await userRepository.getUserById(otherUserId);
+
     setConversationParams({
       conversationId: match.conversationId,
       matchId: match.id,
-      otherUserName: `Match #${match.id.slice(-6)}`,
+      otherUserName: otherUser ? otherUser.name : `User ${otherUserId.slice(-6)}`,
     });
     setCurrentScreen('Conversation');
   };
@@ -208,6 +215,10 @@ function App(): React.JSX.Element {
                 return getMatchesUseCase.execute();
               }}
               onSelectMatch={handleSelectMatch}
+              getUserById={async userId => {
+                return userRepository.getUserById(userId);
+              }}
+              currentUserId={currentUser.id}
             />
             <TabBar
               currentScreen={currentScreen}
@@ -236,6 +247,7 @@ function App(): React.JSX.Element {
           <ConversationScreen
             conversationId={conversationParams.conversationId}
             otherUserName={conversationParams.otherUserName}
+            currentUserId={currentUser.id}
             onSendMessage={async content => {
               await sendMessageUseCase.execute(
                 conversationParams.conversationId,
