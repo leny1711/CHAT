@@ -158,7 +158,7 @@ export class MessageRepository implements IMessageRepository {
       if (!conversationId || conversationId.trim() === '') {
         console.error('CRITICAL ERROR: Cannot send message without conversationId', {
           conversationId,
-          contentPreview: content.substring(0, 50),
+          contentLength: content.length,
         });
         throw new Error('conversationId is required to send a message');
       }

@@ -117,7 +117,6 @@ export class MessageService {
       console.error('CRITICAL ERROR: conversationId is missing or empty', {
         conversationId,
         senderId,
-        contentPreview: content.substring(0, 50),
       });
       throw new Error('conversationId is required and cannot be empty');
     }
@@ -200,11 +199,12 @@ export class MessageService {
             );
 
             if (!createdConv) {
-              console.error('CRITICAL: Conversation not found after creation!', {
+              console.error('CRITICAL: Conversation not found after INSERT', {
                 newConversationId,
                 matchId: match.id,
+                error: 'Race condition or database constraint violation - conversation was created by another request',
               });
-              throw new Error('Failed to create or find conversation');
+              throw new Error('Failed to create conversation - possible race condition. Please retry.');
             }
 
             conversation = {
