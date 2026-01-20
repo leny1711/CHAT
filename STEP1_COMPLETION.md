@@ -9,7 +9,7 @@ This document confirms that **STEP 1: DATA PERSISTENCE** has been successfully i
 ## 🎯 Requirements Met
 
 ### Core Requirements
-- ✅ **Backend as Single Source of Truth**: All data stored in SQLite database
+- ✅ **Backend as Single Source of Truth**: All data stored in PostgreSQL database
 - ✅ **No In-Memory State**: Mobile app uses API-backed repositories
 - ✅ **Data Persistence**: Closing app does NOT lose users, likes, matches, or messages
 - ✅ **Mobile UX Preserved**: Existing user flows work exactly as before
@@ -19,7 +19,7 @@ This document confirms that **STEP 1: DATA PERSISTENCE** has been successfully i
   - Automatic match creation on mutual likes
 
 ### Data Persisted
-1. ✅ **USERS** - Stored with authentication credentials in database
+1. ✅ **USERS** - Stored with authentication credentials in PostgreSQL database
 2. ✅ **PROFILES** - Linked to users with profile information
 3. ✅ **LIKES** - Tracked with user_id, target_user_id, timestamp
 4. ✅ **MATCHES** - Created automatically on mutual likes
@@ -41,10 +41,11 @@ This document confirms that **STEP 1: DATA PERSISTENCE** has been successfully i
 
 ### Backend
 - **Framework**: Express.js (TypeScript)
-- **Database**: SQLite3 (file-based, production-ready)
+- **Database**: PostgreSQL (production-ready RDBMS)
 - **Authentication**: JWT tokens with bcrypt password hashing
 - **Real-time**: WebSocket server for live messaging
 - **API Style**: RESTful with proper HTTP status codes
+- **Connection Pooling**: PostgreSQL connection pool for optimal performance
 
 ### Mobile
 - **Pattern**: Clean Architecture (Domain/Data/Infrastructure layers)
@@ -79,14 +80,16 @@ likes (id, from_user_id, to_user_id, created_at)
 
 ### Database Verification
 ```bash
-$ sqlite3 backend/data/app.db "SELECT COUNT(*) FROM users;"
-2  # Alice and Bob
+# Connect to PostgreSQL
+psql -U postgres -d dating_app
 
-$ sqlite3 backend/data/app.db "SELECT COUNT(*) FROM matches;"
-1  # Match between Alice and Bob
+# Check tables
+\dt
 
-$ sqlite3 backend/data/app.db "SELECT COUNT(*) FROM messages;"
-1  # Message from Alice to Bob
+# Query data
+SELECT COUNT(*) FROM users;
+SELECT COUNT(*) FROM matches;
+SELECT COUNT(*) FROM messages;
 ```
 
 ### API Testing Results
@@ -200,8 +203,12 @@ cd backend
 # Install dependencies
 npm install
 
-# Create .env file (already done)
+# Set up PostgreSQL database
+createdb dating_app
+
+# Create .env file with PostgreSQL connection
 cp .env.example .env
+# Edit DATABASE_URL to point to your PostgreSQL instance
 
 # Run in development mode
 npm run dev
@@ -212,6 +219,11 @@ npm start
 ```
 
 Backend will start on: http://localhost:3000
+
+**PostgreSQL Connection String Format:**
+```
+DATABASE_URL=postgresql://username:password@localhost:5432/dating_app
+```
 
 ### Mobile Setup
 ```bash

@@ -6,7 +6,7 @@ export class MatchService {
   async likeUser(fromUserId: string, toUserId: string): Promise<{ matched: boolean; matchId?: string }> {
     // Check if already liked
     const existingLike = await db.get<Like>(
-      'SELECT * FROM likes WHERE from_user_id = ? AND to_user_id = ?',
+      'SELECT * FROM likes WHERE from_user_id = $1 AND to_user_id = $2',
       [fromUserId, toUserId]
     );
 
@@ -17,13 +17,13 @@ export class MatchService {
     // Create like
     const likeId = generateId('like_');
     await db.run(
-      'INSERT INTO likes (id, from_user_id, to_user_id) VALUES (?, ?, ?)',
+      'INSERT INTO likes (id, from_user_id, to_user_id) VALUES ($1, $2, $3)',
       [likeId, fromUserId, toUserId]
     );
 
     // Check for mutual like
     const mutualLike = await db.get<Like>(
-      'SELECT * FROM likes WHERE from_user_id = ? AND to_user_id = ?',
+      'SELECT * FROM likes WHERE from_user_id = $1 AND to_user_id = $2',
       [toUserId, fromUserId]
     );
 
@@ -33,14 +33,14 @@ export class MatchService {
       const [user1, user2] = [fromUserId, toUserId].sort(); // Consistent ordering
 
       await db.run(
-        'INSERT INTO matches (id, user_id_1, user_id_2) VALUES (?, ?, ?)',
+        'INSERT INTO matches (id, user_id_1, user_id_2) VALUES ($1, $2, $3)',
         [matchId, user1, user2]
       );
 
       // Create conversation
       const conversationId = generateId('conv_');
       await db.run(
-        'INSERT INTO conversations (id, match_id) VALUES (?, ?)',
+        'INSERT INTO conversations (id, match_id) VALUES ($1, $2)',
         [conversationId, matchId]
       );
 
@@ -60,7 +60,7 @@ export class MatchService {
       `SELECT m.*, c.id as conversationId 
        FROM matches m
        JOIN conversations c ON c.match_id = m.id
-       WHERE (m.user_id_1 = ? OR m.user_id_2 = ?) AND m.status = 'active'
+       WHERE (m.user_id_1 = $1 OR m.user_id_2 = $2) AND m.status = 'active'
        ORDER BY m.created_at DESC`,
       [userId, userId]
     );
@@ -70,7 +70,7 @@ export class MatchService {
       matches.map(async (match) => {
         const otherUserId = match.user_id_1 === userId ? match.user_id_2 : match.user_id_1;
         const otherUser = await db.get<UserResponse>(
-          'SELECT id, email, name, age, bio, created_at, last_active FROM users WHERE id = ?',
+          'SELECT id, email, name, age, bio, created_at, last_active FROM users WHERE id = $1',
           [otherUserId]
         );
 
@@ -92,17 +92,17 @@ export class MatchService {
     const profiles = await db.all<UserResponse>(
       `SELECT id, email, name, age, bio, created_at, last_active 
        FROM users 
-       WHERE id != ? 
+       WHERE id != $1 
        AND id NOT IN (
-         SELECT to_user_id FROM likes WHERE from_user_id = ?
+         SELECT to_user_id FROM likes WHERE from_user_id = $2
        )
        AND id NOT IN (
-         SELECT user_id_1 FROM matches WHERE user_id_2 = ?
+         SELECT user_id_1 FROM matches WHERE user_id_2 = $3
          UNION
-         SELECT user_id_2 FROM matches WHERE user_id_1 = ?
+         SELECT user_id_2 FROM matches WHERE user_id_1 = $4
        )
        ORDER BY RANDOM()
-       LIMIT ?`,
+       LIMIT $5`,
       [userId, userId, userId, userId, limit]
     );
 
