@@ -204,21 +204,11 @@ export function AppNavigation() {
                 {({navigation}) => (
                   <RegisterScreen
                     onRegister={async (email, password, name, bio) => {
-                      try {
-                        await registerUseCase.execute(email, password, {
-                          name,
-                          bio,
-                        });
-                        setIsAuthenticated(true);
-                      } catch (error) {
-                        // Error is handled in RegisterScreen
-                        // This catch prevents crashes
-                        console.log(
-                          'Registration error in AppNavigation:',
-                          error,
-                        );
-                        throw error;
-                      }
+                      await registerUseCase.execute(email, password, {
+                        name,
+                        bio,
+                      });
+                      setIsAuthenticated(true);
                     }}
                     onNavigateToLogin={() => navigation.navigate('Login')}
                   />

@@ -76,10 +76,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
         } else if (err.message.includes('invalid')) {
           errorMessage =
             'Invalid registration data. Please check your information.';
-        } else if (err.message) {
-          // Use the error message if available
-          errorMessage = err.message;
         }
+        // Do not expose raw error messages from backend for security
       }
 
       setError(errorMessage);

@@ -153,16 +153,9 @@ function App(): React.JSX.Element {
     name: string,
     bio: string,
   ) => {
-    try {
-      const user = await registerUseCase.execute(email, password, {name, bio});
-      setCurrentUser(user);
-      setCurrentScreen('Discovery');
-    } catch (error) {
-      // Error is already handled in RegisterScreen
-      // This catch prevents crashes and keeps app stable
-      console.log('Registration error caught in App:', error);
-      throw error;
-    }
+    const user = await registerUseCase.execute(email, password, {name, bio});
+    setCurrentUser(user);
+    setCurrentScreen('Discovery');
   };
 
   const handleLogout = async () => {
