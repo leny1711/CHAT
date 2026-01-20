@@ -75,6 +75,11 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
       item.userIds.find(id => id !== currentUserId) || 'Unknown';
     const otherUser = matchedUsers.get(otherUserId);
 
+    // FIXED: Display proper user name with fallback
+    // Previously showed temporary user IDs like "user_xxx"
+    // Now shows actual profile name or "Loading..." while data fetches
+    const displayName = otherUser?.name || 'Loading...';
+
     return (
       <TouchableOpacity
         style={styles.matchCard}
@@ -83,12 +88,12 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
           <Text style={styles.matchAvatarText}>
             {otherUser
               ? otherUser.name.charAt(0).toUpperCase()
-              : otherUserId.charAt(0).toUpperCase()}
+              : '?'}
           </Text>
         </View>
         <View style={styles.matchInfo}>
           <Text style={styles.matchName}>
-            {otherUser?.name || 'New user'}
+            {displayName}
           </Text>
           <Text style={styles.matchDate}>
             Matched {new Date(item.createdAt).toLocaleDateString()}

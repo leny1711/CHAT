@@ -153,6 +153,21 @@ export class MessageRepository implements IMessageRepository {
 
   async sendMessage(conversationId: string, content: string): Promise<Message> {
     try {
+      // CRITICAL VALIDATION: Ensure conversationId is provided before making API call
+      // This prevents "Conversation not found" errors from undefined conversationId
+      if (!conversationId || conversationId.trim() === '') {
+        console.error('CRITICAL ERROR: Cannot send message without conversationId', {
+          conversationId,
+          contentPreview: content.substring(0, 50),
+        });
+        throw new Error('conversationId is required to send a message');
+      }
+
+      console.log('Sending message via API', {
+        conversationId,
+        contentLength: content.length,
+      });
+
       const response = await apiClient.post<SendMessageResponse>(
         `/api/conversations/${conversationId}/messages`,
         {content},
