@@ -153,7 +153,7 @@ export class MessageService {
           // Create the conversation for this match
           const newConversationId = generateId('conv_');
           await db.run(
-            'INSERT INTO conversations (id, match_id) VALUES ($1, $2)',
+            'INSERT INTO conversations (id, match_id, created_at, last_message_at) VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)',
             [newConversationId, match.id]
           );
 
@@ -164,7 +164,7 @@ export class MessageService {
             last_message_at: new Date(),
             user_id_1: match.user_id_1,
             user_id_2: match.user_id_2,
-          };
+          } as Conversation & { user_id_1: string; user_id_2: string };
           conversationId = newConversationId;
         }
       }
