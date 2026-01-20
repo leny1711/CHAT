@@ -2,9 +2,7 @@
   "name": "ChatMobile",
   "version": "0.0.1",
   "private": true,
-  "//": "⚠️  WARNING: All dependency versions are FROZEN for stability",
-  "//dependencies-warning": "DO NOT upgrade React Native or native dependencies without thorough compatibility testing",
-  "//lockfile-warning": "DO NOT delete package-lock.json - it ensures reproducible builds",
+  "description": "⚠️  WARNING: All dependency versions are FROZEN for stability. DO NOT upgrade React Native or native dependencies without thorough compatibility testing. DO NOT delete package-lock.json.",
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",

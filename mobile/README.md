@@ -55,18 +55,18 @@ All versions have been tested and verified to work together on real Android devi
 ### Installation
 
 ```bash
-# Install ALL dependencies (including native modules)
-npm install
+# Install ALL dependencies from the lockfile (recommended for production)
+npm ci
 
-# ⚠️  REQUIRED: Install AsyncStorage native module
-# This is a peer dependency that must be explicitly installed
-npm install @react-native-async-storage/async-storage
+# OR for development (installs from lockfile but allows flexibility)
+npm install
 ```
 
 **⚠️  IMPORTANT NOTES:**
-- Always run `npm install` (not `npm ci`) to ensure native linking
+- Use `npm ci` for reproducible builds (installs directly from package-lock.json)
 - Never delete `package-lock.json` - it guarantees consistent builds
 - All dependency versions are frozen - do not upgrade without testing
+- Native linking happens automatically during the Android build process
 
 ### Running the App
 
