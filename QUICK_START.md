@@ -8,11 +8,37 @@ Before you begin, ensure you have:
 
 - **Node.js** 18+ installed ([Download](https://nodejs.org/))
 - **npm** (comes with Node.js)
+- **PostgreSQL** 14+ installed and running ([Download](https://www.postgresql.org/download/))
 - For Android development:
   - Android Studio ([Download](https://developer.android.com/studio))
   - Android SDK 29+
   - Physical Android device with USB debugging enabled
   - OR Android emulator configured in Android Studio
+
+### Installing PostgreSQL
+
+The backend requires PostgreSQL and will not start without it.
+
+**macOS (using Homebrew):**
+```bash
+brew install postgresql@14
+brew services start postgresql@14
+```
+
+**Ubuntu/Debian:**
+```bash
+sudo apt update
+sudo apt install postgresql postgresql-contrib
+sudo systemctl start postgresql
+```
+
+**Windows:**
+Download the installer from [postgresql.org](https://www.postgresql.org/download/windows/)
+
+**Verify PostgreSQL is running:**
+```bash
+psql --version  # Should show PostgreSQL 14.x or higher
+```
 
 ## 🚀 Quick Start Steps
 
@@ -23,31 +49,76 @@ git clone https://github.com/leny1711/CHAT.git
 cd CHAT
 ```
 
-### Step 2: Install Backend Dependencies
+### Step 2: Install Backend Dependencies and Configure PostgreSQL
 
 ```bash
 cd backend
 npm install
-
-# Create environment file
-cp .env.example .env
-
-# The default configuration works for local development
-# PORT=3000
-# JWT_SECRET=dating-app-secret-key-change-in-production-123456
-# NODE_ENV=development
-# DATABASE_PATH=./data/app.db
 ```
 
+#### Configure PostgreSQL Connection
+
+**IMPORTANT:** This backend requires PostgreSQL. SQLite is not supported.
+
+1. **Create your environment file:**
+```bash
+cp .env.example .env
+```
+
+2. **Edit the `.env` file** and configure your PostgreSQL connection:
+```bash
+# Open in your text editor
+nano .env   # or code .env, vim .env, etc.
+```
+
+3. **Update the DATABASE_URL** to match your PostgreSQL setup:
+```env
+# Format: postgresql://username:password@host:port/database_name
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/dating_app
+```
+
+**What each part means:**
+- `username`: Your PostgreSQL username (default: `postgres`)
+- `password`: Your PostgreSQL password
+- `host`: `localhost` for local PostgreSQL
+- `port`: `5432` (default PostgreSQL port)
+- `database_name`: `dating_app` (or your preferred name)
+
+4. **Create the database:**
+```bash
+# Create the database
+createdb dating_app
+
+# Or using psql
+psql -U postgres -c "CREATE DATABASE dating_app;"
+```
+
+**The default configuration in .env.example assumes:**
+- PostgreSQL username: `postgres`
+- PostgreSQL password: `postgres`
+- Database host: `localhost`
+- Database port: `5432`
+- Database name: `dating_app`
+
+If your PostgreSQL setup is different, update the DATABASE_URL accordingly.
+
 ### Step 3: Start the Backend Server
+
+**Important:** Make sure PostgreSQL is running before starting the backend!
 
 ```bash
 # In the backend directory (from CHAT/backend)
 npm run dev
 ```
 
-You should see:
+**Successful startup looks like this:**
+
 ```
+Connecting to PostgreSQL database...
+PostgreSQL connection established
+PostgreSQL database initialized successfully
+WebSocket server initialized
+
 ========================================
 🚀 Dating App Backend Server Running
 ========================================
@@ -56,6 +127,20 @@ WebSocket: ws://localhost:3000/ws
 Environment: development
 ========================================
 ```
+
+✅ **If you see this output, PostgreSQL is correctly configured!**
+
+**If the backend fails to start:**
+
+Common issues and solutions:
+
+1. **"Failed to connect to PostgreSQL"**
+   - PostgreSQL is not running: Start it with `brew services start postgresql@14` (macOS) or `sudo systemctl start postgresql` (Linux)
+   - Wrong credentials: Check your DATABASE_URL in `.env`
+   - Database doesn't exist: Run `createdb dating_app`
+
+2. **"Port 3000 already in use"**
+   - Change PORT in `.env` to another value (e.g., 3001)
 
 **Keep this terminal open!** The backend needs to run while using the app.
 
@@ -202,7 +287,10 @@ To test WebSocket real-time messaging:
 ## 🔧 Troubleshooting
 
 ### Backend won't start
-- Make sure port 3000 is not already in use
+- **PostgreSQL connection failed**: Make sure PostgreSQL is running (`brew services list` on macOS, `sudo systemctl status postgresql` on Linux)
+- **Database doesn't exist**: Create the database with `createdb dating_app`
+- **Wrong credentials**: Check your DATABASE_URL in `backend/.env`
+- **Port 3000 already in use**: Change PORT in `backend/.env` to another value
 - Check that you're in the `backend` directory
 - Delete `node_modules` and run `npm install` again
 
@@ -220,8 +308,16 @@ To test WebSocket real-time messaging:
 - Try disabling firewall temporarily to test
 
 ### Database errors
-- Delete `backend/data/app.db` and restart the backend
-- This will create a fresh database
+- **Connection failed**: Ensure PostgreSQL is running
+- **Authentication failed**: Check username/password in DATABASE_URL
+- **Database doesn't exist**: Run `createdb dating_app` to create it
+- **Permission denied**: Make sure your PostgreSQL user has proper permissions
+- To start fresh: Drop and recreate the database:
+  ```bash
+  dropdb dating_app
+  createdb dating_app
+  npm run dev  # Backend will recreate tables
+  ```
 
 ### Can't build Android app
 - Make sure Android SDK is installed
@@ -245,7 +341,7 @@ After completing these steps, you have a fully functional dating app with:
 ✅ Automatic matching
 ✅ Private 1-to-1 conversations
 ✅ Real-time messaging via WebSocket
-✅ Message persistence in SQLite
+✅ Message persistence in PostgreSQL
 ✅ Infinite message history with pagination
 ✅ Offline message queueing
 ✅ Automatic reconnection

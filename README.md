@@ -16,7 +16,7 @@ This is NOT a classic dating app. The experience prioritizes:
 
 This is a monorepo containing:
 - `mobile/` - React Native CLI application (Android + iOS)
-- `backend/` - Node.js/Express backend with SQLite
+- `backend/` - Node.js/Express backend with PostgreSQL
 - `docs/` - Additional documentation
 
 The application follows **Clean Architecture** principles with clear separation of concerns.
@@ -59,7 +59,8 @@ backend/
 │   ├── services/        # Business logic
 │   ├── types/           # TypeScript type definitions
 │   └── utils/           # Utility functions
-└── data/                # SQLite database (auto-created)
+├── .env                 # Environment configuration (PostgreSQL connection)
+└── .env.example         # Example environment file
 ```
 
 See [backend/README.md](backend/README.md) for detailed backend documentation.
