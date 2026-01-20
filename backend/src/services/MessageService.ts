@@ -123,6 +123,11 @@ export class MessageService {
     // If conversation doesn't exist, check if the provided ID is actually a match ID
     // and create/find the conversation for that match
     if (!conversation) {
+      console.log('Conversation not found, checking if ID is a match ID', {
+        conversationId,
+        senderId,
+      });
+      
       // Check if a match exists with this ID where the sender is a participant
       const match = await db.get<{ id: string; user_id_1: string; user_id_2: string }>(
         `SELECT id, user_id_1, user_id_2 
@@ -134,6 +139,11 @@ export class MessageService {
       );
 
       if (match) {
+        console.log('Match found, creating conversation', {
+          matchId: match.id,
+          senderId,
+        });
+        
         // The provided ID is a match ID, not a conversation ID
         // Check if a conversation already exists for this match
         const existingConv = await db.get<Conversation>(
@@ -149,6 +159,10 @@ export class MessageService {
             user_id_2: match.user_id_2,
           };
           conversationId = existingConv.id;
+          console.log('Found existing conversation for match', {
+            conversationId,
+            matchId: match.id,
+          });
         } else {
           // Create the conversation for this match
           const newConversationId = generateId('conv_');
@@ -166,15 +180,29 @@ export class MessageService {
             user_id_2: match.user_id_2,
           } as Conversation & { user_id_1: string; user_id_2: string };
           conversationId = newConversationId;
+          
+          console.log('Created new conversation for match', {
+            conversationId,
+            matchId: match.id,
+          });
         }
       }
     }
 
     if (!conversation) {
+      console.error('Conversation not found and cannot be created', {
+        conversationId,
+        senderId,
+      });
       throw new Error('Conversation not found');
     }
 
     if (conversation.user_id_1 !== senderId && conversation.user_id_2 !== senderId) {
+      console.error('User is not a participant in conversation', {
+        conversationId,
+        senderId,
+        participants: [conversation.user_id_1, conversation.user_id_2],
+      });
       throw new Error('Not a participant in this conversation');
     }
 
@@ -213,6 +241,12 @@ export class MessageService {
         payload: message,
       });
     }
+
+    console.log('Message sent successfully', {
+      messageId,
+      conversationId,
+      senderId,
+    });
 
     return message;
   }

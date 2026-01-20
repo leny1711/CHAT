@@ -240,8 +240,12 @@ export class UserRepository implements IUserRepository {
 
       return user;
     } catch (error) {
-      console.error('Auth initialization error:', error);
-      // Clear invalid token
+      // Clear invalid token and auth data
+      // This handles cases where:
+      // - User was deleted from backend
+      // - Token is expired or invalid
+      // - Database was reset
+      // These are expected scenarios and not errors
       await this.logout();
       return null;
     }

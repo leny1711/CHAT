@@ -131,7 +131,10 @@ function App(): React.JSX.Element {
           setCurrentUser(user);
           setCurrentScreen('Discovery');
         }
+        // If user is null, it means no valid session exists
+        // This is expected behavior, not an error
       } catch (error) {
+        // Unexpected errors only - initializeAuth handles auth failures internally
         console.error('Failed to initialize auth:', error);
       } finally {
         setIsInitializing(false);
