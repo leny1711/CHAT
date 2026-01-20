@@ -174,7 +174,7 @@ function App(): React.JSX.Element {
       matchId: match.id,
       otherUserName: otherUser
         ? otherUser.name
-        : `User ${otherUserId.slice(-6)}`,
+        : 'New user',
     });
     setCurrentScreen('Conversation');
   };
