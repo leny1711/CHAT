@@ -50,9 +50,32 @@ export class MatchService {
         );
 
         await client.query('COMMIT');
+        
+        // Verify conversation was created
+        const verifyConv = await db.get<{ id: string }>(
+          'SELECT id FROM conversations WHERE id = $1',
+          [conversationId]
+        );
+        
+        if (!verifyConv) {
+          console.error('CRITICAL: Conversation not found after creation!', {
+            conversationId,
+            matchId,
+          });
+          throw new Error('Failed to create conversation');
+        }
+        
+        console.log('Match and conversation created successfully', {
+          matchId,
+          conversationId,
+          user1,
+          user2,
+        });
+        
         return { matched: true, matchId, conversationId };
       } catch (error) {
         await client.query('ROLLBACK');
+        console.error('Error creating match/conversation:', error);
         throw error;
       } finally {
         client.release();
