@@ -94,7 +94,7 @@ const TabBar: React.FC<TabBarProps> = ({currentScreen, onNavigate}) => (
         currentScreen === 'Discovery' && styles.tabItemActive,
       ]}
       onPress={() => onNavigate('Discovery')}>
-      Discovery
+      Découvrir
     </Text>
     <Text
       style={[
@@ -102,7 +102,7 @@ const TabBar: React.FC<TabBarProps> = ({currentScreen, onNavigate}) => (
         currentScreen === 'Matches' && styles.tabItemActive,
       ]}
       onPress={() => onNavigate('Matches')}>
-      Matches
+      Correspondances
     </Text>
     <Text
       style={[
@@ -110,7 +110,7 @@ const TabBar: React.FC<TabBarProps> = ({currentScreen, onNavigate}) => (
         currentScreen === 'Profile' && styles.tabItemActive,
       ]}
       onPress={() => onNavigate('Profile')}>
-      Profile
+      Profil
     </Text>
   </View>
 );
@@ -135,7 +135,7 @@ function App(): React.JSX.Element {
         // This is expected behavior, not an error
       } catch (error) {
         // Unexpected errors only - initializeAuth handles auth failures internally
-        console.error('Failed to initialize auth:', error);
+        console.warn('Failed to initialize auth:', error);
       } finally {
         setIsInitializing(false);
       }
@@ -172,7 +172,7 @@ function App(): React.JSX.Element {
     // BUG: conversationId was previously dropped before opening chat.
     // FIX: guard against missing conversationId and log the navigation payload.
     if (!match.conversationId) {
-      console.error('Cannot open conversation without conversationId', {
+      console.warn('Cannot open conversation without conversationId', {
         matchId: match.id,
       });
       return;
@@ -190,7 +190,7 @@ function App(): React.JSX.Element {
     setConversationParams({
       conversationId: match.conversationId,
       matchId: match.id,
-      otherUserName: otherUser ? otherUser.name : 'New user',
+      otherUserName: otherUser ? otherUser.name : 'Nouvel utilisateur',
     });
     setCurrentScreen('Conversation');
   };
@@ -200,7 +200,7 @@ function App(): React.JSX.Element {
     if (isInitializing) {
       return (
         <View style={styles.centerContainer}>
-          <Text style={styles.loadingText}>Loading...</Text>
+          <Text style={styles.loadingText}>Chargement...</Text>
         </View>
       );
     }

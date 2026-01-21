@@ -85,11 +85,21 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
     setLoading(true);
     try {
       const result = await onLoadMessages();
+      // Guard against malformed payloads to keep chat stable in production.
+      if (!result || !Array.isArray(result.messages)) {
+        console.warn(
+          'ConversationScreen: messages payload invalid while loading conversation',
+        );
+        setMessages([]);
+        setHasMore(false);
+        setCursor(undefined);
+        return;
+      }
       setMessages(result.messages);
-      setHasMore(result.hasMore);
+      setHasMore(!!result.hasMore);
       setCursor(result.nextCursor);
     } catch (error) {
-      console.error('Error loading messages:', error);
+      console.warn('ConversationScreen: error loading messages', error);
     } finally {
       setLoading(false);
     }
@@ -103,11 +113,20 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
     setLoadingMore(true);
     try {
       const result = await onLoadMessages(cursor);
+      // Guard against malformed payloads to avoid rendering crashes.
+      if (!result || !Array.isArray(result.messages)) {
+        console.warn(
+          'ConversationScreen: messages payload invalid while loading more',
+        );
+        setHasMore(false);
+        setCursor(undefined);
+        return;
+      }
       setMessages(prev => [...prev, ...result.messages]);
-      setHasMore(result.hasMore);
+      setHasMore(!!result.hasMore);
       setCursor(result.nextCursor);
     } catch (error) {
-      console.error('Error loading more messages:', error);
+      console.warn('ConversationScreen: error loading more messages', error);
     } finally {
       setLoadingMore(false);
     }
@@ -119,9 +138,8 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
     }
 
     if (!conversationId) {
-      // BUG: chat could send before conversationId was available, creating undefined payloads.
-      // FIX: block sends until conversationId exists, preventing invalid API calls forever.
-      console.error('Cannot send message without conversationId');
+      // Safeguard: avoid sending until conversationId is available.
+      console.warn('ConversationScreen: conversationId missing, send blocked');
       return;
     }
 
@@ -131,13 +149,18 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
     try {
       await onSendMessage(messageText);
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.warn('ConversationScreen: error sending message', error);
       // Restore message on error
       setInputText(messageText);
     }
   };
 
   const renderMessage = ({item}: {item: Message}) => {
+    // Guard against invalid messages so rendering never crashes.
+    if (!item?.id || !item?.senderId) {
+      console.warn('ConversationScreen: skipping invalid message payload');
+      return null;
+    }
     const isOwn = item.senderId === currentUserId;
 
     return (
@@ -156,14 +179,14 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
               styles.messageText,
               isOwn ? styles.ownText : styles.otherText,
             ]}>
-            {item.content}
+            {item.content ?? ''}
           </Text>
           <Text
             style={[
               styles.messageTime,
               isOwn ? styles.ownTime : styles.otherTime,
             ]}>
-            {formatTime(item.createdAt)}
+            {item.createdAt ? formatTime(item.createdAt) : '--:--'}
           </Text>
         </View>
       </View>
@@ -177,7 +200,9 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
     return (
       <View style={styles.loadingMore}>
         <ActivityIndicator size="small" color={theme.colors.primary} />
-        <Text style={styles.loadingMoreText}>Loading earlier messages...</Text>
+        <Text style={styles.loadingMoreText}>
+          Chargement des messages précédents…
+        </Text>
       </View>
     );
   };
@@ -194,7 +219,9 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="small" color={theme.colors.primary} />
-        <Text style={styles.initializingText}>Initializing conversation…</Text>
+        <Text style={styles.initializingText}>
+          Initialisation de la conversation…
+        </Text>
       </View>
     );
   }
@@ -207,12 +234,12 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
       <View style={styles.header}>
         {onBack && (
           <TouchableOpacity style={styles.backButton} onPress={onBack}>
-            <Text style={styles.backButtonText}>← Back</Text>
+            <Text style={styles.backButtonText}>← Retour</Text>
           </TouchableOpacity>
         )}
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>{otherUserName}</Text>
-          <Text style={styles.headerSubtitle}>Private conversation</Text>
+          <Text style={styles.headerSubtitle}>Conversation privée</Text>
         </View>
       </View>
 
@@ -231,7 +258,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
-          placeholder="Write your message..."
+          placeholder="Écrivez votre message..."
           placeholderTextColor={theme.colors.textLight}
           value={inputText}
           onChangeText={setInputText}
@@ -246,7 +273,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
           ]}
           onPress={handleSend}
           disabled={!inputText.trim() || !conversationId}>
-          <Text style={styles.sendButtonText}>Send</Text>
+          <Text style={styles.sendButtonText}>Envoyer</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>

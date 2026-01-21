@@ -21,8 +21,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Profile</Text>
-        <Text style={styles.headerSubtitle}>Your information</Text>
+        <Text style={styles.headerTitle}>Profil</Text>
+        <Text style={styles.headerSubtitle}>Vos informations</Text>
       </View>
 
       {user && (
@@ -39,7 +39,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           style={[styles.button, styles.logoutButton]}
           onPress={onLogout}>
           <Text style={[styles.buttonText, styles.logoutButtonText]}>
-            Logout
+            Se déconnecter
           </Text>
         </TouchableOpacity>
       </View>

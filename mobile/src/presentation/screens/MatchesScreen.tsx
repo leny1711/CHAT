@@ -66,7 +66,7 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
 
       setMatchedUsers(userMap);
     } catch (error) {
-      console.error('Error loading matches:', error);
+      console.warn('MatchesScreen: error loading matches', error);
     } finally {
       setLoading(false);
     }
@@ -81,8 +81,10 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
     try {
       await onSelectMatch(match, otherUser);
     } catch (error) {
-      console.error('Error selecting match:', error);
-      setSelectionError('Unable to open chat right now. Please try again.');
+      console.warn('MatchesScreen: error selecting match', error);
+      setSelectionError(
+        "Impossible d'ouvrir la conversation pour le moment. Réessayez.",
+      );
     } finally {
       setSelectingMatchId(null);
     }
@@ -95,8 +97,8 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
 
     // FIXED: Display proper user name with fallback
     // Previously showed temporary user IDs like "user_xxx"
-    // Now shows actual profile name or "Loading..." while data fetches
-    const displayName = otherUser?.name || 'Loading...';
+    // Now shows actual profile name or "Chargement..." while data fetches
+    const displayName = otherUser?.name || 'Chargement...';
 
     return (
       <TouchableOpacity
@@ -111,12 +113,14 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
         <View style={styles.matchInfo}>
           <Text style={styles.matchName}>{displayName}</Text>
           <Text style={styles.matchDate}>
-            Matched {new Date(item.createdAt).toLocaleDateString()}
+            Correspondance le {new Date(item.createdAt).toLocaleDateString()}
           </Text>
           {selectingMatchId === item.id && (
             <View style={styles.matchLoadingRow}>
               <ActivityIndicator size="small" color={theme.colors.primary} />
-              <Text style={styles.matchLoadingText}>Opening chat…</Text>
+              <Text style={styles.matchLoadingText}>
+                Ouverture de la discussion…
+              </Text>
             </View>
           )}
         </View>
@@ -136,8 +140,8 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Matches</Text>
-        <Text style={styles.headerSubtitle}>Your connections</Text>
+        <Text style={styles.headerTitle}>Correspondances</Text>
+        <Text style={styles.headerSubtitle}>Vos connexions</Text>
         {selectionError && (
           <Text style={styles.selectionError}>{selectionError}</Text>
         )}
@@ -145,9 +149,9 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
 
       {matches.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyTitle}>No Matches Yet</Text>
+          <Text style={styles.emptyTitle}>Aucune correspondance</Text>
           <Text style={styles.emptyText}>
-            Start discovering profiles to make connections
+            Commencez à découvrir des profils pour créer des liens
           </Text>
         </View>
       ) : (

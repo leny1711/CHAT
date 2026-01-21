@@ -27,7 +27,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
   const handleLogin = async () => {
     if (!email || !password) {
-      setError('Please enter email and password');
+      setError('Veuillez saisir un email et un mot de passe');
       return;
     }
 
@@ -37,7 +37,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     try {
       await onLogin(email, password);
     } catch (err) {
-      setError('Invalid credentials. Please try again.');
+      setError('Identifiants invalides. Veuillez réessayer.');
     } finally {
       setLoading(false);
     }
@@ -48,8 +48,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <View style={styles.content}>
-        <Text style={styles.title}>Welcome</Text>
-        <Text style={styles.subtitle}>A space for meaningful connections</Text>
+        <Text style={styles.title}>Bienvenue</Text>
+        <Text style={styles.subtitle}>
+          Un espace pour des connexions sincères
+        </Text>
 
         <View style={styles.form}>
           <TextInput
@@ -65,7 +67,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
           <TextInput
             style={styles.input}
-            placeholder="Password"
+            placeholder="Mot de passe"
             placeholderTextColor={theme.colors.textLight}
             value={password}
             onChangeText={setPassword}
@@ -82,7 +84,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             {loading ? (
               <ActivityIndicator color={theme.colors.surface} />
             ) : (
-              <Text style={styles.buttonText}>Sign In</Text>
+              <Text style={styles.buttonText}>Se connecter</Text>
             )}
           </TouchableOpacity>
 
@@ -90,9 +92,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             style={styles.linkButton}
             onPress={onNavigateToRegister}
             disabled={loading}>
-            <Text style={styles.linkText}>
-              Don't have an account? Create one
-            </Text>
+            <Text style={styles.linkText}>Pas de compte ? Créez-en un</Text>
           </TouchableOpacity>
         </View>
       </View>
