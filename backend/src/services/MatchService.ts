@@ -90,11 +90,11 @@ export class MatchService {
     // to avoid showing the same profile again
   }
 
-  async getMatches(userId: string): Promise<Array<Match & { otherUser: UserResponse; conversationId: string }>> {
-    const matches = await db.all<Match & { conversationId: string }>(
-      `SELECT m.*, c.id as conversationId 
+  async getMatches(userId: string): Promise<Array<Match & { otherUser: UserResponse; conversationId?: string }>> {
+    const matches = await db.all<Match & { conversation_id: string | null }>(
+      `SELECT m.*, c.id as conversation_id 
        FROM matches m
-       JOIN conversations c ON c.match_id = m.id
+       LEFT JOIN conversations c ON c.match_id = m.id
        WHERE (m.user_id_1 = $1 OR m.user_id_2 = $2) AND m.status = 'active'
        ORDER BY m.created_at DESC`,
       [userId, userId]
@@ -102,21 +102,82 @@ export class MatchService {
 
     // Get other user info for each match
     const matchesWithUsers = await Promise.all(
-      matches.map(async (match) => {
-        const otherUserId = match.user_id_1 === userId ? match.user_id_2 : match.user_id_1;
-        const otherUser = await db.get<UserResponse>(
-          'SELECT id, email, name, age, bio, created_at, last_active FROM users WHERE id = $1',
-          [otherUserId]
-        );
+       matches.map(async (match) => {
+         const otherUserId = match.user_id_1 === userId ? match.user_id_2 : match.user_id_1;
+         const otherUser = await db.get<UserResponse>(
+           'SELECT id, email, name, age, bio, created_at, last_active FROM users WHERE id = $1',
+           [otherUserId]
+         );
 
         return {
-          ...match,
+          id: match.id,
+          user_id_1: match.user_id_1,
+          user_id_2: match.user_id_2,
+          created_at: match.created_at,
+          status: match.status,
+          conversationId: match.conversation_id ?? undefined,
           otherUser: otherUser!,
         };
       })
     );
 
     return matchesWithUsers;
+  }
+
+  async ensureConversationForMatch(
+    userId: string,
+    matchId: string
+  ): Promise<{ conversationId: string }> {
+    const match = await db.get<Match>(
+      `SELECT * FROM matches 
+       WHERE id = $1 
+       AND status = 'active'
+       AND (user_id_1 = $2 OR user_id_2 = $2)`,
+      [matchId, userId]
+    );
+
+    if (!match) {
+      throw new Error('Match not found or access denied');
+    }
+
+    const existingConversation = await db.get<Conversation>(
+      'SELECT * FROM conversations WHERE match_id = $1',
+      [matchId]
+    );
+
+    if (existingConversation) {
+      return { conversationId: existingConversation.id };
+    }
+
+    const conversationId = generateId('conv_');
+    const createdConversation = await db.get<{ id: string }>(
+      `INSERT INTO conversations (id, match_id, created_at, last_message_at)
+       VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+       ON CONFLICT (match_id) DO UPDATE SET last_message_at = CURRENT_TIMESTAMP
+       RETURNING id`,
+      [conversationId, matchId]
+    );
+
+    if (!createdConversation) {
+      const existingConversation = await db.get<Conversation>(
+        'SELECT * FROM conversations WHERE match_id = $1',
+        [matchId]
+      );
+
+      if (existingConversation) {
+        return { conversationId: existingConversation.id };
+      }
+
+      const errorMessage = 'Failed to create conversation for match';
+      console.error('CRITICAL: Conversation missing after ensure', {
+        matchId,
+        conversationId,
+        error: errorMessage,
+      });
+      throw new Error(errorMessage);
+    }
+
+    return { conversationId: createdConversation.id };
   }
 
   async getDiscoveryProfiles(userId: string, limit: number = 10): Promise<UserResponse[]> {

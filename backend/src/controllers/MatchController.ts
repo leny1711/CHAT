@@ -61,4 +61,22 @@ export class MatchController {
       res.status(500).json({ error: 'Failed to get discovery profiles' });
     }
   }
+
+  async ensureConversation(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const userId = req.userId!;
+      const { matchId } = req.body;
+
+      if (!matchId) {
+        res.status(400).json({ error: 'Missing matchId' });
+        return;
+      }
+
+      const result = await matchService.ensureConversationForMatch(userId, matchId);
+      res.status(200).json(result);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to ensure conversation';
+      res.status(400).json({ error: message });
+    }
+  }
 }

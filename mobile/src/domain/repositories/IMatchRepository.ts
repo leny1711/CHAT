@@ -33,4 +33,9 @@ export interface IMatchRepository {
    * Check if two users have matched
    */
   checkMatch(userId1: string, userId2: string): Promise<Match | null>;
+
+  /**
+   * Ensure conversation exists for a match and return its ID
+   */
+  ensureConversation(matchId: string): Promise<string>;
 }

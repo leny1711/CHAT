@@ -13,7 +13,7 @@ import {User} from '../../domain/entities/User';
 
 interface MatchesScreenProps {
   onGetMatches: () => Promise<Match[]>;
-  onSelectMatch: (match: Match, otherUser?: User) => void;
+  onSelectMatch: (match: Match, otherUser?: User) => Promise<void>;
   getUserById: (userId: string) => Promise<User | null>;
   currentUserId: string;
 }
@@ -26,6 +26,8 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
 }) => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectingMatchId, setSelectingMatchId] = useState<string | null>(null);
+  const [selectionError, setSelectionError] = useState<string | null>(null);
   const [matchedUsers, setMatchedUsers] = useState<Map<string, User>>(
     new Map(),
   );
@@ -70,6 +72,22 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
     }
   };
 
+  const handleSelectMatch = async (match: Match, otherUser?: User) => {
+    if (selectingMatchId) {
+      return;
+    }
+    setSelectionError(null);
+    setSelectingMatchId(match.id);
+    try {
+      await onSelectMatch(match, otherUser);
+    } catch (error) {
+      console.error('Error selecting match:', error);
+      setSelectionError('Unable to open chat right now. Please try again.');
+    } finally {
+      setSelectingMatchId(null);
+    }
+  };
+
   const renderMatch = ({item}: {item: Match}) => {
     const otherUserId =
       item.userIds.find(id => id !== currentUserId) || 'Unknown';
@@ -83,17 +101,8 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
     return (
       <TouchableOpacity
         style={styles.matchCard}
-        onPress={() => {
-          // BUG FIX: conversationId used to be lost between match list and chat navigation.
-          // Guarding here prevents navigating without the backend-provided ID.
-          if (!item.conversationId) {
-            console.error('Missing conversationId on match selection', {
-              matchId: item.id,
-            });
-            return;
-          }
-          onSelectMatch(item, otherUser || undefined);
-        }}>
+        onPress={() => handleSelectMatch(item, otherUser)}
+        disabled={selectingMatchId === item.id}>
         <View style={styles.matchAvatar}>
           <Text style={styles.matchAvatarText}>
             {otherUser ? otherUser.name.charAt(0).toUpperCase() : '?'}
@@ -104,6 +113,12 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
           <Text style={styles.matchDate}>
             Matched {new Date(item.createdAt).toLocaleDateString()}
           </Text>
+          {selectingMatchId === item.id && (
+            <View style={styles.matchLoadingRow}>
+              <ActivityIndicator size="small" color={theme.colors.primary} />
+              <Text style={styles.matchLoadingText}>Opening chat…</Text>
+            </View>
+          )}
         </View>
         <Text style={styles.matchArrow}>→</Text>
       </TouchableOpacity>
@@ -123,6 +138,9 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Matches</Text>
         <Text style={styles.headerSubtitle}>Your connections</Text>
+        {selectionError && (
+          <Text style={styles.selectionError}>{selectionError}</Text>
+        )}
       </View>
 
       {matches.length === 0 ? (
@@ -200,6 +218,16 @@ const styles = StyleSheet.create({
   matchInfo: {
     flex: 1,
   },
+  matchLoadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: theme.spacing.xs,
+    gap: theme.spacing.xs,
+  },
+  matchLoadingText: {
+    fontSize: theme.typography.fontSize.xs,
+    color: theme.colors.textSecondary,
+  },
   matchName: {
     fontSize: theme.typography.fontSize.md,
     fontWeight: '500',
@@ -230,5 +258,10 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.fontSize.md,
     color: theme.colors.textSecondary,
     textAlign: 'center',
+  },
+  selectionError: {
+    marginTop: theme.spacing.sm,
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.error,
   },
 });

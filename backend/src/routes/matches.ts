@@ -10,6 +10,7 @@ router.use(authMiddleware);
 
 router.post('/like', (req, res) => matchController.like(req, res));
 router.post('/pass', (req, res) => matchController.pass(req, res));
+router.post('/conversation', (req, res) => matchController.ensureConversation(req, res));
 router.get('/', (req, res) => matchController.getMatches(req, res));
 router.get('/discovery', (req, res) => matchController.getDiscoveryProfiles(req, res));
 

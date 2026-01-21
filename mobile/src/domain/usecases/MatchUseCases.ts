@@ -52,3 +52,14 @@ export class GetMatchesUseCase {
     return this.matchRepository.getMatches();
   }
 }
+
+/**
+ * Use case for ensuring conversation exists for a match
+ */
+export class EnsureConversationUseCase {
+  constructor(private matchRepository: IMatchRepository) {}
+
+  async execute(matchId: string): Promise<string> {
+    return this.matchRepository.ensureConversation(matchId);
+  }
+}

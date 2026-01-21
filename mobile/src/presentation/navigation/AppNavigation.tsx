@@ -34,6 +34,7 @@ import {
   LikeUserUseCase,
   PassUserUseCase,
   GetMatchesUseCase,
+  EnsureConversationUseCase,
 } from '../../domain/usecases/MatchUseCases';
 
 import {User} from '../../domain/entities/User';
@@ -75,6 +76,9 @@ const getDiscoveryProfilesUseCase = new GetDiscoveryProfilesUseCase(
 const likeUserUseCase = new LikeUserUseCase(matchRepository);
 const passUserUseCase = new PassUserUseCase(matchRepository);
 const getMatchesUseCase = new GetMatchesUseCase(matchRepository);
+const ensureConversationUseCase = new EnsureConversationUseCase(
+  matchRepository,
+);
 
 function MainTabs() {
   return (
@@ -160,18 +164,15 @@ function MatchesScreenWrapper({navigation}: any) {
       onGetMatches={async () => {
         return getMatchesUseCase.execute();
       }}
-      onSelectMatch={(match: Match, otherUser?: User) => {
+      onSelectMatch={async (match: Match, otherUser?: User) => {
         // BUG: conversationId was lost between match selection and chat navigation.
         // FIX: use the match payload as the single source of truth and pass it explicitly.
-        const {conversationId} = match;
+        let conversationId = match.conversationId;
         if (!conversationId) {
-          console.error(
-            'Cannot navigate to conversation without conversationId',
-            {
-              matchId: match.id,
-            },
-          );
-          return;
+          if (__DEV__) {
+            console.log('Ensuring conversation for match', {matchId: match.id});
+          }
+          conversationId = await ensureConversationUseCase.execute(match.id);
         }
         if (__DEV__) {
           console.log('Navigating to conversation', {

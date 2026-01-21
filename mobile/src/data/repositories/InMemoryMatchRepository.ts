@@ -140,4 +140,16 @@ export class InMemoryMatchRepository implements IMatchRepository {
       ) || null
     );
   }
+
+  async ensureConversation(matchId: string): Promise<string> {
+    const match = this.matches.get(matchId);
+    if (!match) {
+      throw new Error('Match not found');
+    }
+    if (!match.conversationId) {
+      match.conversationId = `conv_${matchId}`;
+      this.matches.set(matchId, match);
+    }
+    return match.conversationId;
+  }
 }
