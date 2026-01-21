@@ -29,7 +29,7 @@ interface MatchesResponse {
     user_id_2: string;
     created_at: string;
     status: string;
-    conversationId: string;
+    conversationId?: string;
     otherUser: {
       id: string;
       name: string;
@@ -37,6 +37,10 @@ interface MatchesResponse {
       bio: string;
     };
   }>;
+}
+
+interface EnsureConversationResponse {
+  conversationId: string;
 }
 
 /**
@@ -140,5 +144,13 @@ export class MatchRepository implements IMatchRepository {
     // This is handled automatically by the backend when users like each other
     // We just return null here as this method is not needed with the backend
     return null;
+  }
+
+  async ensureConversation(matchId: string): Promise<string> {
+    const response = await apiClient.post<EnsureConversationResponse>(
+      '/api/matches/conversation',
+      {matchId},
+    );
+    return response.conversationId;
   }
 }

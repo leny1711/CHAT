@@ -6,7 +6,7 @@ export interface Match {
   id: string;
   userIds: [string, string];
   createdAt: Date;
-  conversationId: string;
+  conversationId?: string;
   status: MatchStatus;
 }
 

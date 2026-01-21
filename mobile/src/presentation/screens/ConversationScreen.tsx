@@ -43,7 +43,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
 }) => {
   useEffect(() => {
     if (__DEV__ && !conversationId) {
-      throw new Error('ConversationScreen requires conversationId');
+      console.warn('ConversationScreen waiting for conversationId');
     }
   }, [conversationId]);
   const [messages, setMessages] = useState<Message[]>([]);
