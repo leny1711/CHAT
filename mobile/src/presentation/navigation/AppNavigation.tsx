@@ -101,17 +101,17 @@ function MainTabs() {
       <Tab.Screen
         name="Discover"
         component={DiscoveryScreenWrapper}
-        options={{tabBarLabel: 'Discovery'}}
+        options={{tabBarLabel: 'Découvrir'}}
       />
       <Tab.Screen
         name="Matches"
         component={MatchesScreenWrapper}
-        options={{tabBarLabel: 'Matches'}}
+        options={{tabBarLabel: 'Correspondances'}}
       />
       <Tab.Screen
         name="Profile"
         component={SettingsScreenWrapper}
-        options={{tabBarLabel: 'Profile'}}
+        options={{tabBarLabel: 'Profil'}}
       />
     </Tab.Navigator>
   );
@@ -154,7 +154,7 @@ function MatchesScreenWrapper({navigation}: any) {
     try {
       return await userRepository.getUserById(userId);
     } catch (error) {
-      console.error('Error getting user:', error);
+      console.warn('AppNavigation: error getting user', error);
       return null;
     }
   };
@@ -183,7 +183,7 @@ function MatchesScreenWrapper({navigation}: any) {
         navigation.navigate('Conversation', {
           conversationId,
           matchId: match.id,
-          otherUserName: otherUser?.name || 'New user',
+          otherUserName: otherUser?.name || 'Nouvel utilisateur',
         });
       }}
       getUserById={getUserById}
@@ -238,10 +238,10 @@ function ConversationScreenWrapper({route, navigation}: any) {
     return (
       <ConversationScreen
         conversationId=""
-        otherUserName={route.params?.otherUserName || 'New user'}
+        otherUserName={route.params?.otherUserName || 'Nouvel utilisateur'}
         currentUserId={currentUser?.id || ''}
         onSendMessage={async () => {
-          console.error('Cannot send message without conversationId');
+          console.warn('AppNavigation: conversationId missing, send blocked');
         }}
         onLoadMessages={async () => ({
           messages: [],
@@ -256,7 +256,7 @@ function ConversationScreenWrapper({route, navigation}: any) {
   return (
     <ConversationScreen
       conversationId={conversationId}
-      otherUserName={route.params?.otherUserName || 'New user'}
+      otherUserName={route.params?.otherUserName || 'Nouvel utilisateur'}
       currentUserId={currentUser?.id || ''}
       onSendMessage={async content => {
         if (__DEV__) {

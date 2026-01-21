@@ -35,12 +35,12 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
 
   const handleRegister = async () => {
     if (!email || !password || !name || !bio) {
-      setError('Please fill in all required fields');
+      setError('Veuillez remplir tous les champs requis');
       return;
     }
 
     if (bio.length < 10) {
-      setError('Description must be at least 10 characters');
+      setError('La description doit contenir au moins 10 caractères');
       return;
     }
 
@@ -52,30 +52,29 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       // Success - the parent component will handle navigation
     } catch (err) {
       // Handle errors locally - never let them propagate
-      console.log('Registration error:', err);
+      console.warn('Registration error:', err);
 
-      let errorMessage = 'Registration failed. Please try again.';
+      let errorMessage = "Échec de l'inscription. Veuillez réessayer.";
 
       if (err instanceof Error) {
         // Provide specific error messages based on error type
         if (err.message.includes('timeout')) {
           errorMessage =
-            'Request timed out. Please check your connection and try again.';
+            'La requête a expiré. Vérifiez votre connexion et réessayez.';
         } else if (
           err.message.includes('network') ||
           err.message.includes('Failed to fetch')
         ) {
-          errorMessage =
-            'Network error. Please check your internet connection.';
+          errorMessage = 'Erreur réseau. Vérifiez votre connexion internet.';
         } else if (
           err.message.includes('already exists') ||
           err.message.includes('duplicate')
         ) {
           errorMessage =
-            'This email is already registered. Please use a different email or sign in.';
+            'Cet email est déjà utilisé. Utilisez-en un autre ou connectez-vous.';
         } else if (err.message.includes('invalid')) {
           errorMessage =
-            'Invalid registration data. Please check your information.';
+            "Données d'inscription invalides. Vérifiez vos informations.";
         }
         // Do not expose raw error messages from backend for security
       }
@@ -93,15 +92,15 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.content}>
-          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.title}>Créer un compte</Text>
           <Text style={styles.subtitle}>
-            Begin your journey of meaningful connections
+            Commencez votre parcours vers des connexions sincères
           </Text>
 
           <View style={styles.form}>
             <TextInput
               style={styles.input}
-              placeholder="Username"
+              placeholder="Nom d'utilisateur"
               placeholderTextColor={theme.colors.textLight}
               value={name}
               onChangeText={setName}
@@ -121,7 +120,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
 
             <TextInput
               style={styles.input}
-              placeholder="Password"
+              placeholder="Mot de passe"
               placeholderTextColor={theme.colors.textLight}
               value={password}
               onChangeText={setPassword}
@@ -131,7 +130,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
 
             <TextInput
               style={[styles.input, styles.bioInput]}
-              placeholder="Short description (minimum 10 characters)"
+              placeholder="Courte description (minimum 10 caractères)"
               placeholderTextColor={theme.colors.textLight}
               value={bio}
               onChangeText={setBio}
@@ -150,7 +149,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
               {loading ? (
                 <ActivityIndicator color={theme.colors.surface} />
               ) : (
-                <Text style={styles.buttonText}>Create Account</Text>
+                <Text style={styles.buttonText}>Créer un compte</Text>
               )}
             </TouchableOpacity>
 
@@ -159,7 +158,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
               onPress={onNavigateToLogin}
               disabled={loading}>
               <Text style={styles.linkText}>
-                Already have an account? Sign in
+                Vous avez déjà un compte ? Connectez-vous
               </Text>
             </TouchableOpacity>
           </View>

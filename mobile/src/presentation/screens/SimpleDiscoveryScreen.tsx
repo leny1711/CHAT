@@ -41,7 +41,7 @@ export const SimpleDiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
       setProfiles(data);
       setCurrentIndex(0);
     } catch (error) {
-      console.error('Error loading profiles:', error);
+      console.warn('SimpleDiscoveryScreen: error loading profiles', error);
     } finally {
       setLoading(false);
     }
@@ -71,7 +71,7 @@ export const SimpleDiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
         await loadProfiles();
       }
     } catch (error) {
-      console.error('Error handling action:', error);
+      console.warn('SimpleDiscoveryScreen: error handling action', error);
     } finally {
       setActionLoading(false);
     }
@@ -81,7 +81,7 @@ export const SimpleDiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.loadingText}>Finding connections...</Text>
+        <Text style={styles.loadingText}>Recherche de connexions...</Text>
       </View>
     );
   }
@@ -89,12 +89,12 @@ export const SimpleDiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
   if (!currentProfile) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.emptyTitle}>No More Profiles</Text>
+        <Text style={styles.emptyTitle}>Plus de profils</Text>
         <Text style={styles.emptyText}>
-          Check back later for new connections
+          Revenez plus tard pour de nouvelles connexions
         </Text>
         <TouchableOpacity style={styles.reloadButton} onPress={loadProfiles}>
-          <Text style={styles.reloadButtonText}>Refresh</Text>
+          <Text style={styles.reloadButtonText}>Actualiser</Text>
         </TouchableOpacity>
       </View>
     );
@@ -104,21 +104,21 @@ export const SimpleDiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerText}>
-          <Text style={styles.headerTitle}>Discover</Text>
-          <Text style={styles.headerSubtitle}>Take your time</Text>
+          <Text style={styles.headerTitle}>Découvrir</Text>
+          <Text style={styles.headerSubtitle}>Prenez votre temps</Text>
         </View>
         <TouchableOpacity
           style={styles.refreshButton}
           onPress={loadProfiles}
           disabled={loading}>
-          <Text style={styles.refreshButtonText}>Refresh</Text>
+          <Text style={styles.refreshButtonText}>Actualiser</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.card}>
         <View style={styles.photoPlaceholder}>
           <Text style={styles.photoPlaceholderText}>
-            Photo reveals through conversation
+            Les photos se révèlent en discutant
           </Text>
         </View>
 
@@ -134,7 +134,7 @@ export const SimpleDiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
           onPress={() => handleAction('pass')}
           disabled={actionLoading}>
           <Text style={[styles.actionButtonText, styles.passButtonText]}>
-            Pass
+            Passer
           </Text>
         </TouchableOpacity>
 
@@ -143,13 +143,13 @@ export const SimpleDiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
           onPress={() => handleAction('like')}
           disabled={actionLoading}>
           <Text style={[styles.actionButtonText, styles.likeButtonText]}>
-            Like
+            J'aime
           </Text>
         </TouchableOpacity>
       </View>
 
       <Text style={styles.counter}>
-        {currentIndex + 1} of {profiles.length}
+        {currentIndex + 1} sur {profiles.length}
       </Text>
     </View>
   );
