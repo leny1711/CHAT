@@ -131,16 +131,26 @@ export class MessageRepository implements IMessageRepository {
 
       const response = await apiClient.get<MessagePageResponse>(url);
 
+      const messages = response.messages.map(msg => ({
+        id: msg.id,
+        conversationId: msg.conversation_id,
+        senderId: msg.sender_id,
+        content: msg.content,
+        createdAt: new Date(msg.created_at),
+        status: msg.status as MessageStatus,
+        type: msg.type as MessageType,
+      }));
+
+      messages.sort((a, b) => {
+        const timeDiff = b.createdAt.getTime() - a.createdAt.getTime();
+        if (timeDiff !== 0) {
+          return timeDiff;
+        }
+        return b.id.localeCompare(a.id);
+      });
+
       return {
-        messages: response.messages.map(msg => ({
-          id: msg.id,
-          conversationId: msg.conversation_id,
-          senderId: msg.sender_id,
-          content: msg.content,
-          createdAt: new Date(msg.created_at),
-          status: msg.status as MessageStatus,
-          type: msg.type as MessageType,
-        })),
+        messages,
         hasMore: response.hasMore,
         nextCursor: response.nextCursor,
         totalCount: response.totalCount,
