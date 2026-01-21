@@ -91,7 +91,7 @@ export class MatchService {
   }
 
   async getMatches(userId: string): Promise<Array<Match & { otherUser: UserResponse; conversationId?: string }>> {
-    const matches = await db.all<Match & { conversation_id?: string }>(
+    const matches = await db.all<Match & { conversation_id: string | null }>(
       `SELECT m.*, c.id as conversation_id 
        FROM matches m
        LEFT JOIN conversations c ON c.match_id = m.id
@@ -109,9 +109,13 @@ export class MatchService {
            [otherUserId]
          );
 
-         return {
-          ...(match as Match),
-          conversationId: match.conversation_id,
+        return {
+          id: match.id,
+          user_id_1: match.user_id_1,
+          user_id_2: match.user_id_2,
+          created_at: match.created_at,
+          status: match.status,
+          conversationId: match.conversation_id ?? undefined,
           otherUser: otherUser!,
         };
       })
@@ -149,17 +153,28 @@ export class MatchService {
     const createdConversation = await db.get<{ id: string }>(
       `INSERT INTO conversations (id, match_id, created_at, last_message_at)
        VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-       ON CONFLICT (match_id) DO UPDATE SET match_id = EXCLUDED.match_id
+       ON CONFLICT (match_id) DO UPDATE SET last_message_at = CURRENT_TIMESTAMP
        RETURNING id`,
       [conversationId, matchId]
     );
 
     if (!createdConversation) {
+      const existingConversation = await db.get<Conversation>(
+        'SELECT * FROM conversations WHERE match_id = $1',
+        [matchId]
+      );
+
+      if (existingConversation) {
+        return { conversationId: existingConversation.id };
+      }
+
+      const errorMessage = 'Failed to create conversation for match';
       console.error('CRITICAL: Conversation missing after ensure', {
         matchId,
         conversationId,
+        error: errorMessage,
       });
-      throw new Error('Failed to create conversation');
+      throw new Error(errorMessage);
     }
 
     return { conversationId: createdConversation.id };

@@ -101,7 +101,7 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
     return (
       <TouchableOpacity
         style={styles.matchCard}
-        onPress={() => handleSelectMatch(item, otherUser || undefined)}
+        onPress={() => handleSelectMatch(item, otherUser)}
         disabled={selectingMatchId === item.id}>
         <View style={styles.matchAvatar}>
           <Text style={styles.matchAvatarText}>
