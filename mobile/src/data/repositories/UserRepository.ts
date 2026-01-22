@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {User, Profile} from '../../domain/entities/User';
+import {User, Profile, ProfilePhotoAsset} from '../../domain/entities/User';
 import {IUserRepository} from '../../domain/repositories/IUserRepository';
 import {apiClient} from '../../infrastructure/api/client';
 import {wsClient} from '../../infrastructure/api/websocket';
@@ -106,16 +106,25 @@ export class UserRepository implements IUserRepository {
     userData: Partial<User>,
   ): Promise<User> {
     try {
-      const response = await apiClient.post<AuthResponse>(
+      const formData = new FormData();
+      formData.append('email', email);
+      formData.append('password', password);
+      formData.append('name', userData.name || '');
+      formData.append('age', String(userData.age || this.DEFAULT_AGE));
+      formData.append('bio', userData.bio || '');
+
+      const photoAsset = userData.profilePhoto as ProfilePhotoAsset | undefined;
+      if (photoAsset?.uri) {
+        formData.append('profilePhoto', {
+          uri: photoAsset.uri,
+          type: photoAsset.type || 'image/jpeg',
+          name: photoAsset.fileName || 'photo.jpg',
+        } as unknown as Blob);
+      }
+
+      const response = await apiClient.postForm<AuthResponse>(
         '/api/auth/register',
-        {
-          email,
-          password,
-          name: userData.name || '',
-          age: userData.age || this.DEFAULT_AGE,
-          bio: userData.bio || '',
-          profilePhoto: userData.profilePhotoUrl ?? null,
-        },
+        formData,
       );
 
       // Save token
@@ -130,6 +139,7 @@ export class UserRepository implements IUserRepository {
         age: response.user.age || this.FALLBACK_AGE,
         bio: response.user.bio,
         profilePhotoUrl: response.user.profile_photo ?? undefined,
+        profilePhoto: undefined,
         photos: [],
         createdAt: new Date(response.user.created_at),
         lastActive: new Date(response.user.last_active),

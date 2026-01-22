@@ -11,9 +11,12 @@ export class ApiClient {
     const url = `${API_CONFIG.BASE_URL}${endpoint}`;
 
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
       ...(options.headers as Record<string, string>),
     };
+
+    if (options.body && !(options.body instanceof FormData)) {
+      headers['Content-Type'] = 'application/json';
+    }
 
     if (this.token) {
       headers.Authorization = `Bearer ${this.token}`;
@@ -55,6 +58,13 @@ export class ApiClient {
     return this.request<T>(endpoint, {
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  async postForm<T>(endpoint: string, data: FormData): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'POST',
+      body: data,
     });
   }
 

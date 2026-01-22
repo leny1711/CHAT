@@ -9,9 +9,16 @@ export interface User {
   age?: number;
   bio: string;
   profilePhotoUrl?: string;
+  profilePhoto?: ProfilePhotoAsset;
   photos: Photo[];
   createdAt: Date;
   lastActive: Date;
+}
+
+export interface ProfilePhotoAsset {
+  uri?: string;
+  fileName?: string;
+  type?: string;
 }
 
 /**

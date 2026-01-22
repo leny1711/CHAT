@@ -1,14 +1,35 @@
 import { Request, Response } from 'express';
+import path from 'path';
 import { AuthService } from '../services/AuthService';
 import { generateToken } from '../middleware/auth';
-import { AuthRequest, RegisterRequest } from '../types';
+import { AuthRequest, RegisterRequest, RegisterFormData } from '../types';
 
 const authService = new AuthService();
 
 export class AuthController {
-  async register(req: Request, res: Response): Promise<void> {
+  async register(
+    req: Request & { file?: Express.Multer.File },
+    res: Response,
+  ): Promise<void> {
     try {
-      const data: RegisterRequest = req.body;
+      const body = req.body as RegisterFormData;
+      const parsedAge =
+        body.age !== undefined && body.age !== null
+          ? Number(body.age)
+          : undefined;
+      const data: RegisterRequest = {
+        email: body.email || '',
+        password: body.password || '',
+        name: body.name || '',
+        age: Number.isFinite(parsedAge) ? parsedAge : undefined,
+        bio: body.bio,
+        profilePhoto: req.file
+          ? `${req.protocol}://${req.get('host')}${path.posix.join(
+              '/uploads/profile-photos',
+              req.file.filename,
+            )}`
+          : null,
+      };
 
       // Validate input
       if (!data.email || !data.password || !data.name) {
