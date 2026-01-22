@@ -68,6 +68,7 @@ export class InMemoryUserRepository implements IUserRepository {
       name: userData.name || 'User',
       bio: userData.bio || '',
       profilePhotoUrl: userData.profilePhotoUrl,
+      profilePhoto: userData.profilePhoto,
       photos: [],
       createdAt: now,
       lastActive: now,

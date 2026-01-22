@@ -72,6 +72,14 @@ export interface RegisterRequest extends AuthRequest {
   profilePhoto?: string | null;
 }
 
+export interface RegisterFormData {
+  email?: string;
+  password?: string;
+  name?: string;
+  age?: string | number;
+  bio?: string;
+}
+
 export interface AuthResponse {
   token: string;
   user: UserResponse;

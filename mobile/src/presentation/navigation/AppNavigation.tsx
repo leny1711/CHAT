@@ -347,12 +347,12 @@ export function AppNavigation() {
                       password,
                       name,
                       bio,
-                      profilePhotoUrl,
+                      profilePhoto,
                     ) => {
                       await registerUseCase.execute(email, password, {
                         name,
                         bio,
-                        profilePhotoUrl,
+                        profilePhoto,
                       });
                       setIsAuthenticated(true);
                     }}

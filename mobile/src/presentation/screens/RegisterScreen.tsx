@@ -9,7 +9,10 @@ import {
   Platform,
   ActivityIndicator,
   ScrollView,
+  Image,
 } from 'react-native';
+import {launchImageLibrary} from 'react-native-image-picker';
+import {ProfilePhotoAsset} from '../../domain/entities/User';
 import {theme} from '../theme/theme';
 
 interface RegisterScreenProps {
@@ -18,7 +21,7 @@ interface RegisterScreenProps {
     password: string,
     name: string,
     bio: string,
-    profilePhotoUrl?: string,
+    profilePhoto?: ProfilePhotoAsset | null,
   ) => Promise<void>;
   onNavigateToLogin: () => void;
 }
@@ -31,9 +34,36 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
-  const [profilePhotoUrl, setProfilePhotoUrl] = useState('');
+  const [profilePhoto, setProfilePhoto] = useState<ProfilePhotoAsset | null>(
+    null,
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const handlePickPhoto = async () => {
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      selectionLimit: 1,
+    });
+
+    if (result.didCancel) {
+      return;
+    }
+
+    if (result.errorCode) {
+      setError('Impossible de sélectionner la photo. Réessayez.');
+      return;
+    }
+
+    const asset = result.assets?.[0];
+    if (asset) {
+      setProfilePhoto(asset);
+      setError('');
+      return;
+    }
+
+    setError("Aucune photo n'a été sélectionnée.");
+  };
 
   const handleRegister = async () => {
     if (!email || !password || !name || !bio) {
@@ -50,13 +80,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
     setError('');
 
     try {
-      await onRegister(
-        email,
-        password,
-        name,
-        bio,
-        profilePhotoUrl.trim() ? profilePhotoUrl.trim() : undefined,
-      );
+      await onRegister(email, password, name, bio, profilePhoto);
       // Success - the parent component will handle navigation
     } catch (err) {
       // Handle errors locally - never let them propagate
@@ -148,17 +172,27 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
               editable={!loading}
             />
 
-            <TextInput
-              style={styles.input}
-              placeholder="Lien de la photo de profil (optionnel)"
-              placeholderTextColor={theme.colors.textLight}
-              value={profilePhotoUrl}
-              onChangeText={setProfilePhotoUrl}
-              autoCapitalize="none"
-              keyboardType="url"
-              autoCorrect={false}
-              editable={!loading}
-            />
+            <View style={styles.photoSection}>
+              <TouchableOpacity
+                style={styles.photoButton}
+                onPress={handlePickPhoto}
+                disabled={loading}>
+                <Text style={styles.photoButtonText}>
+                  Ajouter une photo de profil
+                </Text>
+              </TouchableOpacity>
+              {profilePhoto?.uri ? (
+                <Image
+                  source={{uri: profilePhoto.uri}}
+                  style={styles.photoPreview}
+                  accessibilityLabel="Aperçu de la photo de profil sélectionnée"
+                />
+              ) : (
+                <Text style={styles.photoHint}>
+                  Cette étape est facultative
+                </Text>
+              )}
+            </View>
 
             {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -261,5 +295,31 @@ const styles = StyleSheet.create({
     color: theme.colors.error,
     fontSize: theme.typography.fontSize.sm,
     textAlign: 'center',
+  },
+  photoSection: {
+    gap: theme.spacing.sm,
+  },
+  photoButton: {
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.md,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
+    alignItems: 'center',
+  },
+  photoButtonText: {
+    color: theme.colors.text,
+    fontSize: theme.typography.fontSize.md,
+  },
+  photoHint: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.fontSize.sm,
+    textAlign: 'center',
+  },
+  photoPreview: {
+    width: '100%',
+    height: 180,
+    borderRadius: theme.borderRadius.md,
   },
 });
