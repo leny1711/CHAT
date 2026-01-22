@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, useMemo, useCallback} from 'react';
 import {
   View,
   Text,
@@ -161,6 +161,26 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
     }
   };
 
+  const messageIdCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    messages.forEach(message => {
+      counts.set(message.id, (counts.get(message.id) ?? 0) + 1);
+    });
+    return counts;
+  }, [messages]);
+
+  const getMessageKey = useCallback(
+    (message: Message): string => {
+      const isUniqueId = (messageIdCounts.get(message.id) ?? 0) === 1;
+      if (isUniqueId) {
+        return message.id;
+      }
+      const createdAt = message.createdAt.toISOString();
+      return `${message.id}-${createdAt}-${message.senderId}`;
+    },
+    [messageIdCounts],
+  );
+
   const renderMessage = ({item}: {item: Message}) => {
     // Guard against invalid messages so rendering never crashes.
     if (!item?.id || !item?.senderId) {
@@ -264,7 +284,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
         ref={flatListRef}
         data={messages}
         renderItem={renderMessage}
-        keyExtractor={item => item.id}
+        keyExtractor={getMessageKey}
         inverted
         contentContainerStyle={styles.messageList}
         onEndReached={loadMoreMessages}
