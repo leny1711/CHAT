@@ -137,6 +137,18 @@ function App(): React.JSX.Element {
     useState<ConversationParams | null>(null);
   const [readOnlyProfileParams, setReadOnlyProfileParams] =
     useState<ReadOnlyProfileParams | null>(null);
+  const [conversationMessageIds, setConversationMessageIds] = useState<
+    Set<string>
+  >(new Set());
+
+  const addMessageId = (messageId?: string) => {
+    if (!messageId) {
+      return;
+    }
+    setConversationMessageIds(prev =>
+      prev.has(messageId) ? prev : new Set([...prev, messageId]),
+    );
+  };
 
   // Initialize auth on app startup
   useEffect(() => {
@@ -208,6 +220,7 @@ function App(): React.JSX.Element {
       });
     }
 
+    setConversationMessageIds(new Set());
     setConversationParams({
       conversationId: match.conversationId,
       matchId: match.id,
@@ -311,12 +324,16 @@ function App(): React.JSX.Element {
             otherUserName={conversationParams.otherUserName}
             currentUserId={currentUser.id}
             onOpenProfile={() => {
+              if (!conversationParams.otherUserId) {
+                console.warn('Cannot open profile: missing user identifier');
+                return;
+              }
               setReadOnlyProfileParams({
                 userId: conversationParams.otherUserId,
                 name: conversationParams.otherUserName,
                 description: conversationParams.otherUserDescription || '',
                 photoUrl: conversationParams.otherUserPhotoUrl,
-                messageCount: 0,
+                messageCount: conversationMessageIds.size,
               });
               setCurrentScreen('ReadOnlyProfile');
             }}
@@ -333,16 +350,27 @@ function App(): React.JSX.Element {
               );
             }}
             onLoadMessages={async cursor => {
-              return getMessagesUseCase.execute(
+              const result = await getMessagesUseCase.execute(
                 conversationParams.conversationId,
                 50,
                 cursor,
               );
+              result.messages.forEach(message => {
+                if (message?.id) {
+                  addMessageId(message.id);
+                }
+              });
+              return result;
             }}
             onSubscribe={callback => {
               return subscribeToConversationUseCase.execute(
                 conversationParams.conversationId,
-                callback,
+                message => {
+                  if (message?.id) {
+                    addMessageId(message.id);
+                  }
+                  callback(message);
+                },
               );
             }}
             onBack={() => setCurrentScreen('Matches')}

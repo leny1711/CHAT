@@ -11,7 +11,7 @@ import {DiscoveryScreen} from '../screens/DiscoveryScreen';
 import {MatchesScreen} from '../screens/MatchesScreen';
 import {ConversationScreen} from '../screens/ConversationScreen';
 import {SettingsScreen} from '../screens/SettingsScreen';
-import {ProfileScreen} from '../screens/ProfileScreen';
+import {ProfileScreen, UNKNOWN_PROFILE_ID} from '../screens/ProfileScreen';
 import {getRevealLevel} from '../../domain/utils/revealLevel';
 
 // Repositories
@@ -186,7 +186,7 @@ function MatchesScreenWrapper({navigation}: any) {
           otherUser?.id ||
           match.otherUser?.id ||
           match.userIds.find(id => id !== currentUser?.id) ||
-          '';
+          UNKNOWN_PROFILE_ID;
         const otherUserName =
           otherUser?.name || match.otherUser?.name || 'Utilisateur';
         const otherUserBio = otherUser?.bio || match.otherUser?.bio;
@@ -243,7 +243,8 @@ function ConversationScreenWrapper({route, navigation}: any) {
   // Single source of truth: always use navigation params for conversationId.
   const conversationId = route.params?.conversationId;
   const otherUser = route.params?.otherUser;
-  const otherUserId = route.params?.otherUserId || otherUser?.id || '';
+  const otherUserId =
+    route.params?.otherUserId || otherUser?.id || UNKNOWN_PROFILE_ID;
   const messageCount = route.params?.messageCount ?? 0;
   // TODO: Technical debt - Duplicated user loading (see MatchesScreenWrapper)
   // Production solution: Shared auth context/custom hook
@@ -284,7 +285,7 @@ function ConversationScreenWrapper({route, navigation}: any) {
       currentUserId={currentUser?.id || ''}
       onOpenProfile={() => {
         navigation.navigate('Profile', {
-          userId: otherUserId || 'profil-inconnu',
+          userId: otherUserId,
           name: otherUser?.name || route.params?.otherUserName || 'Utilisateur',
           description: otherUser?.bio || '',
           photoUrl: otherUser?.profilePhotoUrl,
@@ -380,7 +381,7 @@ export function AppNavigation() {
               <Stack.Screen name="Profile">
                 {({route, navigation}) => (
                   <ProfileScreen
-                    userId={route.params?.userId || 'profil-inconnu'}
+                    userId={route.params?.userId || UNKNOWN_PROFILE_ID}
                     name={route.params?.name || 'Utilisateur'}
                     description={route.params?.description || ''}
                     photoUrl={route.params?.photoUrl}

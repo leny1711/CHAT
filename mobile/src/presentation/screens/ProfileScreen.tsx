@@ -9,6 +9,8 @@ import {
 import {theme} from '../theme/theme';
 import {RevealPhoto} from '../components/RevealPhoto';
 
+export const UNKNOWN_PROFILE_ID = 'profil-inconnu';
+
 interface ProfileScreenProps {
   userId: string;
   name: string;
@@ -26,7 +28,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   revealLevel,
   onBack,
 }) => {
-  const safeUserId = userId?.trim() || 'profil-inconnu';
+  const safeUserId = userId?.trim() || UNKNOWN_PROFILE_ID;
   const safeDescription = description?.trim()
     ? description
     : "Curieux et sincère, j'aime les conversations profondes, les promenades tranquilles et les livres qui font réfléchir. Ici pour partager, apprendre et construire une belle complicité.";
