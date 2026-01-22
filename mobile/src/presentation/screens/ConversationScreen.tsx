@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, useMemo} from 'react';
 import {
   View,
   Text,
@@ -161,6 +161,30 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
     }
   };
 
+  const messageIdCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    messages.forEach(message => {
+      if (!message?.id) {
+        return;
+      }
+      counts.set(message.id, (counts.get(message.id) ?? 0) + 1);
+    });
+    return counts;
+  }, [messages]);
+
+  const getMessageKey = (message: Message): string => {
+    const messageId = message?.id;
+    const hasDuplicateId = messageId
+      ? (messageIdCounts.get(messageId) ?? 0) > 1
+      : true;
+    if (messageId && !hasDuplicateId) {
+      return messageId;
+    }
+    const createdAt = message?.createdAt ? message.createdAt.toISOString() : '';
+    const senderId = message?.senderId ?? '';
+    return `${messageId}-${createdAt}-${senderId}`;
+  };
+
   const renderMessage = ({item}: {item: Message}) => {
     // Guard against invalid messages so rendering never crashes.
     if (!item?.id || !item?.senderId) {
@@ -264,7 +288,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
         ref={flatListRef}
         data={messages}
         renderItem={renderMessage}
-        keyExtractor={item => item.id}
+        keyExtractor={getMessageKey}
         inverted
         contentContainerStyle={styles.messageList}
         onEndReached={loadMoreMessages}
