@@ -18,6 +18,7 @@ interface RegisterScreenProps {
     password: string,
     name: string,
     bio: string,
+    profilePhotoUrl?: string,
   ) => Promise<void>;
   onNavigateToLogin: () => void;
 }
@@ -30,6 +31,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -48,7 +50,13 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
     setError('');
 
     try {
-      await onRegister(email, password, name, bio);
+      await onRegister(
+        email,
+        password,
+        name,
+        bio,
+        profilePhotoUrl.trim() ? profilePhotoUrl.trim() : undefined,
+      );
       // Success - the parent component will handle navigation
     } catch (err) {
       // Handle errors locally - never let them propagate
@@ -137,6 +145,18 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
               multiline
               numberOfLines={4}
               textAlignVertical="top"
+              editable={!loading}
+            />
+
+            <TextInput
+              style={styles.input}
+              placeholder="Lien de la photo de profil (optionnel)"
+              placeholderTextColor={theme.colors.textLight}
+              value={profilePhotoUrl}
+              onChangeText={setProfilePhotoUrl}
+              autoCapitalize="none"
+              keyboardType="url"
+              autoCorrect={false}
               editable={!loading}
             />
 

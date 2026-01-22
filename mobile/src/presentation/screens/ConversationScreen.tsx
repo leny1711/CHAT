@@ -25,6 +25,7 @@ interface ConversationScreenProps {
   }>;
   onSubscribe: (callback: (message: Message) => void) => () => void;
   onBack?: () => void;
+  onOpenProfile?: () => void;
 }
 
 /**
@@ -40,6 +41,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   onLoadMessages,
   onSubscribe,
   onBack,
+  onOpenProfile,
 }) => {
   const resolvedOtherUserName =
     otherUserName && otherUserName.trim()
@@ -242,7 +244,17 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
           </TouchableOpacity>
         )}
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>{resolvedOtherUserName}</Text>
+          {onOpenProfile ? (
+            <TouchableOpacity
+              onPress={onOpenProfile}
+              accessibilityRole="button">
+              <Text style={[styles.headerTitle, styles.headerLink]}>
+                {resolvedOtherUserName}
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <Text style={styles.headerTitle}>{resolvedOtherUserName}</Text>
+          )}
           <Text style={styles.headerSubtitle}>Conversation privée</Text>
         </View>
       </View>
@@ -330,6 +342,9 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.fontSize.lg,
     fontWeight: '500',
     color: theme.colors.text,
+  },
+  headerLink: {
+    textDecorationLine: 'underline',
   },
   headerSubtitle: {
     fontSize: theme.typography.fontSize.sm,

@@ -104,10 +104,10 @@ export class MatchService {
     const matchesWithUsers = await Promise.all(
        matches.map(async (match) => {
          const otherUserId = match.user_id_1 === userId ? match.user_id_2 : match.user_id_1;
-         const otherUser = await db.get<UserResponse>(
-           'SELECT id, email, name, age, bio, created_at, last_active FROM users WHERE id = $1',
-           [otherUserId]
-         );
+          const otherUser = await db.get<UserResponse>(
+            'SELECT id, email, name, age, bio, profile_photo, created_at, last_active FROM users WHERE id = $1',
+            [otherUserId],
+          );
 
         return {
           id: match.id,
@@ -186,7 +186,7 @@ export class MatchService {
     // 2. Haven't been liked or passed by the current user
     // 3. Haven't been matched with the current user
     const profiles = await db.all<UserResponse>(
-      `SELECT id, email, name, age, bio, created_at, last_active 
+      `SELECT id, email, name, age, bio, profile_photo, created_at, last_active 
        FROM users 
        WHERE id != $1 
        AND id NOT IN (

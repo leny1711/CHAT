@@ -8,6 +8,7 @@ export interface User {
   name: string;
   age?: number;
   bio: string;
+  profilePhotoUrl?: string;
   photos: Photo[];
   createdAt: Date;
   lastActive: Date;
@@ -32,7 +33,7 @@ export interface Profile {
   name: string;
   age?: number;
   bio: string;
-  photos: Photo[];
+  profilePhotoUrl?: string;
   revealProgress: RevealProgress;
 }
 

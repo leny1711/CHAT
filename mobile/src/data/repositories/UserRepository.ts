@@ -12,6 +12,7 @@ interface AuthResponse {
     name: string;
     age: number;
     bio: string;
+    profile_photo?: string | null;
     created_at: string;
     last_active: string;
   };
@@ -73,10 +74,10 @@ export class UserRepository implements IUserRepository {
       name: user.name,
       age: user.age,
       bio: user.bio,
-      photos: user.photos,
+      profilePhotoUrl: user.profilePhotoUrl,
       revealProgress: {
-        photosRevealed: user.photos.filter(p => p.isRevealed).length,
-        totalPhotos: user.photos.length,
+        photosRevealed: 0,
+        totalPhotos: user.profilePhotoUrl ? 1 : 0,
         messagesSent: 0,
         messagesRequired: 10,
       },
@@ -112,6 +113,7 @@ export class UserRepository implements IUserRepository {
           name: userData.name || '',
           age: userData.age || this.DEFAULT_AGE,
           bio: userData.bio || '',
+          profilePhoto: userData.profilePhotoUrl ?? null,
         },
       );
 
@@ -126,6 +128,7 @@ export class UserRepository implements IUserRepository {
         name: response.user.name,
         age: response.user.age || this.FALLBACK_AGE,
         bio: response.user.bio,
+        profilePhotoUrl: response.user.profile_photo ?? undefined,
         photos: [],
         createdAt: new Date(response.user.created_at),
         lastActive: new Date(response.user.last_active),
@@ -170,6 +173,7 @@ export class UserRepository implements IUserRepository {
         name: response.user.name,
         age: response.user.age || this.FALLBACK_AGE,
         bio: response.user.bio,
+        profilePhotoUrl: response.user.profile_photo ?? undefined,
         photos: [],
         createdAt: new Date(response.user.created_at),
         lastActive: new Date(response.user.last_active),
@@ -215,6 +219,7 @@ export class UserRepository implements IUserRepository {
           name: string;
           age: number;
           bio: string;
+          profile_photo?: string | null;
           created_at: string;
           last_active: string;
         };
@@ -228,6 +233,7 @@ export class UserRepository implements IUserRepository {
         name: response.user.name,
         age: response.user.age || this.FALLBACK_AGE,
         bio: response.user.bio,
+        profilePhotoUrl: response.user.profile_photo ?? undefined,
         photos: [],
         createdAt: new Date(response.user.created_at),
         lastActive: new Date(response.user.last_active),

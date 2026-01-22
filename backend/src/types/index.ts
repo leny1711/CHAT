@@ -5,6 +5,7 @@ export interface User {
   name: string;
   age?: number;
   bio: string;
+  profile_photo?: string | null;
   created_at: Date;
   last_active: Date;
 }
@@ -15,6 +16,7 @@ export interface UserResponse {
   name: string;
   age?: number;
   bio: string;
+  profile_photo?: string | null;
   created_at: Date;
   last_active: Date;
 }
@@ -67,6 +69,7 @@ export interface RegisterRequest extends AuthRequest {
   name: string;
   age?: number;
   bio?: string;
+  profilePhoto?: string | null;
 }
 
 export interface AuthResponse {
