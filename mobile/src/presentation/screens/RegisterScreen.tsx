@@ -65,6 +65,11 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
     setError("Aucune photo n'a été sélectionnée.");
   };
 
+  const handleRemovePhoto = () => {
+    setProfilePhoto(null);
+    setError('');
+  };
+
   const handleRegister = async () => {
     if (!email || !password || !name || !bio) {
       setError('Veuillez remplir tous les champs requis');
@@ -178,15 +183,25 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                 onPress={handlePickPhoto}
                 disabled={loading}>
                 <Text style={styles.photoButtonText}>
-                  Ajouter une photo de profil
+                  {profilePhoto
+                    ? 'Changer la photo de profil'
+                    : 'Ajouter une photo de profil'}
                 </Text>
               </TouchableOpacity>
               {profilePhoto?.uri ? (
-                <Image
-                  source={{uri: profilePhoto.uri}}
-                  style={styles.photoPreview}
-                  accessibilityLabel="Aperçu de la photo de profil sélectionnée"
-                />
+                <>
+                  <Image
+                    source={{uri: profilePhoto.uri}}
+                    style={styles.photoPreview}
+                    accessibilityLabel="Aperçu de la photo de profil sélectionnée"
+                  />
+                  <TouchableOpacity
+                    style={styles.removePhotoButton}
+                    onPress={handleRemovePhoto}
+                    disabled={loading}>
+                    <Text style={styles.removePhotoText}>Retirer la photo</Text>
+                  </TouchableOpacity>
+                </>
               ) : (
                 <Text style={styles.photoHint}>
                   Cette étape est facultative
@@ -321,5 +336,12 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 180,
     borderRadius: theme.borderRadius.md,
+  },
+  removePhotoButton: {
+    alignItems: 'center',
+  },
+  removePhotoText: {
+    color: theme.colors.error,
+    fontSize: theme.typography.fontSize.sm,
   },
 });
