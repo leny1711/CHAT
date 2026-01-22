@@ -50,35 +50,43 @@ const renderConversation = async (messages: Message[]) => {
   }
 
   const list = tree!.root.findByType(FlatList);
-  return list.props.keyExtractor as (item: Message) => string;
+  return {
+    data: list.props.data as Message[],
+    keyExtractor: list.props.keyExtractor as (item: Message) => string,
+  };
 };
 
 describe('ConversationScreen', () => {
   it('uses a unique identifier when available', async () => {
     const message = buildMessage({id: 'msg_unique'});
-    const keyExtractor = await renderConversation([message]);
+    const {keyExtractor} = await renderConversation([message]);
 
     expect(keyExtractor(message)).toBe('msg_unique');
   });
 
-  it('composes a stable key when ids repeat', async () => {
-    const first = buildMessage({
-      id: 'msg_1',
-      senderId: 'user_1',
-      createdAt: new Date('2024-01-01T00:00:00.000Z'),
-    });
+  it('deduplicates messages with the same identifier', async () => {
+    const first = buildMessage({id: 'msg_1'});
     const second = buildMessage({
       id: 'msg_1',
       senderId: 'user_2',
       createdAt: new Date('2024-01-02T00:00:00.000Z'),
     });
-    const keyExtractor = await renderConversation([first, second]);
+    const {data} = await renderConversation([first, second]);
 
-    expect(keyExtractor(first)).toBe(
-      `msg_1-${first.createdAt.toISOString()}-${first.senderId}`,
+    expect(data).toHaveLength(1);
+    expect(data[0]).toBe(first);
+  });
+
+  it('falls back to message metadata when id is missing', async () => {
+    const message = buildMessage({id: ''});
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const {keyExtractor} = await renderConversation([message]);
+
+    expect(keyExtractor(message)).toBe(
+      `${message.createdAt.toISOString()}-${message.senderId}-${
+        message.content
+      }`,
     );
-    expect(keyExtractor(second)).toBe(
-      `msg_1-${second.createdAt.toISOString()}-${second.senderId}`,
-    );
+    warnSpy.mockRestore();
   });
 });

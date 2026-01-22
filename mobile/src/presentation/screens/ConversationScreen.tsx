@@ -161,29 +161,38 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
     }
   };
 
-  const messageIdCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    messages.forEach(message => {
-      counts.set(message.id, (counts.get(message.id) ?? 0) + 1);
+  const getMessageIdentity = useCallback((message: Message): string => {
+    if (message?.id) {
+      return message.id;
+    }
+    const createdAt = message?.createdAt
+      ? new Date(message.createdAt).toISOString()
+      : '';
+    const senderId = message?.senderId ?? '';
+    const content = message?.content ?? '';
+    return `${createdAt}-${senderId}-${content}`;
+  }, []);
+
+  const dedupedMessages = useMemo(() => {
+    const seen = new Set<string>();
+    return messages.filter(message => {
+      const key = getMessageIdentity(message);
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
     });
-    return counts;
-  }, [messages]);
+  }, [messages, getMessageIdentity]);
 
   const getMessageKey = useCallback(
-    (message: Message): string => {
-      const isUniqueId = (messageIdCounts.get(message.id) ?? 0) === 1;
-      if (isUniqueId) {
-        return message.id;
-      }
-      const createdAt = message.createdAt.toISOString();
-      return `${message.id}-${createdAt}-${message.senderId}`;
-    },
-    [messageIdCounts],
+    (message: Message): string => getMessageIdentity(message),
+    [getMessageIdentity],
   );
 
   const renderMessage = ({item}: {item: Message}) => {
     // Guard against invalid messages so rendering never crashes.
-    if (!item?.id || !item?.senderId) {
+    if (!item || !item.senderId) {
       console.warn('ConversationScreen: skipping invalid message payload');
       return null;
     }
@@ -282,7 +291,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
       <FlatList
         ref={flatListRef}
-        data={messages}
+        data={dedupedMessages}
         renderItem={renderMessage}
         keyExtractor={getMessageKey}
         inverted
