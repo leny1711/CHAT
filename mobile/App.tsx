@@ -15,6 +15,7 @@ import {SimpleDiscoveryScreen} from './src/presentation/screens/SimpleDiscoveryS
 import {MatchesScreen} from './src/presentation/screens/MatchesScreen';
 import {ConversationScreen} from './src/presentation/screens/ConversationScreen';
 import {SettingsScreen} from './src/presentation/screens/SettingsScreen';
+import {ProfileScreen} from './src/presentation/screens/ProfileScreen';
 
 // Repositories
 import {UserRepository} from './src/data/repositories/UserRepository';
@@ -42,6 +43,7 @@ import {
 import {User} from './src/domain/entities/User';
 import {Match} from './src/domain/entities/Match';
 import {theme} from './src/presentation/theme/theme';
+import {getRevealLevel} from './src/domain/utils/revealLevel';
 
 // Initialize repositories
 const userRepository = new UserRepository();
@@ -72,12 +74,24 @@ type Screen =
   | 'Discovery'
   | 'Matches'
   | 'Profile'
-  | 'Conversation';
+  | 'Conversation'
+  | 'ReadOnlyProfile';
 
 interface ConversationParams {
   conversationId: string;
   matchId: string;
+  otherUserId: string;
   otherUserName: string;
+  otherUserDescription?: string;
+  otherUserPhotoUrl?: string;
+}
+
+interface ReadOnlyProfileParams {
+  userId: string;
+  name: string;
+  description: string;
+  photoUrl?: string;
+  messageCount: number;
 }
 
 interface TabBarProps {
@@ -121,6 +135,20 @@ function App(): React.JSX.Element {
   const [isInitializing, setIsInitializing] = useState(true);
   const [conversationParams, setConversationParams] =
     useState<ConversationParams | null>(null);
+  const [readOnlyProfileParams, setReadOnlyProfileParams] =
+    useState<ReadOnlyProfileParams | null>(null);
+  const [conversationMessageIds, setConversationMessageIds] = useState<
+    Set<string>
+  >(new Set());
+
+  const addMessageId = (messageId?: string) => {
+    if (!messageId) {
+      return;
+    }
+    setConversationMessageIds(prev =>
+      prev.has(messageId) ? prev : new Set([...prev, messageId]),
+    );
+  };
 
   // Initialize auth on app startup
   useEffect(() => {
@@ -179,6 +207,11 @@ function App(): React.JSX.Element {
     }
     const otherUserId = match.userIds.find(id => id !== currentUser?.id) || '';
     const otherUser = await userRepository.getUserById(otherUserId);
+    const otherUserName =
+      otherUser?.name || match.otherUser?.name || 'Utilisateur';
+    const otherUserDescription = otherUser?.bio || match.otherUser?.bio || '';
+    const otherUserPhotoUrl =
+      otherUser?.profilePhotoUrl || match.otherUser?.profilePhotoUrl;
 
     if (__DEV__) {
       console.log('Navigating to conversation', {
@@ -187,10 +220,14 @@ function App(): React.JSX.Element {
       });
     }
 
+    setConversationMessageIds(new Set());
     setConversationParams({
       conversationId: match.conversationId,
       matchId: match.id,
-      otherUserName: otherUser?.name || match.otherUser?.name || 'Utilisateur',
+      otherUserId,
+      otherUserName,
+      otherUserDescription,
+      otherUserPhotoUrl,
     });
     setCurrentScreen('Conversation');
   };
@@ -286,6 +323,20 @@ function App(): React.JSX.Element {
             conversationId={conversationParams.conversationId}
             otherUserName={conversationParams.otherUserName}
             currentUserId={currentUser.id}
+            onOpenProfile={() => {
+              if (!conversationParams.otherUserId) {
+                console.warn('Cannot open profile: missing user identifier');
+                return;
+              }
+              setReadOnlyProfileParams({
+                userId: conversationParams.otherUserId,
+                name: conversationParams.otherUserName,
+                description: conversationParams.otherUserDescription || '',
+                photoUrl: conversationParams.otherUserPhotoUrl,
+                messageCount: conversationMessageIds.size,
+              });
+              setCurrentScreen('ReadOnlyProfile');
+            }}
             onSendMessage={async content => {
               if (__DEV__) {
                 console.log('Sending message payload', {
@@ -299,19 +350,49 @@ function App(): React.JSX.Element {
               );
             }}
             onLoadMessages={async cursor => {
-              return getMessagesUseCase.execute(
+              const result = await getMessagesUseCase.execute(
                 conversationParams.conversationId,
                 50,
                 cursor,
               );
+              result.messages.forEach(message => {
+                if (message?.id) {
+                  addMessageId(message.id);
+                }
+              });
+              return result;
             }}
             onSubscribe={callback => {
               return subscribeToConversationUseCase.execute(
                 conversationParams.conversationId,
-                callback,
+                message => {
+                  if (message?.id) {
+                    addMessageId(message.id);
+                  }
+                  callback(message);
+                },
               );
             }}
             onBack={() => setCurrentScreen('Matches')}
+          />
+        );
+
+      case 'ReadOnlyProfile':
+        if (!readOnlyProfileParams) {
+          setCurrentScreen('Matches');
+          return null;
+        }
+        return (
+          <ProfileScreen
+            userId={readOnlyProfileParams.userId}
+            name={readOnlyProfileParams.name}
+            description={readOnlyProfileParams.description}
+            photoUrl={readOnlyProfileParams.photoUrl}
+            revealLevel={getRevealLevel(readOnlyProfileParams.messageCount)}
+            onBack={() => {
+              setReadOnlyProfileParams(null);
+              setCurrentScreen('Conversation');
+            }}
           />
         );
 
