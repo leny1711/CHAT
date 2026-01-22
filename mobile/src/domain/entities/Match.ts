@@ -16,6 +16,7 @@ export interface MatchUser {
   name: string;
   age?: number;
   bio?: string;
+  profilePhotoUrl?: string;
 }
 
 export enum MatchStatus {

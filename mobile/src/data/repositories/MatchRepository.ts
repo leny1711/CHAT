@@ -19,6 +19,7 @@ interface DiscoveryResponse {
     name: string;
     age: number;
     bio: string;
+    profile_photo?: string | null;
   }>;
 }
 
@@ -35,6 +36,7 @@ interface MatchesResponse {
       name: string;
       age: number;
       bio: string;
+      profile_photo?: string | null;
     };
   }>;
 }
@@ -58,7 +60,7 @@ export class MatchRepository implements IMatchRepository {
         name: profile.name,
         age: profile.age,
         bio: profile.bio,
-        previewPhoto: undefined,
+        previewPhoto: profile.profile_photo ?? undefined,
       }));
     } catch (error) {
       console.error('Error getting discovery profiles:', error);
@@ -133,6 +135,7 @@ export class MatchRepository implements IMatchRepository {
               name: match.otherUser.name,
               age: match.otherUser.age,
               bio: match.otherUser.bio,
+              profilePhotoUrl: match.otherUser.profile_photo ?? undefined,
             }
           : undefined,
         status: match.status as MatchStatus,

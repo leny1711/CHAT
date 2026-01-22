@@ -33,6 +33,7 @@ export class Database {
         name TEXT NOT NULL,
         age INTEGER,
         bio TEXT,
+        profile_photo TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )

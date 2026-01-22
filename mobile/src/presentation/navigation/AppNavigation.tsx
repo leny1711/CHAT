@@ -11,6 +11,8 @@ import {DiscoveryScreen} from '../screens/DiscoveryScreen';
 import {MatchesScreen} from '../screens/MatchesScreen';
 import {ConversationScreen} from '../screens/ConversationScreen';
 import {SettingsScreen} from '../screens/SettingsScreen';
+import {ProfileScreen} from '../screens/ProfileScreen';
+import {getRevealLevel} from '../../domain/utils/revealLevel';
 
 // Repositories
 import {UserRepository} from '../../data/repositories/UserRepository';
@@ -180,11 +182,22 @@ function MatchesScreenWrapper({navigation}: any) {
             conversationId,
           });
         }
+        const otherUserName =
+          otherUser?.name || match.otherUser?.name || 'Utilisateur';
+        const otherUserBio = otherUser?.bio || match.otherUser?.bio;
+        const otherUserPhoto =
+          otherUser?.profilePhotoUrl || match.otherUser?.profilePhotoUrl;
+
         navigation.navigate('Conversation', {
           conversationId,
           matchId: match.id,
-          otherUserName:
-            otherUser?.name || match.otherUser?.name || 'Utilisateur',
+          otherUserName,
+          otherUser: {
+            name: otherUserName,
+            bio: otherUserBio,
+            profilePhotoUrl: otherUserPhoto,
+          },
+          messageCount: 0,
         });
       }}
       getUserById={getUserById}
@@ -222,6 +235,8 @@ function SettingsScreenWrapper({navigation}: any) {
 function ConversationScreenWrapper({route, navigation}: any) {
   // Single source of truth: always use navigation params for conversationId.
   const conversationId = route.params?.conversationId;
+  const otherUser = route.params?.otherUser;
+  const messageCount = route.params?.messageCount ?? 0;
   // TODO: Technical debt - Duplicated user loading (see MatchesScreenWrapper)
   // Production solution: Shared auth context/custom hook
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -259,6 +274,14 @@ function ConversationScreenWrapper({route, navigation}: any) {
       conversationId={conversationId}
       otherUserName={route.params?.otherUserName || 'Utilisateur'}
       currentUserId={currentUser?.id || ''}
+      onOpenProfile={() => {
+        navigation.navigate('Profile', {
+          name: otherUser?.name || route.params?.otherUserName || 'Utilisateur',
+          description: otherUser?.bio || '',
+          photoUrl: otherUser?.profilePhotoUrl,
+          messageCount,
+        });
+      }}
       onSendMessage={async content => {
         if (__DEV__) {
           console.log('Sending message payload', {
@@ -319,10 +342,17 @@ export function AppNavigation() {
               <Stack.Screen name="Register">
                 {({navigation}) => (
                   <RegisterScreen
-                    onRegister={async (email, password, name, bio) => {
+                    onRegister={async (
+                      email,
+                      password,
+                      name,
+                      bio,
+                      profilePhotoUrl,
+                    ) => {
                       await registerUseCase.execute(email, password, {
                         name,
                         bio,
+                        profilePhotoUrl,
                       });
                       setIsAuthenticated(true);
                     }}
@@ -338,6 +368,19 @@ export function AppNavigation() {
                 name="Conversation"
                 component={ConversationScreenWrapper}
               />
+              <Stack.Screen name="Profile">
+                {({route, navigation}) => (
+                  <ProfileScreen
+                    name={route.params?.name || 'Utilisateur'}
+                    description={route.params?.description || ''}
+                    photoUrl={route.params?.photoUrl}
+                    revealLevel={getRevealLevel(
+                      route.params?.messageCount || 0,
+                    )}
+                    onBack={() => navigation.goBack()}
+                  />
+                )}
+              </Stack.Screen>
             </>
           )}
         </Stack.Navigator>
