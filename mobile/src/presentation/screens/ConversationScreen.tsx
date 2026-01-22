@@ -192,7 +192,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
   const renderMessage = ({item}: {item: Message}) => {
     // Guard against invalid messages so rendering never crashes.
-    if (!item?.id || !item?.senderId) {
+    if (!item || !item.senderId) {
       console.warn('ConversationScreen: skipping invalid message payload');
       return null;
     }

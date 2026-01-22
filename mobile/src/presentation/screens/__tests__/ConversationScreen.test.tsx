@@ -79,10 +79,14 @@ describe('ConversationScreen', () => {
 
   it('falls back to message metadata when id is missing', async () => {
     const message = buildMessage({id: ''});
-    const {keyExtractor} = await renderConversation([buildMessage()]);
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const {keyExtractor} = await renderConversation([message]);
 
     expect(keyExtractor(message)).toBe(
-      `${message.createdAt.toISOString()}-${message.senderId}-${message.content}`,
+      `${message.createdAt.toISOString()}-${message.senderId}-${
+        message.content
+      }`,
     );
+    warnSpy.mockRestore();
   });
 });
