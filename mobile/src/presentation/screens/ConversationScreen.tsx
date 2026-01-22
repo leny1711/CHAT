@@ -175,16 +175,15 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
   const getMessageKey = useCallback(
     (message: Message): string => {
-      const messageId = message?.id ?? '';
-      const hasDuplicateId = messageId
-        ? (messageIdCounts.get(messageId) ?? 0) > 1
-        : true;
-      if (messageId && !hasDuplicateId) {
+      const messageId = message?.id;
+      const isUniqueId =
+        messageId && (messageIdCounts.get(messageId) ?? 0) === 1;
+      if (isUniqueId && messageId) {
         return messageId;
       }
       const createdAt = message?.createdAt?.toISOString() ?? '';
       const senderId = message?.senderId ?? '';
-      return `${messageId}-${createdAt}-${senderId}`;
+      return `${messageId ?? ''}-${createdAt}-${senderId}`;
     },
     [messageIdCounts],
   );

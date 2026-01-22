@@ -54,14 +54,14 @@ const renderConversation = async (messages: Message[]) => {
 };
 
 describe('ConversationScreen', () => {
-  it('utilise un identifiant unique quand disponible', async () => {
+  it('uses a unique identifier when available', async () => {
     const message = buildMessage({id: 'msg_unique'});
     const keyExtractor = await renderConversation([message]);
 
     expect(keyExtractor(message)).toBe('msg_unique');
   });
 
-  it('compose une clé stable quand les ids se répètent', async () => {
+  it('composes a stable key when ids repeat', async () => {
     const first = buildMessage({
       id: 'msg_1',
       senderId: 'user_1',
