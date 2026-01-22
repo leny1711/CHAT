@@ -182,6 +182,11 @@ function MatchesScreenWrapper({navigation}: any) {
             conversationId,
           });
         }
+        const otherUserId =
+          otherUser?.id ||
+          match.otherUser?.id ||
+          match.userIds.find(id => id !== currentUser?.id) ||
+          '';
         const otherUserName =
           otherUser?.name || match.otherUser?.name || 'Utilisateur';
         const otherUserBio = otherUser?.bio || match.otherUser?.bio;
@@ -191,8 +196,10 @@ function MatchesScreenWrapper({navigation}: any) {
         navigation.navigate('Conversation', {
           conversationId,
           matchId: match.id,
+          otherUserId,
           otherUserName,
           otherUser: {
+            id: otherUserId,
             name: otherUserName,
             bio: otherUserBio,
             profilePhotoUrl: otherUserPhoto,
@@ -236,6 +243,7 @@ function ConversationScreenWrapper({route, navigation}: any) {
   // Single source of truth: always use navigation params for conversationId.
   const conversationId = route.params?.conversationId;
   const otherUser = route.params?.otherUser;
+  const otherUserId = route.params?.otherUserId || otherUser?.id || '';
   const messageCount = route.params?.messageCount ?? 0;
   // TODO: Technical debt - Duplicated user loading (see MatchesScreenWrapper)
   // Production solution: Shared auth context/custom hook
@@ -276,6 +284,7 @@ function ConversationScreenWrapper({route, navigation}: any) {
       currentUserId={currentUser?.id || ''}
       onOpenProfile={() => {
         navigation.navigate('Profile', {
+          userId: otherUserId || 'profil-inconnu',
           name: otherUser?.name || route.params?.otherUserName || 'Utilisateur',
           description: otherUser?.bio || '',
           photoUrl: otherUser?.profilePhotoUrl,
@@ -371,6 +380,7 @@ export function AppNavigation() {
               <Stack.Screen name="Profile">
                 {({route, navigation}) => (
                   <ProfileScreen
+                    userId={route.params?.userId || 'profil-inconnu'}
                     name={route.params?.name || 'Utilisateur'}
                     description={route.params?.description || ''}
                     photoUrl={route.params?.photoUrl}

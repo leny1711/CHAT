@@ -10,6 +10,7 @@ import {theme} from '../theme/theme';
 import {RevealPhoto} from '../components/RevealPhoto';
 
 interface ProfileScreenProps {
+  userId: string;
   name: string;
   description: string;
   photoUrl?: string;
@@ -18,12 +19,14 @@ interface ProfileScreenProps {
 }
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({
+  userId,
   name,
   description,
   photoUrl,
   revealLevel,
   onBack,
 }) => {
+  const safeUserId = userId?.trim() || 'profil-inconnu';
   const safeDescription = description?.trim()
     ? description
     : "Curieux et sincère, j'aime les conversations profondes, les promenades tranquilles et les livres qui font réfléchir. Ici pour partager, apprendre et construire une belle complicité.";
@@ -31,7 +34,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const safePhotoUrl = photoUrl?.trim();
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} testID={`profil-${safeUserId}`}>
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack}>
           <Text style={styles.backText}>← Retour</Text>

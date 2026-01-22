@@ -4,10 +4,7 @@ import {Text, TouchableOpacity} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {RegisterScreen} from '../RegisterScreen';
 
-const findButtonByText = (
-  tree: renderer.ReactTestRenderer,
-  label: string,
-) =>
+const findButtonByText = (tree: renderer.ReactTestRenderer, label: string) =>
   tree.root
     .findAllByType(TouchableOpacity)
     .find(button =>
