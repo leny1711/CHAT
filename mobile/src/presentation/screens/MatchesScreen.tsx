@@ -94,11 +94,10 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
     const otherUserId =
       item.userIds.find(id => id !== currentUserId) || 'Unknown';
     const otherUser = matchedUsers.get(otherUserId);
+    const resolvedUserName = item.otherUser?.name || otherUser?.name;
 
-    // FIXED: Display proper user name with fallback
-    // Previously showed temporary user IDs like "user_xxx"
-    // Now shows actual profile name or "Chargement..." while data fetches
-    const displayName = otherUser?.name || 'Chargement...';
+    // Affiche le nom disponible ou un fallback explicite.
+    const displayName = resolvedUserName || 'Utilisateur';
 
     return (
       <TouchableOpacity
@@ -107,13 +106,13 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
         disabled={selectingMatchId === item.id}>
         <View style={styles.matchAvatar}>
           <Text style={styles.matchAvatarText}>
-            {otherUser ? otherUser.name.charAt(0).toUpperCase() : '?'}
+            {resolvedUserName ? resolvedUserName.charAt(0).toUpperCase() : '?'}
           </Text>
         </View>
         <View style={styles.matchInfo}>
           <Text style={styles.matchName}>{displayName}</Text>
           <Text style={styles.matchDate}>
-            Correspondance le {new Date(item.createdAt).toLocaleDateString()}
+            Match le {new Date(item.createdAt).toLocaleDateString()}
           </Text>
           {selectingMatchId === item.id && (
             <View style={styles.matchLoadingRow}>
@@ -140,7 +139,7 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Correspondances</Text>
+        <Text style={styles.headerTitle}>Matchs</Text>
         <Text style={styles.headerSubtitle}>Vos connexions</Text>
         {selectionError && (
           <Text style={styles.selectionError}>{selectionError}</Text>
@@ -149,7 +148,7 @@ export const MatchesScreen: React.FC<MatchesScreenProps> = ({
 
       {matches.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyTitle}>Aucune correspondance</Text>
+          <Text style={styles.emptyTitle}>Aucun match</Text>
           <Text style={styles.emptyText}>
             Commencez à découvrir des profils pour créer des liens
           </Text>

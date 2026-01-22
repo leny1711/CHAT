@@ -127,6 +127,14 @@ export class MatchRepository implements IMatchRepository {
         userIds: [match.user_id_1, match.user_id_2] as [string, string],
         createdAt: new Date(match.created_at),
         conversationId: match.conversationId,
+        otherUser: match.otherUser
+          ? {
+              id: match.otherUser.id,
+              name: match.otherUser.name,
+              age: match.otherUser.age,
+              bio: match.otherUser.bio,
+            }
+          : undefined,
         status: match.status as MatchStatus,
       }));
     } catch (error) {

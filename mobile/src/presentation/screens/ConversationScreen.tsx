@@ -41,6 +41,10 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   onSubscribe,
   onBack,
 }) => {
+  const resolvedOtherUserName =
+    otherUserName && otherUserName.trim()
+      ? otherUserName.trim()
+      : 'Utilisateur';
   useEffect(() => {
     if (__DEV__ && !conversationId) {
       console.warn(
@@ -238,7 +242,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
           </TouchableOpacity>
         )}
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>{otherUserName}</Text>
+          <Text style={styles.headerTitle}>{resolvedOtherUserName}</Text>
           <Text style={styles.headerSubtitle}>Conversation privée</Text>
         </View>
       </View>
