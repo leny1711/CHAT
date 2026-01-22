@@ -106,7 +106,7 @@ function MainTabs() {
       <Tab.Screen
         name="Matches"
         component={MatchesScreenWrapper}
-        options={{tabBarLabel: 'Correspondances'}}
+        options={{tabBarLabel: 'Matchs'}}
       />
       <Tab.Screen
         name="Profile"
@@ -183,7 +183,8 @@ function MatchesScreenWrapper({navigation}: any) {
         navigation.navigate('Conversation', {
           conversationId,
           matchId: match.id,
-          otherUserName: otherUser?.name || 'Nouvel utilisateur',
+          otherUserName:
+            otherUser?.name || match.otherUser?.name || 'Utilisateur',
         });
       }}
       getUserById={getUserById}
@@ -238,7 +239,7 @@ function ConversationScreenWrapper({route, navigation}: any) {
     return (
       <ConversationScreen
         conversationId=""
-        otherUserName={route.params?.otherUserName || 'Nouvel utilisateur'}
+        otherUserName={route.params?.otherUserName || 'Utilisateur'}
         currentUserId={currentUser?.id || ''}
         onSendMessage={async () => {
           console.warn('AppNavigation: conversationId missing, send blocked');
@@ -256,7 +257,7 @@ function ConversationScreenWrapper({route, navigation}: any) {
   return (
     <ConversationScreen
       conversationId={conversationId}
-      otherUserName={route.params?.otherUserName || 'Nouvel utilisateur'}
+      otherUserName={route.params?.otherUserName || 'Utilisateur'}
       currentUserId={currentUser?.id || ''}
       onSendMessage={async content => {
         if (__DEV__) {

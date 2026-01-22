@@ -102,7 +102,7 @@ const TabBar: React.FC<TabBarProps> = ({currentScreen, onNavigate}) => (
         currentScreen === 'Matches' && styles.tabItemActive,
       ]}
       onPress={() => onNavigate('Matches')}>
-      Correspondances
+      Matchs
     </Text>
     <Text
       style={[
@@ -190,7 +190,7 @@ function App(): React.JSX.Element {
     setConversationParams({
       conversationId: match.conversationId,
       matchId: match.id,
-      otherUserName: otherUser ? otherUser.name : 'Nouvel utilisateur',
+      otherUserName: otherUser?.name || match.otherUser?.name || 'Utilisateur',
     });
     setCurrentScreen('Conversation');
   };

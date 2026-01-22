@@ -7,7 +7,15 @@ export interface Match {
   userIds: [string, string];
   createdAt: Date;
   conversationId?: string;
+  otherUser?: MatchUser;
   status: MatchStatus;
+}
+
+export interface MatchUser {
+  id: string;
+  name: string;
+  age?: number;
+  bio?: string;
 }
 
 export enum MatchStatus {
