@@ -164,26 +164,19 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const messageIdCounts = useMemo(() => {
     const counts = new Map<string, number>();
     messages.forEach(message => {
-      const messageId = message?.id;
-      if (!messageId) {
-        return;
-      }
-      counts.set(messageId, (counts.get(messageId) ?? 0) + 1);
+      counts.set(message.id, (counts.get(message.id) ?? 0) + 1);
     });
     return counts;
   }, [messages]);
 
   const getMessageKey = useCallback(
     (message: Message): string => {
-      const messageId = message?.id;
-      const isUniqueId =
-        messageId && (messageIdCounts.get(messageId) ?? 0) === 1;
-      if (isUniqueId && messageId) {
-        return messageId;
+      const isUniqueId = (messageIdCounts.get(message.id) ?? 0) === 1;
+      if (isUniqueId) {
+        return message.id;
       }
-      const createdAt = message?.createdAt?.toISOString() ?? '';
-      const senderId = message?.senderId ?? '';
-      return `${messageId ?? ''}-${createdAt}-${senderId}`;
+      const createdAt = message.createdAt.toISOString();
+      return `${message.id}-${createdAt}-${message.senderId}`;
     },
     [messageIdCounts],
   );
