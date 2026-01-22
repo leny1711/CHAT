@@ -34,6 +34,7 @@ export interface Profile {
   age?: number;
   bio: string;
   profilePhotoUrl?: string;
+  photos: Photo[];
   revealProgress: RevealProgress;
 }
 

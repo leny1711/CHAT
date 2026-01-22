@@ -11,21 +11,15 @@ const getRevealStyle = (revealLevel: number): ImageStyle => {
   switch (revealLevel) {
     case 0:
       return styles.revealLevel0;
-    case 1:
-      return styles.revealLevel1;
-    case 2:
-      return styles.revealLevel2;
-    case 3:
-      return styles.revealLevel3;
-    case 4:
-      return styles.revealLevel4;
     default:
-      return styles.revealLevel5;
+      return styles.revealVisible;
   }
 };
 
 const getBlurRadius = (revealLevel: number): number => {
   switch (revealLevel) {
+    case 0:
+      return 32;
     case 1:
       return 24;
     case 2:
@@ -75,6 +69,10 @@ export const RevealPhoto: React.FC<RevealPhotoProps> = ({
   const opacity = getOverlayOpacity(safeRevealLevel);
   const desaturationOpacity = getDesaturationOpacity(safeRevealLevel);
 
+  const accessibilityLabel = photoUrl
+    ? 'Photo de profil avec révélation progressive'
+    : 'Aperçu sans photo de profil';
+
   return (
     <View style={styles.container}>
       {photoUrl ? (
@@ -82,9 +80,15 @@ export const RevealPhoto: React.FC<RevealPhotoProps> = ({
           source={{uri: photoUrl}}
           style={[styles.image, getRevealStyle(safeRevealLevel)]}
           blurRadius={getBlurRadius(safeRevealLevel)}
+          accessibilityRole="image"
+          accessibilityLabel={accessibilityLabel}
         />
       ) : (
-        <View style={styles.placeholder}>
+        <View
+          style={styles.placeholder}
+          accessibilityRole="image"
+          accessibilityLabel={accessibilityLabel}
+          accessibilityHint="Aucune photo n'a été fournie pour ce profil">
           <Text style={styles.placeholderText}>Aucune photo disponible</Text>
         </View>
       )}
@@ -131,19 +135,7 @@ const styles = StyleSheet.create({
   revealLevel0: {
     opacity: 0,
   },
-  revealLevel1: {
-    opacity: 1,
-  },
-  revealLevel2: {
-    opacity: 1,
-  },
-  revealLevel3: {
-    opacity: 1,
-  },
-  revealLevel4: {
-    opacity: 1,
-  },
-  revealLevel5: {
+  revealVisible: {
     opacity: 1,
   },
 });

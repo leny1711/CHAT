@@ -34,9 +34,10 @@ export class InMemoryUserRepository implements IUserRepository {
       age: user.age,
       bio: user.bio,
       profilePhotoUrl: user.profilePhotoUrl,
+      photos: user.photos,
       revealProgress: {
         photosRevealed: 0,
-        totalPhotos: user.profilePhotoUrl ? 1 : 0,
+        totalPhotos: user.photos.length,
         messagesSent: 0,
         messagesRequired: 10,
       },

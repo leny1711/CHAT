@@ -247,7 +247,8 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
           {onOpenProfile ? (
             <TouchableOpacity
               onPress={onOpenProfile}
-              accessibilityRole="button">
+              accessibilityRole="button"
+              accessibilityLabel={`Ouvrir le profil de ${resolvedOtherUserName}`}>
               <Text style={[styles.headerTitle, styles.headerLink]}>
                 {resolvedOtherUserName}
               </Text>
