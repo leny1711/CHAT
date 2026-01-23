@@ -1,10 +1,11 @@
 import React from 'react';
 import {View, Image, StyleSheet, ImageStyle, Text} from 'react-native';
 import {theme} from '../theme/theme';
+import {getRevealLevel} from '../photoReveal';
 
 interface RevealPhotoProps {
   photoUrl?: string;
-  revealLevel: number;
+  messageCount: number;
 }
 
 const getRevealStyle = (revealLevel: number): ImageStyle => {
@@ -21,13 +22,13 @@ const getBlurRadius = (revealLevel: number): number => {
     case 0:
       return 32;
     case 1:
-      return 24;
+      return 26;
     case 2:
-      return 16;
+      return 18;
     case 3:
-      return 10;
+      return 8;
     case 4:
-      return 4;
+      return 2;
     default:
       return 0;
   }
@@ -40,11 +41,11 @@ const getOverlayOpacity = (revealLevel: number): number => {
     case 1:
       return 0.75;
     case 2:
-      return 0.55;
+      return 0.6;
     case 3:
       return 0.25;
     case 4:
-      return 0.1;
+      return 0.08;
     default:
       return 0;
   }
@@ -63,9 +64,9 @@ const getDesaturationOpacity = (revealLevel: number): number => {
 
 export const RevealPhoto: React.FC<RevealPhotoProps> = ({
   photoUrl,
-  revealLevel,
+  messageCount,
 }) => {
-  const safeRevealLevel = Math.max(0, Math.min(5, revealLevel));
+  const safeRevealLevel = getRevealLevel(messageCount);
   const opacity = getOverlayOpacity(safeRevealLevel);
   const desaturationOpacity = getDesaturationOpacity(safeRevealLevel);
 

@@ -9,7 +9,7 @@ describe('ProfileScreen', () => {
         userId="user_2"
         name="Camille"
         description="Description longue pour le profil"
-        revealLevel={2}
+        messageCount={12}
         onBack={jest.fn()}
       />,
     );
@@ -26,7 +26,7 @@ describe('ProfileScreen', () => {
         userId="user_5"
         name="Alex"
         description="Bio"
-        revealLevel={1}
+        messageCount={4}
         onBack={jest.fn()}
       />,
     );

@@ -12,7 +12,6 @@ import {MatchesScreen} from '../screens/MatchesScreen';
 import {ConversationScreen} from '../screens/ConversationScreen';
 import {SettingsScreen} from '../screens/SettingsScreen';
 import {ProfileScreen, UNKNOWN_PROFILE_ID} from '../screens/ProfileScreen';
-import {getRevealLevel} from '../../domain/utils/revealLevel';
 
 // Repositories
 import {UserRepository} from '../../data/repositories/UserRepository';
@@ -245,7 +244,6 @@ function ConversationScreenWrapper({route, navigation}: any) {
   const otherUser = route.params?.otherUser;
   const otherUserId =
     route.params?.otherUserId || otherUser?.id || UNKNOWN_PROFILE_ID;
-  const messageCount = route.params?.messageCount ?? 0;
   // TODO: Technical debt - Duplicated user loading (see MatchesScreenWrapper)
   // Production solution: Shared auth context/custom hook
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -283,13 +281,19 @@ function ConversationScreenWrapper({route, navigation}: any) {
       conversationId={conversationId}
       otherUserName={route.params?.otherUserName || 'Utilisateur'}
       currentUserId={currentUser?.id || ''}
-      onOpenProfile={() => {
+      onOpenProfile={async () => {
+        let count = 0;
+        try {
+          count = await messageRepository.getMessageCount(conversationId);
+        } catch (error) {
+          console.warn('AppNavigation: error getting message count', error);
+        }
         navigation.navigate('Profile', {
           userId: otherUserId,
           name: otherUser?.name || route.params?.otherUserName || 'Utilisateur',
           description: otherUser?.bio || '',
           photoUrl: otherUser?.profilePhotoUrl,
-          messageCount,
+          messageCount: count,
         });
       }}
       onSendMessage={async content => {
@@ -385,9 +389,7 @@ export function AppNavigation() {
                     name={route.params?.name || 'Utilisateur'}
                     description={route.params?.description || ''}
                     photoUrl={route.params?.photoUrl}
-                    revealLevel={getRevealLevel(
-                      route.params?.messageCount || 0,
-                    )}
+                    messageCount={route.params?.messageCount || 0}
                     onBack={() => navigation.goBack()}
                   />
                 )}

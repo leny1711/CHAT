@@ -16,7 +16,7 @@ interface ProfileScreenProps {
   name: string;
   description: string;
   photoUrl?: string;
-  revealLevel: number;
+  messageCount: number;
   onBack: () => void;
 }
 
@@ -25,7 +25,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   name,
   description,
   photoUrl,
-  revealLevel,
+  messageCount,
   onBack,
 }) => {
   const safeUserId = userId?.trim() || UNKNOWN_PROFILE_ID;
@@ -45,7 +45,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         <Text style={styles.subtitle}>Informations de la personne</Text>
       </View>
       <View style={styles.photoSection}>
-        <RevealPhoto photoUrl={safePhotoUrl} revealLevel={revealLevel} />
+        <RevealPhoto photoUrl={safePhotoUrl} messageCount={messageCount} />
       </View>
       <View style={styles.infoSection}>
         <Text style={styles.name}>{safeName}</Text>
