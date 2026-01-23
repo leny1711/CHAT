@@ -43,7 +43,6 @@ import {
 import {User} from './src/domain/entities/User';
 import {Match} from './src/domain/entities/Match';
 import {theme} from './src/presentation/theme/theme';
-import {getRevealLevel} from './src/domain/utils/revealLevel';
 
 // Initialize repositories
 const userRepository = new UserRepository();
@@ -388,7 +387,7 @@ function App(): React.JSX.Element {
             name={readOnlyProfileParams.name}
             description={readOnlyProfileParams.description}
             photoUrl={readOnlyProfileParams.photoUrl}
-            revealLevel={getRevealLevel(readOnlyProfileParams.messageCount)}
+            messageCount={readOnlyProfileParams.messageCount}
             onBack={() => {
               setReadOnlyProfileParams(null);
               setCurrentScreen('Conversation');

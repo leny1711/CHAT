@@ -440,6 +440,12 @@ Now that you have the app running, you can:
 4. **Add photo uploads** - Implement file upload in backend
 5. **Add push notifications** - Integrate Firebase Cloud Messaging
 
+### 🔍 Photo Reveal Thresholds
+
+To adjust when the profile photo becomes clearer, update the thresholds in
+`mobile/src/presentation/photoReveal/config.ts`. This is the single source of
+truth for reveal levels (10, 15, 20, 25, 30 messages by default).
+
 ## 📚 Learn More
 
 - [Main README](README.md) - Complete project overview
