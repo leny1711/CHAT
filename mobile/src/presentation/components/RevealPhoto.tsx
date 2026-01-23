@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Image, StyleSheet, ImageStyle, Text} from 'react-native';
+import {View, Image, StyleSheet, Text} from 'react-native';
 import {theme} from '../theme/theme';
 import {getRevealLevel} from '../photoReveal';
 
@@ -7,15 +7,6 @@ interface RevealPhotoProps {
   photoUrl?: string;
   messageCount: number;
 }
-
-const getRevealStyle = (revealLevel: number): ImageStyle => {
-  switch (revealLevel) {
-    case 0:
-      return styles.revealLevel0;
-    default:
-      return styles.revealVisible;
-  }
-};
 
 const getBlurRadius = (revealLevel: number): number => {
   switch (revealLevel) {
@@ -28,7 +19,7 @@ const getBlurRadius = (revealLevel: number): number => {
     case 3:
       return 8;
     case 4:
-      return 2;
+      return 3;
     default:
       return 0;
   }
@@ -37,15 +28,17 @@ const getBlurRadius = (revealLevel: number): number => {
 const getOverlayOpacity = (revealLevel: number): number => {
   switch (revealLevel) {
     case 0:
-      return 0.95;
+      return 0.9;
     case 1:
       return 0.75;
     case 2:
-      return 0.6;
+      return 0.55;
     case 3:
-      return 0.25;
+      return 0;
     case 4:
-      return 0.08;
+      return 0;
+    case 5:
+      return 0;
     default:
       return 0;
   }
@@ -53,10 +46,18 @@ const getOverlayOpacity = (revealLevel: number): number => {
 
 const getDesaturationOpacity = (revealLevel: number): number => {
   switch (revealLevel) {
+    case 0:
+      return 0.8;
     case 1:
-      return 0.7;
+      return 0.65;
     case 2:
-      return 0.45;
+      return 0.5;
+    case 3:
+      return 0;
+    case 4:
+      return 0;
+    case 5:
+      return 0;
     default:
       return 0;
   }
@@ -66,7 +67,12 @@ export const RevealPhoto: React.FC<RevealPhotoProps> = ({
   photoUrl,
   messageCount,
 }) => {
-  const safeRevealLevel = getRevealLevel(messageCount);
+  const maxRevealLevel = React.useRef(0);
+  const computedRevealLevel = getRevealLevel(messageCount);
+  if (computedRevealLevel > maxRevealLevel.current) {
+    maxRevealLevel.current = computedRevealLevel;
+  }
+  const safeRevealLevel = maxRevealLevel.current;
   const opacity = getOverlayOpacity(safeRevealLevel);
   const desaturationOpacity = getDesaturationOpacity(safeRevealLevel);
 
@@ -79,7 +85,7 @@ export const RevealPhoto: React.FC<RevealPhotoProps> = ({
       {photoUrl ? (
         <Image
           source={{uri: photoUrl}}
-          style={[styles.image, getRevealStyle(safeRevealLevel)]}
+          style={styles.image}
           blurRadius={getBlurRadius(safeRevealLevel)}
           accessibilityRole="image"
           accessibilityLabel={accessibilityLabel}
@@ -132,11 +138,5 @@ const styles = StyleSheet.create({
   desaturationOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: '#FFFFFF',
-  },
-  revealLevel0: {
-    opacity: 0,
-  },
-  revealVisible: {
-    opacity: 1,
   },
 });
