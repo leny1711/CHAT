@@ -197,6 +197,7 @@ function MatchesScreenWrapper({navigation}: any) {
           matchId: match.id,
           otherUserId,
           otherUserName,
+          otherUserPhotoUrl: otherUserPhoto,
           otherUser: {
             id: otherUserId,
             name: otherUserName,
@@ -244,6 +245,8 @@ function ConversationScreenWrapper({route, navigation}: any) {
   const otherUser = route.params?.otherUser;
   const otherUserId =
     route.params?.otherUserId || otherUser?.id || UNKNOWN_PROFILE_ID;
+  const otherUserPhoto =
+    otherUser?.profilePhotoUrl || route.params?.otherUserPhotoUrl;
   // TODO: Technical debt - Duplicated user loading (see MatchesScreenWrapper)
   // Production solution: Shared auth context/custom hook
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -292,7 +295,7 @@ function ConversationScreenWrapper({route, navigation}: any) {
           userId: otherUserId,
           name: otherUser?.name || route.params?.otherUserName || 'Utilisateur',
           description: otherUser?.bio || '',
-          photoUrl: otherUser?.profilePhotoUrl,
+          photoUrl: otherUserPhoto,
           messageCount: count,
         });
       }}

@@ -20,6 +20,7 @@ interface ConversationsResponse {
       name: string;
       age: number;
       bio: string;
+      profile_photo?: string | null;
     };
     lastMessage?: {
       id: string;
@@ -90,6 +91,13 @@ export class MessageRepository implements IMessageRepository {
           matchId: conv.match_id,
           createdAt: new Date(conv.created_at),
           lastMessageAt: new Date(conv.last_message_at),
+          otherUser: {
+            id: conv.otherUser.id,
+            name: conv.otherUser.name,
+            age: conv.otherUser.age,
+            bio: conv.otherUser.bio,
+            profilePhotoUrl: conv.otherUser.profile_photo ?? undefined,
+          },
           lastMessage: conv.lastMessage
             ? {
                 id: conv.lastMessage.id,

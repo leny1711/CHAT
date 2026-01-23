@@ -36,6 +36,13 @@ export interface Conversation {
   matchId: string;
   createdAt: Date;
   lastMessageAt: Date;
+  otherUser?: {
+    id: string;
+    name: string;
+    age?: number;
+    bio?: string;
+    profilePhotoUrl?: string;
+  };
   lastMessage?: Message;
   unreadCount: number;
 }
