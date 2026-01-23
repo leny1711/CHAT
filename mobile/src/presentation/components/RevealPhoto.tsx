@@ -33,6 +33,12 @@ const getOverlayOpacity = (revealLevel: number): number => {
       return 0.75;
     case 2:
       return 0.55;
+    case 3:
+      return 0;
+    case 4:
+      return 0;
+    case 5:
+      return 0;
     default:
       return 0;
   }
@@ -46,6 +52,12 @@ const getDesaturationOpacity = (revealLevel: number): number => {
       return 0.65;
     case 2:
       return 0.5;
+    case 3:
+      return 0;
+    case 4:
+      return 0;
+    case 5:
+      return 0;
     default:
       return 0;
   }
