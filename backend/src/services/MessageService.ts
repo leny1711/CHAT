@@ -33,7 +33,7 @@ export class MessageService {
 
         const otherUserId = conv.user_id_1 === userId ? conv.user_id_2 : conv.user_id_1;
         const otherUser = await db.get(
-          'SELECT id, name, age, bio FROM users WHERE id = $1',
+          'SELECT id, name, age, bio, profile_photo FROM users WHERE id = $1',
           [otherUserId]
         );
 

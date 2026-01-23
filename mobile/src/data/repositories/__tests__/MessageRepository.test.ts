@@ -64,4 +64,31 @@ describe('MessageRepository', () => {
       'msg_2',
     ]);
   });
+
+  it('maps other user profile photo in conversations', async () => {
+    (apiClient.get as jest.Mock).mockResolvedValue({
+      conversations: [
+        {
+          id: 'conv_1',
+          match_id: 'match_1',
+          created_at: '2024-01-01T00:00:00.000Z',
+          last_message_at: '2024-01-02T00:00:00.000Z',
+          otherUser: {
+            id: 'user_2',
+            name: 'Alex',
+            age: 29,
+            bio: 'Bio',
+            profile_photo: 'https://example.com/photo.jpg',
+          },
+        },
+      ],
+    });
+
+    const repository = new MessageRepository();
+    const conversations = await repository.getConversations();
+
+    expect(conversations[0]?.otherUser?.profilePhotoUrl).toBe(
+      'https://example.com/photo.jpg',
+    );
+  });
 });
