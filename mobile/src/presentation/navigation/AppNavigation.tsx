@@ -286,16 +286,37 @@ function ConversationScreenWrapper({route, navigation}: any) {
       currentUserId={currentUser?.id || ''}
       onOpenProfile={async () => {
         let count = 0;
+        let resolvedPhotoUrl = otherUserPhoto;
+        let resolvedName =
+          otherUser?.name || route.params?.otherUserName || 'Utilisateur';
+        let resolvedDescription = otherUser?.bio || '';
         try {
           count = await messageRepository.getMessageCount(conversationId);
         } catch (error) {
           console.warn('AppNavigation: error getting message count', error);
         }
+        if (!resolvedPhotoUrl?.trim()) {
+          try {
+            const conversation =
+              await messageRepository.getConversation(conversationId);
+            if (conversation?.otherUser) {
+              resolvedPhotoUrl = conversation.otherUser.profilePhotoUrl;
+              resolvedName = conversation.otherUser.name || resolvedName;
+              resolvedDescription =
+                conversation.otherUser.bio || resolvedDescription;
+            }
+          } catch (error) {
+            console.warn(
+              'AppNavigation: error getting conversation profile',
+              error,
+            );
+          }
+        }
         navigation.navigate('Profile', {
           userId: otherUserId,
-          name: otherUser?.name || route.params?.otherUserName || 'Utilisateur',
-          description: otherUser?.bio || '',
-          photoUrl: otherUserPhoto,
+          name: resolvedName,
+          description: resolvedDescription,
+          photoUrl: resolvedPhotoUrl?.trim(),
           messageCount: count,
         });
       }}
