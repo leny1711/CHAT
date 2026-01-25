@@ -15,7 +15,7 @@ interface ProfileScreenProps {
   userId: string;
   name: string;
   description: string;
-  photoUrl?: string;
+  photoUrl?: string | null;
   messageCount: number;
   onBack: () => void;
 }
@@ -33,7 +33,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
     ? description
     : "Curieux et sincère, j'aime les conversations profondes, les promenades tranquilles et les livres qui font réfléchir. Ici pour partager, apprendre et construire une belle complicité.";
   const safeName = name?.trim() ? name : 'Utilisateur';
-  const safePhotoUrl = photoUrl?.trim();
+  // Normalize missing/empty photo values to null so the placeholder only renders
+  // when the backend explicitly indicates no photo is available.
+  const safePhotoUrl =
+    typeof photoUrl === 'string' && photoUrl.trim().length > 0
+      ? photoUrl.trim()
+      : null;
 
   return (
     <ScrollView style={styles.container} testID={`profil-${safeUserId}`}>

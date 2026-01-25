@@ -4,7 +4,7 @@ import {theme} from '../theme/theme';
 import {getRevealLevel} from '../photoReveal';
 
 interface RevealPhotoProps {
-  photoUrl?: string;
+  photoUrl?: string | null;
   messageCount: number;
 }
 
@@ -67,6 +67,12 @@ export const RevealPhoto: React.FC<RevealPhotoProps> = ({
   photoUrl,
   messageCount,
 }) => {
+  // We only consider the photo missing when the backend explicitly returns null.
+  // Normalizing empty/whitespace values avoids hiding a valid photo URL.
+  const resolvedPhotoUrl =
+    typeof photoUrl === 'string' && photoUrl.trim().length > 0
+      ? photoUrl.trim()
+      : null;
   const maxRevealLevel = React.useRef(0);
   const computedRevealLevel = getRevealLevel(messageCount);
   if (computedRevealLevel > maxRevealLevel.current) {
@@ -76,15 +82,16 @@ export const RevealPhoto: React.FC<RevealPhotoProps> = ({
   const opacity = getOverlayOpacity(safeRevealLevel);
   const desaturationOpacity = getDesaturationOpacity(safeRevealLevel);
 
-  const accessibilityLabel = photoUrl
+  const hasPhoto = resolvedPhotoUrl !== null;
+  const accessibilityLabel = hasPhoto
     ? 'Photo de profil avec révélation progressive'
     : 'Aperçu sans photo de profil';
 
   return (
     <View style={styles.container}>
-      {photoUrl ? (
+      {hasPhoto ? (
         <Image
-          source={{uri: photoUrl}}
+          source={{uri: resolvedPhotoUrl}}
           style={styles.image}
           blurRadius={getBlurRadius(safeRevealLevel)}
           accessibilityRole="image"
@@ -99,8 +106,8 @@ export const RevealPhoto: React.FC<RevealPhotoProps> = ({
           <Text style={styles.placeholderText}>Aucune photo disponible</Text>
         </View>
       )}
-      {opacity > 0 && <View style={[styles.overlay, {opacity}]} />}
-      {desaturationOpacity > 0 && (
+      {hasPhoto && opacity > 0 && <View style={[styles.overlay, {opacity}]} />}
+      {hasPhoto && desaturationOpacity > 0 && (
         <View
           style={[styles.desaturationOverlay, {opacity: desaturationOpacity}]}
         />
