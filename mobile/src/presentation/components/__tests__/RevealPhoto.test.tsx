@@ -58,12 +58,12 @@ describe('RevealPhoto', () => {
         ? node.props.style
         : [node.props.style];
       return styles.some(
-        (style) => typeof style === 'object' && style?.opacity === opacity,
+        style => typeof style === 'object' && style?.opacity === opacity,
       );
     };
 
-    expect(views.some((view) => hasOpacity(view, 0.85))).toBe(true);
-    expect(views.some((view) => hasOpacity(view, 0.9))).toBe(true);
+    expect(views.some(view => hasOpacity(view, 0.75))).toBe(true);
+    expect(views.some(view => hasOpacity(view, 0.6))).toBe(true);
   });
 
   it('renders placeholder only when photo url is null', () => {

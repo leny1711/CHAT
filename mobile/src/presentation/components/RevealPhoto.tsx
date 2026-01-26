@@ -28,11 +28,11 @@ const getBlurRadius = (revealLevel: number): number => {
 const getOverlayOpacity = (revealLevel: number): number => {
   switch (revealLevel) {
     case 0:
-      return 0.92;
-    case 1:
       return 0.85;
+    case 1:
+      return 0.75;
     case 2:
-      return 0.7;
+      return 0.6;
     case 3:
       return 0;
     case 4:
@@ -47,11 +47,11 @@ const getOverlayOpacity = (revealLevel: number): number => {
 const getDesaturationOpacity = (revealLevel: number): number => {
   switch (revealLevel) {
     case 0:
-      return 0.95;
+      return 0.7;
     case 1:
-      return 0.9;
+      return 0.6;
     case 2:
-      return 0.75;
+      return 0.45;
     case 3:
       return 0;
     case 4:
@@ -144,6 +144,6 @@ const styles = StyleSheet.create({
   },
   desaturationOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#B0B0B0',
+    backgroundColor: '#FFFFFF',
   },
 });
