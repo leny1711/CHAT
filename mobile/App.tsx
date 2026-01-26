@@ -40,7 +40,7 @@ import {
   GetMatchesUseCase,
 } from './src/domain/usecases/MatchUseCases';
 
-import {User} from './src/domain/entities/User';
+import {ProfilePhotoAsset, User} from './src/domain/entities/User';
 import {Match} from './src/domain/entities/Match';
 import {theme} from './src/presentation/theme/theme';
 
@@ -182,8 +182,13 @@ function App(): React.JSX.Element {
     password: string,
     name: string,
     bio: string,
+    profilePhoto?: ProfilePhotoAsset | null,
   ) => {
-    const user = await registerUseCase.execute(email, password, {name, bio});
+    const user = await registerUseCase.execute(email, password, {
+      name,
+      bio,
+      profilePhoto,
+    });
     setCurrentUser(user);
     setCurrentScreen('Discovery');
   };
