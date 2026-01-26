@@ -35,7 +35,7 @@ describe('RevealPhoto', () => {
     });
 
     const image = tree.root.findByType(Image);
-    expect(image.props.blurRadius).toBe(8);
+    expect(image.props.blurRadius).toBe(10);
   });
 
   it('renders placeholder only when photo url is null', () => {

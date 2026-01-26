@@ -11,13 +11,13 @@ interface RevealPhotoProps {
 const getBlurRadius = (revealLevel: number): number => {
   switch (revealLevel) {
     case 0:
-      return 32;
+      return 60;
     case 1:
-      return 26;
+      return 48;
     case 2:
-      return 18;
+      return 32;
     case 3:
-      return 8;
+      return 10;
     case 4:
       return 3;
     default:
@@ -28,11 +28,11 @@ const getBlurRadius = (revealLevel: number): number => {
 const getOverlayOpacity = (revealLevel: number): number => {
   switch (revealLevel) {
     case 0:
-      return 0.9;
+      return 0.92;
     case 1:
-      return 0.75;
+      return 0.85;
     case 2:
-      return 0.55;
+      return 0.7;
     case 3:
       return 0;
     case 4:
@@ -47,11 +47,11 @@ const getOverlayOpacity = (revealLevel: number): number => {
 const getDesaturationOpacity = (revealLevel: number): number => {
   switch (revealLevel) {
     case 0:
-      return 0.8;
+      return 0.95;
     case 1:
-      return 0.65;
+      return 0.9;
     case 2:
-      return 0.5;
+      return 0.75;
     case 3:
       return 0;
     case 4:
@@ -144,6 +144,6 @@ const styles = StyleSheet.create({
   },
   desaturationOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#B0B0B0',
   },
 });
