@@ -1,5 +1,11 @@
 import React from 'react';
-import {View, Image, StyleSheet, Text} from 'react-native';
+import {View, StyleSheet, Text, Image} from 'react-native';
+import {
+  ColorMatrix,
+  concatColorMatrices,
+  grayscale,
+  saturate,
+} from 'react-native-color-matrix-image-filters';
 import {theme} from '../theme/theme';
 import {getRevealLevel} from '../photoReveal';
 
@@ -13,9 +19,9 @@ const getBlurRadius = (revealLevel: number): number => {
     case 0:
       return 60;
     case 1:
-      return 48;
+      return 56;
     case 2:
-      return 32;
+      return 44;
     case 3:
       return 10;
     case 4:
@@ -25,42 +31,28 @@ const getBlurRadius = (revealLevel: number): number => {
   }
 };
 
-const getOverlayOpacity = (revealLevel: number): number => {
+const getSaturation = (revealLevel: number): number => {
   switch (revealLevel) {
     case 0:
-      return 0.85;
+      return 0;
     case 1:
-      return 0.75;
+      return 0.15;
     case 2:
-      return 0.6;
+      return 0.35;
     case 3:
-      return 0;
+      return 0.6;
     case 4:
-      return 0;
+      return 0.85;
     case 5:
-      return 0;
+      return 1;
     default:
-      return 0;
+      return 1;
   }
 };
 
-const getDesaturationOpacity = (revealLevel: number): number => {
-  switch (revealLevel) {
-    case 0:
-      return 0.7;
-    case 1:
-      return 0.6;
-    case 2:
-      return 0.45;
-    case 3:
-      return 0;
-    case 4:
-      return 0;
-    case 5:
-      return 0;
-    default:
-      return 0;
-  }
+const getColorMatrix = (revealLevel: number): number[] => {
+  const saturation = getSaturation(revealLevel);
+  return concatColorMatrices([grayscale(1 - saturation), saturate(saturation)]);
 };
 
 export const RevealPhoto: React.FC<RevealPhotoProps> = ({
@@ -79,8 +71,7 @@ export const RevealPhoto: React.FC<RevealPhotoProps> = ({
     maxRevealLevel.current = computedRevealLevel;
   }
   const safeRevealLevel = maxRevealLevel.current;
-  const opacity = getOverlayOpacity(safeRevealLevel);
-  const desaturationOpacity = getDesaturationOpacity(safeRevealLevel);
+  const colorMatrix = getColorMatrix(safeRevealLevel);
 
   const hasPhoto = resolvedPhotoUrl !== null;
   const accessibilityLabel = hasPhoto
@@ -90,13 +81,15 @@ export const RevealPhoto: React.FC<RevealPhotoProps> = ({
   return (
     <View style={styles.container}>
       {hasPhoto ? (
-        <Image
-          source={{uri: resolvedPhotoUrl}}
-          style={styles.image}
-          blurRadius={getBlurRadius(safeRevealLevel)}
-          accessibilityRole="image"
-          accessibilityLabel={accessibilityLabel}
-        />
+        <ColorMatrix matrix={colorMatrix}>
+          <Image
+            source={{uri: resolvedPhotoUrl}}
+            style={styles.image}
+            blurRadius={getBlurRadius(safeRevealLevel)}
+            accessibilityRole="image"
+            accessibilityLabel={accessibilityLabel}
+          />
+        </ColorMatrix>
       ) : (
         <View
           style={styles.placeholder}
@@ -105,12 +98,6 @@ export const RevealPhoto: React.FC<RevealPhotoProps> = ({
           accessibilityHint="Aucune photo n'a été fournie pour ce profil">
           <Text style={styles.placeholderText}>Aucune photo disponible</Text>
         </View>
-      )}
-      {hasPhoto && opacity > 0 && <View style={[styles.overlay, {opacity}]} />}
-      {hasPhoto && desaturationOpacity > 0 && (
-        <View
-          style={[styles.desaturationOverlay, {opacity: desaturationOpacity}]}
-        />
       )}
     </View>
   );
@@ -137,13 +124,5 @@ const styles = StyleSheet.create({
   placeholderText: {
     color: theme.colors.textSecondary,
     fontSize: theme.typography.fontSize.md,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#000',
-  },
-  desaturationOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#FFFFFF',
   },
 });
