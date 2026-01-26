@@ -55,6 +55,7 @@ class MockUserRepository implements IUserRepository {
       name: userData.name || 'Test User',
       age: userData.age || 25,
       bio: userData.bio || 'Test bio',
+      profilePhoto: userData.profilePhoto,
       photos: [],
       createdAt: new Date(),
       lastActive: new Date(),
@@ -88,16 +89,19 @@ describe('AuthUseCases', () => {
     it('should register a user successfully', async () => {
       const mockRepo = new MockUserRepository();
       const useCase = new RegisterUseCase(mockRepo);
+      const profilePhoto = {uri: 'file://photo.jpg'};
 
       const user = await useCase.execute('test@example.com', 'password123', {
         name: 'John Doe',
         bio: 'Test bio for user',
+        profilePhoto,
       });
 
       expect(user).toBeDefined();
       expect(user.email).toBe('test@example.com');
       expect(user.name).toBe('John Doe');
       expect(user.bio).toBe('Test bio for user');
+      expect(user.profilePhoto).toEqual(profilePhoto);
     });
 
     it('should throw timeout error when request times out', async () => {
