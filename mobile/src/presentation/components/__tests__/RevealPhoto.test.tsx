@@ -1,10 +1,19 @@
 import React from 'react';
 import renderer, {act} from 'react-test-renderer';
-import {Image, View} from 'react-native';
+import {Image} from 'react-native';
+import {
+  ColorMatrix,
+  concatColorMatrices,
+  grayscale,
+  saturate,
+} from 'react-native-color-matrix-image-filters';
 import {RevealPhoto} from '../RevealPhoto';
 import {REVEAL_THRESHOLDS} from '../../photoReveal';
 
 describe('RevealPhoto', () => {
+  const getExpectedMatrix = (saturation: number) =>
+    concatColorMatrices([grayscale(1 - saturation), saturate(saturation)]);
+
   it('renders the image whenever a photo url is provided', () => {
     const tree = renderer.create(
       <RevealPhoto photoUrl="https://example.com/photo.jpg" messageCount={0} />,
@@ -36,6 +45,10 @@ describe('RevealPhoto', () => {
 
     const image = tree.root.findByType(Image);
     expect(image.props.blurRadius).toBe(10);
+
+    const colorMatrix = tree.root.findByType(ColorMatrix);
+    expect(colorMatrix.props.matrix).toHaveLength(20);
+    expect(colorMatrix.props.matrix).toEqual(getExpectedMatrix(0.6));
   });
 
   it('applies strong obscuring effects at reveal level 1', () => {
@@ -47,23 +60,11 @@ describe('RevealPhoto', () => {
     );
 
     const image = tree.root.findByType(Image);
-    expect(image.props.blurRadius).toBe(48);
+    expect(image.props.blurRadius).toBe(56);
 
-    const views = tree.root.findAllByType(View);
-    const hasOpacity = (node: {props: {style?: unknown}}, opacity: number) => {
-      if (!node.props.style) {
-        return false;
-      }
-      const styles = Array.isArray(node.props.style)
-        ? node.props.style
-        : [node.props.style];
-      return styles.some(
-        style => typeof style === 'object' && style?.opacity === opacity,
-      );
-    };
-
-    expect(views.some(view => hasOpacity(view, 0.75))).toBe(true);
-    expect(views.some(view => hasOpacity(view, 0.6))).toBe(true);
+    const colorMatrix = tree.root.findByType(ColorMatrix);
+    expect(colorMatrix.props.matrix).toHaveLength(20);
+    expect(colorMatrix.props.matrix).toEqual(getExpectedMatrix(0.15));
   });
 
   it('renders placeholder only when photo url is null', () => {
