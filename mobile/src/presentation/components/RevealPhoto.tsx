@@ -1,11 +1,6 @@
 import React from 'react';
 import {View, StyleSheet, Text, Image} from 'react-native';
-import {
-  ColorMatrix,
-  concatColorMatrices,
-  grayscale,
-  saturate,
-} from 'react-native-color-matrix-image-filters';
+import {ColorMatrix} from 'react-native-color-matrix-image-filters';
 import {theme} from '../theme/theme';
 import {getRevealLevel} from '../photoReveal';
 
@@ -13,6 +8,19 @@ interface RevealPhotoProps {
   photoUrl?: string | null;
   messageCount: number;
 }
+
+const GRAYSCALE_MATRIX = [
+  0.33, 0.33, 0.33, 0, 0, 0.33, 0.33, 0.33, 0, 0, 0.33, 0.33, 0.33, 0, 0, 0, 0,
+  0, 1, 0,
+];
+
+const PARTIAL_COLOR_MATRIX = [
+  0.6, 0.3, 0.1, 0, 0, 0.3, 0.6, 0.1, 0, 0, 0.1, 0.3, 0.6, 0, 0, 0, 0, 0, 1, 0,
+];
+
+const FULL_COLOR_MATRIX = [
+  1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0,
+];
 
 const getBlurRadius = (revealLevel: number): number => {
   switch (revealLevel) {
@@ -31,28 +39,19 @@ const getBlurRadius = (revealLevel: number): number => {
   }
 };
 
-const getSaturation = (revealLevel: number): number => {
+const getColorMatrix = (revealLevel: number): number[] => {
   switch (revealLevel) {
     case 0:
-      return 0;
+      return GRAYSCALE_MATRIX;
     case 1:
-      return 0.15;
     case 2:
-      return 0.35;
     case 3:
-      return 0.6;
     case 4:
-      return 0.85;
+      return PARTIAL_COLOR_MATRIX;
     case 5:
-      return 1;
     default:
-      return 1;
+      return FULL_COLOR_MATRIX;
   }
-};
-
-const getColorMatrix = (revealLevel: number): number[] => {
-  const saturation = getSaturation(revealLevel);
-  return concatColorMatrices([grayscale(1 - saturation), saturate(saturation)]);
 };
 
 export const RevealPhoto: React.FC<RevealPhotoProps> = ({
