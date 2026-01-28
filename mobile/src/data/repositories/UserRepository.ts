@@ -12,6 +12,8 @@ interface AuthResponse {
     name: string;
     age: number;
     bio: string;
+    gender?: 'male' | 'female' | null;
+    looking_for?: Array<'male' | 'female'> | null;
     profile_photo?: string | null;
     created_at: string;
     last_active: string;
@@ -112,6 +114,12 @@ export class UserRepository implements IUserRepository {
       formData.append('name', userData.name || '');
       formData.append('age', String(userData.age || this.DEFAULT_AGE));
       formData.append('bio', userData.bio || '');
+      if (userData.gender) {
+        formData.append('gender', userData.gender);
+      }
+      if (userData.lookingFor?.length) {
+        formData.append('lookingFor', userData.lookingFor.join(','));
+      }
 
       const photoAsset = userData.profilePhoto as ProfilePhotoAsset | undefined;
       if (photoAsset?.uri) {
@@ -138,6 +146,8 @@ export class UserRepository implements IUserRepository {
         name: response.user.name,
         age: response.user.age || this.FALLBACK_AGE,
         bio: response.user.bio,
+        gender: response.user.gender ?? undefined,
+        lookingFor: response.user.looking_for ?? undefined,
         profilePhotoUrl: response.user.profile_photo ?? undefined,
         profilePhoto: undefined,
         photos: [],
@@ -184,6 +194,8 @@ export class UserRepository implements IUserRepository {
         name: response.user.name,
         age: response.user.age || this.FALLBACK_AGE,
         bio: response.user.bio,
+        gender: response.user.gender ?? undefined,
+        lookingFor: response.user.looking_for ?? undefined,
         profilePhotoUrl: response.user.profile_photo ?? undefined,
         photos: [],
         createdAt: new Date(response.user.created_at),
@@ -230,6 +242,8 @@ export class UserRepository implements IUserRepository {
           name: string;
           age: number;
           bio: string;
+          gender?: 'male' | 'female' | null;
+          looking_for?: Array<'male' | 'female'> | null;
           profile_photo?: string | null;
           created_at: string;
           last_active: string;
@@ -244,6 +258,8 @@ export class UserRepository implements IUserRepository {
         name: response.user.name,
         age: response.user.age || this.FALLBACK_AGE,
         bio: response.user.bio,
+        gender: response.user.gender ?? undefined,
+        lookingFor: response.user.looking_for ?? undefined,
         profilePhotoUrl: response.user.profile_photo ?? undefined,
         photos: [],
         createdAt: new Date(response.user.created_at),

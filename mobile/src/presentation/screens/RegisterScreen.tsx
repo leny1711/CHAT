@@ -21,6 +21,8 @@ interface RegisterScreenProps {
     password: string,
     name: string,
     bio: string,
+    gender: 'male' | 'female',
+    lookingFor: Array<'male' | 'female'>,
     profilePhoto?: ProfilePhotoAsset | null,
   ) => Promise<void>;
   onNavigateToLogin: () => void;
@@ -34,6 +36,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
+  const [gender, setGender] = useState<'male' | 'female' | ''>('');
+  const [lookingFor, setLookingFor] = useState<Array<'male' | 'female'>>([]);
   const [profilePhoto, setProfilePhoto] = useState<ProfilePhotoAsset | null>(
     null,
   );
@@ -76,6 +80,10 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       return;
     }
 
+    if (!gender || lookingFor.length === 0) {
+      setError('Veuillez sélectionner votre genre et vos préférences');
+      return;
+    }
     if (bio.length < 10) {
       setError('La description doit contenir au moins 10 caractères');
       return;
@@ -85,7 +93,15 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
     setError('');
 
     try {
-      await onRegister(email, password, name, bio, profilePhoto);
+      await onRegister(
+        email,
+        password,
+        name,
+        bio,
+        gender,
+        lookingFor,
+        profilePhoto,
+      );
       // Success - the parent component will handle navigation
     } catch (err) {
       // Handle errors locally - never let them propagate
@@ -176,6 +192,90 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
               textAlignVertical="top"
               editable={!loading}
             />
+
+            <View style={styles.optionGroup}>
+              <Text style={styles.optionLabel}>Votre genre</Text>
+              <View style={styles.optionRow}>
+                <TouchableOpacity
+                  style={[
+                    styles.optionButton,
+                    gender === 'male' && styles.optionButtonSelected,
+                  ]}
+                  onPress={() => setGender('male')}
+                  disabled={loading}>
+                  <Text
+                    style={[
+                      styles.optionText,
+                      gender === 'male' && styles.optionTextSelected,
+                    ]}>
+                    Homme
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.optionButton,
+                    gender === 'female' && styles.optionButtonSelected,
+                  ]}
+                  onPress={() => setGender('female')}
+                  disabled={loading}>
+                  <Text
+                    style={[
+                      styles.optionText,
+                      gender === 'female' && styles.optionTextSelected,
+                    ]}>
+                    Femme
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.optionGroup}>
+              <Text style={styles.optionLabel}>Vous souhaitez voir</Text>
+              <View style={styles.optionRow}>
+                <TouchableOpacity
+                  style={[
+                    styles.optionButton,
+                    lookingFor.includes('male') && styles.optionButtonSelected,
+                  ]}
+                  onPress={() =>
+                    setLookingFor(current =>
+                      current.includes('male')
+                        ? current.filter(value => value !== 'male')
+                        : [...current, 'male'],
+                    )
+                  }
+                  disabled={loading}>
+                  <Text
+                    style={[
+                      styles.optionText,
+                      lookingFor.includes('male') && styles.optionTextSelected,
+                    ]}>
+                    Hommes
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.optionButton,
+                    lookingFor.includes('female') && styles.optionButtonSelected,
+                  ]}
+                  onPress={() =>
+                    setLookingFor(current =>
+                      current.includes('female')
+                        ? current.filter(value => value !== 'female')
+                        : [...current, 'female'],
+                    )
+                  }
+                  disabled={loading}>
+                  <Text
+                    style={[
+                      styles.optionText,
+                      lookingFor.includes('female') && styles.optionTextSelected,
+                    ]}>
+                    Femmes
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
 
             <View style={styles.photoSection}>
               <TouchableOpacity
@@ -278,6 +378,38 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.md,
     fontSize: theme.typography.fontSize.md,
     color: theme.colors.text,
+  },
+  optionGroup: {
+    gap: theme.spacing.sm,
+  },
+  optionLabel: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.fontSize.sm,
+  },
+  optionRow: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  optionButton: {
+    flex: 1,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.md,
+    paddingVertical: theme.spacing.sm,
+    alignItems: 'center',
+  },
+  optionButtonSelected: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  optionText: {
+    color: theme.colors.text,
+    fontSize: theme.typography.fontSize.sm,
+  },
+  optionTextSelected: {
+    color: theme.colors.surface,
+    fontWeight: '600',
   },
   bioInput: {
     height: 100,

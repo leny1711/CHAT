@@ -40,6 +40,12 @@ export class Database {
     await this.query(
       'ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_photo TEXT',
     );
+    await this.query(
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS gender TEXT',
+    );
+    await this.query(
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS looking_for TEXT[]',
+    );
 
     // Matches table
     await this.query(`
