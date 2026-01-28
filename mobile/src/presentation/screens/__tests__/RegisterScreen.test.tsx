@@ -63,4 +63,18 @@ describe('RegisterScreen', () => {
       }),
     ).toThrow();
   });
+
+  it('affiche les choix de genre et de préférences', () => {
+    const tree = renderer.create(
+      <RegisterScreen
+        onRegister={jest.fn().mockResolvedValue(undefined)}
+        onNavigateToLogin={jest.fn()}
+      />,
+    );
+
+    expect(findButtonByText(tree, 'Homme')).toBeTruthy();
+    expect(findButtonByText(tree, 'Femme')).toBeTruthy();
+    expect(findButtonByText(tree, 'Hommes')).toBeTruthy();
+    expect(findButtonByText(tree, 'Femmes')).toBeTruthy();
+  });
 });
