@@ -7,12 +7,8 @@ import {REVEAL_THRESHOLDS} from '../../photoReveal';
 
 describe('RevealPhoto', () => {
   const GRAYSCALE_MATRIX = [
-    0.33, 0.33, 0.33, 0, 0, 0.33, 0.33, 0.33, 0, 0, 0.33, 0.33, 0.33, 0, 0, 0,
-    0, 0, 1, 0,
-  ];
-  const PARTIAL_COLOR_MATRIX = [
-    0.6, 0.3, 0.1, 0, 0, 0.3, 0.6, 0.1, 0, 0, 0.1, 0.3, 0.6, 0, 0, 0, 0, 0, 1,
-    0,
+    0.2126, 0.7152, 0.0722, 0, 0, 0.2126, 0.7152, 0.0722, 0, 0, 0.2126, 0.7152,
+    0.0722, 0, 0, 0, 0, 0, 1, 0,
   ];
   const FULL_COLOR_MATRIX = [
     1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0,
@@ -48,11 +44,11 @@ describe('RevealPhoto', () => {
     });
 
     const image = tree.root.findByType(Image);
-    expect(image.props.blurRadius).toBe(10);
+    expect(image.props.blurRadius).toBe(40);
 
     const colorMatrix = tree.root.findByType(ColorMatrix);
     expect(colorMatrix.props.matrix).toHaveLength(20);
-    expect(colorMatrix.props.matrix).toEqual(PARTIAL_COLOR_MATRIX);
+    expect(colorMatrix.props.matrix).toEqual(FULL_COLOR_MATRIX);
   });
 
   it('applies strong obscuring effects at reveal level 1', () => {
@@ -64,11 +60,11 @@ describe('RevealPhoto', () => {
     );
 
     const image = tree.root.findByType(Image);
-    expect(image.props.blurRadius).toBe(56);
+    expect(image.props.blurRadius).toBe(90);
 
     const colorMatrix = tree.root.findByType(ColorMatrix);
     expect(colorMatrix.props.matrix).toHaveLength(20);
-    expect(colorMatrix.props.matrix).toEqual(PARTIAL_COLOR_MATRIX);
+    expect(colorMatrix.props.matrix).toEqual(GRAYSCALE_MATRIX);
   });
 
   it('uses the grayscale matrix at reveal level 0', () => {
@@ -81,7 +77,7 @@ describe('RevealPhoto', () => {
     expect(colorMatrix.props.matrix).toEqual(GRAYSCALE_MATRIX);
   });
 
-  it('uses the full color matrix at max reveal level', () => {
+  it('removes the matrix at max reveal level', () => {
     const tree = renderer.create(
       <RevealPhoto
         photoUrl="https://example.com/photo.jpg"
@@ -89,9 +85,9 @@ describe('RevealPhoto', () => {
       />,
     );
 
-    const colorMatrix = tree.root.findByType(ColorMatrix);
-    expect(colorMatrix.props.matrix).toHaveLength(20);
-    expect(colorMatrix.props.matrix).toEqual(FULL_COLOR_MATRIX);
+    expect(tree.root.findAllByType(ColorMatrix)).toHaveLength(0);
+    const image = tree.root.findByType(Image);
+    expect(image.props.blurRadius).toBe(0);
   });
 
   it('renders placeholder only when photo url is null', () => {
