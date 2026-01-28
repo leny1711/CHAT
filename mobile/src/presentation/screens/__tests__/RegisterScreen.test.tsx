@@ -77,4 +77,29 @@ describe('RegisterScreen', () => {
     expect(findButtonByText(tree, 'Hommes')).toBeTruthy();
     expect(findButtonByText(tree, 'Femmes')).toBeTruthy();
   });
+
+  it('transmet le genre et les préférences à l’inscription', async () => {
+    const onRegister = jest.fn().mockResolvedValue(undefined);
+    const tree = renderer.create(
+      <RegisterScreen
+        onRegister={onRegister}
+        onNavigateToLogin={jest.fn()}
+      />,
+    );
+
+    const genderButton = findButtonByText(tree, 'Femme');
+    const menPreferenceButton = findButtonByText(tree, 'Hommes');
+    const submitButton = findButtonByText(tree, 'Créer un compte');
+
+    await act(async () => {
+      genderButton?.props.onPress();
+      menPreferenceButton?.props.onPress();
+      submitButton?.props.onPress();
+    });
+
+    expect(onRegister).toHaveBeenCalled();
+    const payload = onRegister.mock.calls[0];
+    expect(payload[4]).toBe('female');
+    expect(payload[5]).toContain('male');
+  });
 });

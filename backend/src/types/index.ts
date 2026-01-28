@@ -6,8 +6,8 @@ export interface User {
   age?: number;
   bio: string;
   profile_photo?: string | null;
-  gender?: string | null;
-  looking_for?: string[] | null;
+  gender?: 'male' | 'female' | null;
+  looking_for?: Array<'male' | 'female'> | null;
   created_at: Date;
   last_active: Date;
 }
@@ -19,8 +19,8 @@ export interface UserResponse {
   age?: number;
   bio: string;
   profile_photo?: string | null;
-  gender?: string | null;
-  looking_for?: string[] | null;
+  gender?: 'male' | 'female' | null;
+  looking_for?: Array<'male' | 'female'> | null;
   created_at: Date;
   last_active: Date;
 }
@@ -74,8 +74,8 @@ export interface RegisterRequest extends AuthRequest {
   age?: number;
   bio?: string;
   profilePhoto?: string | null;
-  gender: string;
-  lookingFor: string[];
+  gender: 'male' | 'female';
+  lookingFor: Array<'male' | 'female'>;
 }
 
 export interface RegisterFormData {
@@ -86,7 +86,6 @@ export interface RegisterFormData {
   bio?: string;
   gender?: string;
   lookingFor?: string | string[];
-  looking_for?: string | string[];
 }
 
 export interface AuthResponse {

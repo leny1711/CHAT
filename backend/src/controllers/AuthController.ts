@@ -17,20 +17,36 @@ export class AuthController {
         body.age !== undefined && body.age !== null
           ? Number(body.age)
           : undefined;
-      const lookingForInput = body.lookingFor ?? body.looking_for;
+      const lookingForInput = body.lookingFor ?? (body as { looking_for?: string | string[] }).looking_for;
       const lookingFor = Array.isArray(lookingForInput)
         ? lookingForInput
         : typeof lookingForInput === 'string'
           ? lookingForInput.split(',').map(value => value.trim()).filter(Boolean)
           : [];
+      const gender =
+        body.gender === 'male' || body.gender === 'female' ? body.gender : undefined;
+      const filteredLookingFor = lookingFor.filter(
+        value => value === 'male' || value === 'female',
+      ) as Array<'male' | 'female'>;
+
+      // Validate input
+      if (!data.email || !data.password || !data.name) {
+        res.status(400).json({ error: 'Missing required fields' });
+        return;
+      }
+      if (!gender || filteredLookingFor.length === 0) {
+        res.status(400).json({ error: 'Missing gender or preferences' });
+        return;
+      }
+
       const data: RegisterRequest = {
         email: body.email || '',
         password: body.password || '',
         name: body.name || '',
         age: Number.isFinite(parsedAge) ? parsedAge : undefined,
         bio: body.bio,
-        gender: body.gender || '',
-        lookingFor,
+        gender,
+        lookingFor: filteredLookingFor,
         profilePhoto: req.file
           ? `${req.protocol}://${req.get('host')}${path.posix.join(
               '/uploads/profile-photos',
@@ -38,16 +54,6 @@ export class AuthController {
             )}`
           : null,
       };
-
-      // Validate input
-      if (!data.email || !data.password || !data.name) {
-        res.status(400).json({ error: 'Missing required fields' });
-        return;
-      }
-      if (!data.gender || data.lookingFor.length === 0) {
-        res.status(400).json({ error: 'Missing gender or preferences' });
-        return;
-      }
 
       const user = await authService.register(data);
       const token = generateToken(user.id);

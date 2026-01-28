@@ -106,6 +106,7 @@ export class Database {
     await this.query('CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id, created_at DESC)');
     await this.query('CREATE INDEX IF NOT EXISTS idx_matches_users ON matches(user_id_1, user_id_2)');
     await this.query('CREATE INDEX IF NOT EXISTS idx_likes_users ON likes(from_user_id, to_user_id)');
+    await this.query('CREATE INDEX IF NOT EXISTS idx_users_gender ON users(gender)');
 
     console.log('PostgreSQL database initialized successfully');
   }

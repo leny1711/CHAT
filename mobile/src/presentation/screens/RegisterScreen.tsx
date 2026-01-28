@@ -36,7 +36,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
-  const [gender, setGender] = useState<'male' | 'female' | ''>('');
+  const [gender, setGender] = useState<'male' | 'female' | null>(null);
   const [lookingFor, setLookingFor] = useState<Array<'male' | 'female'>>([]);
   const [profilePhoto, setProfilePhoto] = useState<ProfilePhotoAsset | null>(
     null,
@@ -93,6 +93,9 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
     setError('');
 
     try {
+      if (!gender) {
+        throw new Error('Gender is required');
+      }
       await onRegister(
         email,
         password,

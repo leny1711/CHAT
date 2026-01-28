@@ -186,7 +186,11 @@ export class MatchService {
       [userId],
     );
 
-    if (!currentUser?.gender || !currentUser.looking_for || currentUser.looking_for.length === 0) {
+    if (
+      !currentUser?.gender ||
+      !currentUser.looking_for ||
+      currentUser.looking_for.length === 0
+    ) {
       return [];
     }
 
@@ -209,6 +213,7 @@ export class MatchService {
        )
        AND gender IS NOT NULL
        AND looking_for IS NOT NULL
+       AND COALESCE(array_length(looking_for, 1), 0) > 0
        AND gender = ANY($5::text[])
        AND $6 = ANY(looking_for)
        ORDER BY RANDOM()

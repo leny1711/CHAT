@@ -8,8 +8,8 @@ export interface User {
   name: string;
   age?: number;
   bio: string;
-  gender?: 'male' | 'female';
-  lookingFor?: Array<'male' | 'female'>;
+  gender: 'male' | 'female';
+  lookingFor: Array<'male' | 'female'>;
   profilePhotoUrl?: string;
   profilePhoto?: ProfilePhotoAsset;
   photos: Photo[];
