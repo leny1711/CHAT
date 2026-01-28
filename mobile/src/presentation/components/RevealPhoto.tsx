@@ -10,12 +10,8 @@ interface RevealPhotoProps {
 }
 
 const GRAYSCALE_MATRIX = [
-  0.33, 0.33, 0.33, 0, 0, 0.33, 0.33, 0.33, 0, 0, 0.33, 0.33, 0.33, 0, 0, 0, 0,
-  0, 1, 0,
-];
-
-const PARTIAL_COLOR_MATRIX = [
-  0.6, 0.3, 0.1, 0, 0, 0.3, 0.6, 0.1, 0, 0, 0.1, 0.3, 0.6, 0, 0, 0, 0, 0, 1, 0,
+  0.2126, 0.7152, 0.0722, 0, 0, 0.2126, 0.7152, 0.0722, 0, 0, 0.2126, 0.7152,
+  0.0722, 0, 0, 0, 0, 0, 1, 0,
 ];
 
 const FULL_COLOR_MATRIX = [
@@ -23,35 +19,33 @@ const FULL_COLOR_MATRIX = [
 ];
 
 const getBlurRadius = (revealLevel: number): number => {
+  // Level 0: ultra-blurred silhouette (pre-threshold).
+  // Level 1: very strong blur, grayscale only.
+  // Level 2: strong blur, grayscale only.
+  // Level 3: color returns with strong blur.
+  // Level 4: light blur, color stays.
+  // Level 5: no blur.
   switch (revealLevel) {
     case 0:
-      return 60;
+      return 100;
     case 1:
-      return 56;
+      return 90;
     case 2:
-      return 44;
+      return 70;
     case 3:
-      return 10;
+      return 40;
     case 4:
-      return 3;
+      return 8;
     default:
       return 0;
   }
 };
 
 const getColorMatrix = (revealLevel: number): number[] => {
-  switch (revealLevel) {
-    case 0:
-      return GRAYSCALE_MATRIX;
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-      return PARTIAL_COLOR_MATRIX;
-    case 5:
-    default:
-      return FULL_COLOR_MATRIX;
+  if (revealLevel <= 2) {
+    return GRAYSCALE_MATRIX;
   }
+  return FULL_COLOR_MATRIX;
 };
 
 export const RevealPhoto: React.FC<RevealPhotoProps> = ({
@@ -66,29 +60,41 @@ export const RevealPhoto: React.FC<RevealPhotoProps> = ({
       : null;
   const maxRevealLevel = React.useRef(0);
   const computedRevealLevel = getRevealLevel(messageCount);
+  const lastPhotoUrl = React.useRef(resolvedPhotoUrl);
+  if (lastPhotoUrl.current !== resolvedPhotoUrl) {
+    lastPhotoUrl.current = resolvedPhotoUrl;
+    maxRevealLevel.current = computedRevealLevel;
+  }
   if (computedRevealLevel > maxRevealLevel.current) {
     maxRevealLevel.current = computedRevealLevel;
   }
   const safeRevealLevel = maxRevealLevel.current;
   const colorMatrix = getColorMatrix(safeRevealLevel);
+  const shouldApplyColorMatrix = safeRevealLevel < 5;
 
   const hasPhoto = resolvedPhotoUrl !== null;
   const accessibilityLabel = hasPhoto
     ? 'Photo de profil avec révélation progressive'
     : 'Aperçu sans photo de profil';
 
+  const imageElement = (
+    <Image
+      source={{uri: resolvedPhotoUrl}}
+      style={styles.image}
+      blurRadius={getBlurRadius(safeRevealLevel)}
+      accessibilityRole="image"
+      accessibilityLabel={accessibilityLabel}
+    />
+  );
+
   return (
     <View style={styles.container}>
       {hasPhoto ? (
-        <ColorMatrix matrix={colorMatrix}>
-          <Image
-            source={{uri: resolvedPhotoUrl}}
-            style={styles.image}
-            blurRadius={getBlurRadius(safeRevealLevel)}
-            accessibilityRole="image"
-            accessibilityLabel={accessibilityLabel}
-          />
-        </ColorMatrix>
+        shouldApplyColorMatrix ? (
+          <ColorMatrix matrix={colorMatrix}>{imageElement}</ColorMatrix>
+        ) : (
+          imageElement
+        )
       ) : (
         <View
           style={styles.placeholder}
