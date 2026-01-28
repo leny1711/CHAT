@@ -55,6 +55,8 @@ class MockUserRepository implements IUserRepository {
       name: userData.name || 'Test User',
       age: userData.age || 25,
       bio: userData.bio || 'Test bio',
+      gender: userData.gender ?? 'male',
+      lookingFor: userData.lookingFor ?? [],
       profilePhoto: userData.profilePhoto,
       photos: [],
       createdAt: new Date(),
@@ -94,6 +96,8 @@ describe('AuthUseCases', () => {
       const user = await useCase.execute('test@example.com', 'password123', {
         name: 'John Doe',
         bio: 'Test bio for user',
+        gender: 'male',
+        lookingFor: ['female'],
         profilePhoto,
       });
 
@@ -101,6 +105,8 @@ describe('AuthUseCases', () => {
       expect(user.email).toBe('test@example.com');
       expect(user.name).toBe('John Doe');
       expect(user.bio).toBe('Test bio for user');
+      expect(user.gender).toBe('male');
+      expect(user.lookingFor).toEqual(['female']);
       expect(user.profilePhoto).toEqual(profilePhoto);
     });
 

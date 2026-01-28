@@ -379,20 +379,24 @@ export function AppNavigation() {
               </Stack.Screen>
               <Stack.Screen name="Register">
                 {({navigation}) => (
-                  <RegisterScreen
-                    onRegister={async (
-                      email,
-                      password,
-                      name,
-                      bio,
-                      profilePhoto,
-                    ) => {
-                      await registerUseCase.execute(email, password, {
+                    <RegisterScreen
+                      onRegister={async (
+                        email,
+                        password,
                         name,
                         bio,
+                        gender,
+                        lookingFor,
                         profilePhoto,
-                      });
-                      setIsAuthenticated(true);
+                      ) => {
+                        await registerUseCase.execute(email, password, {
+                          name,
+                          bio,
+                          gender,
+                          lookingFor,
+                          profilePhoto,
+                        });
+                        setIsAuthenticated(true);
                     }}
                     onNavigateToLogin={() => navigation.navigate('Login')}
                   />
