@@ -181,12 +181,26 @@ export class MatchService {
   }
 
   async getDiscoveryProfiles(userId: string, limit: number = 10): Promise<UserResponse[]> {
+    const currentUser = await db.get<UserResponse>(
+      'SELECT id, gender, looking_for FROM users WHERE id = $1',
+      [userId],
+    );
+
+    if (
+      !currentUser?.gender ||
+      !currentUser.looking_for ||
+      currentUser.looking_for.length === 0
+    ) {
+      return [];
+    }
+
     // Get users that:
     // 1. Are not the current user
     // 2. Haven't been liked or passed by the current user
     // 3. Haven't been matched with the current user
+    // 4. Match mutual compatibility preferences
     const profiles = await db.all<UserResponse>(
-      `SELECT id, email, name, age, bio, profile_photo, created_at, last_active 
+      `SELECT id, email, name, age, bio, profile_photo, gender, looking_for, created_at, last_active 
        FROM users 
        WHERE id != $1 
        AND id NOT IN (
@@ -197,9 +211,14 @@ export class MatchService {
          UNION
          SELECT user_id_2 FROM matches WHERE user_id_1 = $4
        )
+       AND gender IS NOT NULL
+       AND looking_for IS NOT NULL
+       AND COALESCE(array_length(looking_for, 1), 0) > 0
+       AND gender = ANY($5::text[])
+       AND $6 = ANY(looking_for)
        ORDER BY RANDOM()
-       LIMIT $5`,
-      [userId, userId, userId, userId, limit]
+       LIMIT $7`,
+      [userId, userId, userId, userId, currentUser.looking_for, currentUser.gender, limit],
     );
 
     return profiles;
