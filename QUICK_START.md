@@ -333,15 +333,6 @@ createdb dating_app
 cd backend
 npm run dev
 ```
-- 🧹 Clearing test users and conversations  
-- 🆕 Testing the registration flow from scratch
-- 📊 After schema changes (like adding UNIQUE constraints)
-
-**After resetting:**
-1. All data is gone - you'll need to create new test users
-2. Restart the backend with `npm run dev`
-3. The backend will automatically recreate all tables with proper schema
-4. Create at least 2 test users to test the complete flow
 
 ---
 

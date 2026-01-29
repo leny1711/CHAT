@@ -6,9 +6,9 @@
  * WARNING: This script deletes ALL DATA in the database.
  *
  * Usage (explicit opt-in required):
- *   ALLOW_DB_RESET=true npm run db:reset
+ *   npm run db:reset -- --allow-db-reset
  *   or
- *   ALLOW_DB_RESET=true npx ts-node scripts/reset-database.ts
+ *   npx ts-node scripts/reset-database.ts --allow-db-reset
  *
  * This script:
  * - Drops all tables
@@ -26,9 +26,9 @@ import * as path from 'path';
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
-if (process.env.ALLOW_DB_RESET !== 'true') {
+if (!process.argv.includes('--allow-db-reset')) {
   console.error('❌ Database reset is disabled to prevent accidental data loss.');
-  console.error('Set ALLOW_DB_RESET=true to run this script intentionally.');
+  console.error('Pass --allow-db-reset to run this script intentionally.');
   process.exit(1);
 }
 
