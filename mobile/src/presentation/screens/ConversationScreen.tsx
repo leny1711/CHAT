@@ -266,61 +266,65 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}>
-      <View style={styles.header}>
-        {onBack && (
-          <TouchableOpacity style={styles.backButton} onPress={onBack}>
-            <Text style={styles.backButtonText}>← Retour</Text>
-          </TouchableOpacity>
-        )}
-        <View style={styles.headerContent}>
-          {onOpenProfile ? (
-            <TouchableOpacity
-              onPress={onOpenProfile}
-              accessibilityRole="button"
-              accessibilityLabel={`Ouvrir le profil de ${resolvedOtherUserName}`}>
-              <Text style={[styles.headerTitle, styles.headerLink]}>
-                {resolvedOtherUserName}
-              </Text>
+      <View style={styles.content}>
+        <View style={styles.header}>
+          {onBack && (
+            <TouchableOpacity style={styles.backButton} onPress={onBack}>
+              <Text style={styles.backButtonText}>← Retour</Text>
             </TouchableOpacity>
-          ) : (
-            <Text style={styles.headerTitle}>{resolvedOtherUserName}</Text>
           )}
-          <Text style={styles.headerSubtitle}>Conversation privée</Text>
+          <View style={styles.headerContent}>
+            {onOpenProfile ? (
+              <TouchableOpacity
+                onPress={onOpenProfile}
+                accessibilityRole="button"
+                accessibilityLabel={`Ouvrir le profil de ${resolvedOtherUserName}`}>
+                <Text style={[styles.headerTitle, styles.headerLink]}>
+                  {resolvedOtherUserName}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <Text style={styles.headerTitle}>{resolvedOtherUserName}</Text>
+            )}
+            <Text style={styles.headerSubtitle}>Conversation privée</Text>
+          </View>
         </View>
-      </View>
 
-      <FlatList
-        ref={flatListRef}
-        data={dedupedMessages}
-        renderItem={renderMessage}
-        keyExtractor={getMessageKey}
-        inverted
-        contentContainerStyle={styles.messageList}
-        onEndReached={loadMoreMessages}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={renderFooter}
-      />
-
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Écrivez votre message..."
-          placeholderTextColor={theme.colors.textLight}
-          value={inputText}
-          onChangeText={setInputText}
-          multiline
-          maxLength={1000}
-          editable={!!conversationId}
+        <FlatList
+          ref={flatListRef}
+          data={dedupedMessages}
+          renderItem={renderMessage}
+          keyExtractor={getMessageKey}
+          inverted
+          contentContainerStyle={styles.messageList}
+          onEndReached={loadMoreMessages}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={renderFooter}
+          keyboardShouldPersistTaps="handled"
         />
-        <TouchableOpacity
-          style={[
-            styles.sendButton,
-            (!inputText.trim() || !conversationId) && styles.sendButtonDisabled,
-          ]}
-          onPress={handleSend}
-          disabled={!inputText.trim() || !conversationId}>
-          <Text style={styles.sendButtonText}>Envoyer</Text>
-        </TouchableOpacity>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Écrivez votre message..."
+            placeholderTextColor={theme.colors.textLight}
+            value={inputText}
+            onChangeText={setInputText}
+            multiline
+            maxLength={1000}
+            editable={!!conversationId}
+          />
+          <TouchableOpacity
+            style={[
+              styles.sendButton,
+              (!inputText.trim() || !conversationId) &&
+                styles.sendButtonDisabled,
+            ]}
+            onPress={handleSend}
+            disabled={!inputText.trim() || !conversationId}>
+            <Text style={styles.sendButtonText}>Envoyer</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -337,6 +341,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  content: {
+    flex: 1,
   },
   centerContainer: {
     flex: 1,
@@ -441,6 +448,7 @@ const styles = StyleSheet.create({
     borderTopColor: theme.colors.border,
     alignItems: 'flex-end',
     gap: theme.spacing.sm,
+    paddingBottom: theme.spacing.md,
   },
   input: {
     flex: 1,
