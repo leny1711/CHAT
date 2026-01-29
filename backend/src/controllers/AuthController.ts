@@ -29,8 +29,12 @@ export class AuthController {
         value => value === 'male' || value === 'female',
       ) as Array<'male' | 'female'>;
 
+      const email = body.email || '';
+      const password = body.password || '';
+      const name = body.name || '';
+
       // Validate input
-      if (!data.email || !data.password || !data.name) {
+      if (!email || !password || !name) {
         res.status(400).json({ error: 'Missing required fields' });
         return;
       }
@@ -40,9 +44,9 @@ export class AuthController {
       }
 
       const data: RegisterRequest = {
-        email: body.email || '',
-        password: body.password || '',
-        name: body.name || '',
+        email,
+        password,
+        name,
         age: Number.isFinite(parsedAge) ? parsedAge : undefined,
         bio: body.bio,
         gender,

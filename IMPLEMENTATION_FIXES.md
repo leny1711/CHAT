@@ -161,11 +161,9 @@ const displayName = otherUser?.name || 'Loading...';
    - Added warning at the top: "Always start backend BEFORE mobile app"
    - Clear explanation of dependencies
 
-4. **Database Reset**:
-   - Documented `npm run db:reset` command
-   - Added warnings about data loss
-   - Listed when to use it
-   - Provided alternative manual method
+4. **Database Safety**:
+   - Removed automatic reset guidance
+   - Emphasized manual database creation only
 
 ## Security Improvements
 
@@ -229,13 +227,12 @@ console.error('Error', {
 5. Avatar shows "?" when data is loading
 ```
 
-### 5. Database Reset
+### 5. Database Safety
 ```
-1. Create test data (users, matches, messages)
-2. Run: npm run db:reset
-3. Verify all data is cleared
-4. Verify tables are recreated
-5. Backend starts successfully
+1. Ensure database exists (created manually)
+2. Start backend
+3. Verify schema initializes without resets
+4. Confirm backend fails gracefully if database is missing
 ```
 
 ## Migration Guide
