@@ -182,11 +182,15 @@ function App(): React.JSX.Element {
     password: string,
     name: string,
     bio: string,
+    gender: 'male' | 'female',
+    lookingFor: Array<'male' | 'female'>,
     profilePhoto?: ProfilePhotoAsset | null,
   ) => {
     const user = await registerUseCase.execute(email, password, {
       name,
       bio,
+      gender,
+      lookingFor,
       profilePhoto,
     });
     setCurrentUser(user);
