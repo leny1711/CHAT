@@ -1,19 +1,19 @@
 #!/usr/bin/env node
 
 /**
- * Database Reset Script
- * 
- * WARNING: This script will DELETE ALL DATA in the database!
- * 
- * Usage:
- *   npm run db:reset
+ * Database Reset Script (Disabled by Default)
+ *
+ * WARNING: This script deletes ALL DATA in the database.
+ *
+ * Usage (explicit opt-in required):
+ *   npm run db:reset -- --allow-db-reset
  *   or
- *   npx ts-node scripts/reset-database.ts
- * 
+ *   npx ts-node scripts/reset-database.ts --allow-db-reset
+ *
  * This script:
  * - Drops all tables
  * - Recreates tables with fresh schema
- * - Should only be used in DEVELOPMENT
+ * - Must be explicitly enabled per run
  */
 
 // This script requires ts-node to be available
@@ -25,6 +25,12 @@ import * as path from 'path';
 
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
+
+if (!process.argv.includes('--allow-db-reset')) {
+  console.error('❌ Database reset is disabled to prevent accidental data loss.');
+  console.error('Pass --allow-db-reset to run this script intentionally.');
+  process.exit(1);
+}
 
 const DATABASE_URL = process.env.DATABASE_URL;
 

@@ -88,7 +88,9 @@ Environment: ${process.env.NODE_ENV || 'development'}
       process.exit(0);
     });
   } catch (error) {
-    console.error('Failed to start server:', error);
+    const details = error instanceof Error ? error.message : String(error);
+    console.error('Failed to start server:', details);
+    console.error('Database will not be created or reset automatically.');
     process.exit(1);
   }
 }

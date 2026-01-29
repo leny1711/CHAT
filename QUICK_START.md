@@ -322,51 +322,17 @@ To test WebSocket real-time messaging:
 
 ## 🔧 Troubleshooting
 
-### Resetting the Database (Development Only)
+### Database Initialization (No Automatic Resets)
 
-**⚠️ WARNING: This will DELETE ALL DATA including users, matches, conversations, and messages!**
+The backend **never** resets or drops the database automatically. If your database is missing, create it manually and then start the backend so it can initialize the schema.
 
-During development, you may need to reset your database to start fresh with a clean slate.
-
-**Option 1: Use the reset script (Recommended)**
+**Manual setup example:**
 
 ```bash
-cd backend
-npm run db:reset
-```
-
-This command (`npm run db:reset`) will:
-1. ✅ Delete all users
-2. ✅ Delete all matches  
-3. ✅ Delete all conversations
-4. ✅ Delete all messages
-5. ✅ Recreate all tables with the correct schema
-6. ✅ Set up all indexes and constraints
-
-**Option 2: Manual PostgreSQL reset**
-
-```bash
-# Drop and recreate the entire database
-dropdb dating_app
 createdb dating_app
-
-# Then restart the backend - it will recreate tables automatically
 cd backend
 npm run dev
 ```
-
-**When to reset the database:**
-- 🔄 Starting a new test session with fresh data
-- 🐛 After experiencing data-related errors
-- 🧹 Clearing test users and conversations  
-- 🆕 Testing the registration flow from scratch
-- 📊 After schema changes (like adding UNIQUE constraints)
-
-**After resetting:**
-1. All data is gone - you'll need to create new test users
-2. Restart the backend with `npm run dev`
-3. The backend will automatically recreate all tables with proper schema
-4. Create at least 2 test users to test the complete flow
 
 ---
 

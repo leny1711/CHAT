@@ -17,7 +17,10 @@ export class Database {
       console.log('PostgreSQL connection established');
       client.release();
     } catch (error) {
-      throw new Error(`Failed to connect to PostgreSQL: ${error}`);
+      const details = error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `Failed to connect to PostgreSQL. Ensure the database exists and is reachable. Details: ${details}`,
+      );
     }
   }
 
