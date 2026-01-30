@@ -218,13 +218,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
   },
-  photoPlaceholderText: {
-    fontSize: theme.typography.fontSize.md,
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
-    fontStyle: 'italic',
-    maxWidth: '100%',
-  },
   profileInfo: {
     padding: theme.spacing.lg,
     backgroundColor: theme.colors.surface,
