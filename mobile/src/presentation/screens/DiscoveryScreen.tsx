@@ -129,8 +129,6 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
       </View>
 
       <Animated.View style={[styles.card, {opacity: fadeAnim}]}>
-        <View style={styles.photoPlaceholder} />
-
         <View style={styles.profileInfo}>
           <Text style={styles.name}>{currentProfile.name}</Text>
           <Text style={styles.bio}>{currentProfile.bio}</Text>
@@ -210,22 +208,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   card: {
-    flex: 1,
     marginHorizontal: theme.spacing.xl,
     backgroundColor: theme.colors.surface,
     borderRadius: theme.borderRadius.lg,
     position: 'relative',
     overflow: 'hidden',
     ...theme.shadows.md,
-  },
-  photoPlaceholder: {
-    height: 400,
-    backgroundColor: theme.colors.surfaceAlt,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: theme.spacing.lg,
-    overflow: 'hidden',
-    position: 'relative',
   },
   profileInfo: {
     padding: theme.spacing.lg,

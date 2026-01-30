@@ -116,8 +116,6 @@ export const SimpleDiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
       </View>
 
       <View style={styles.card}>
-        <View style={styles.photoPlaceholder} />
-
         <View style={styles.profileInfo}>
           <Text style={styles.name}>{currentProfile.name}</Text>
           <Text style={styles.bio}>{currentProfile.bio}</Text>
@@ -197,7 +195,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   card: {
-    flex: 1,
     marginHorizontal: theme.spacing.xl,
     backgroundColor: theme.colors.surface,
     borderRadius: theme.borderRadius.lg,
@@ -208,15 +205,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
-  },
-  photoPlaceholder: {
-    height: 400,
-    backgroundColor: theme.colors.surfaceAlt,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: theme.spacing.lg,
-    overflow: 'hidden',
-    position: 'relative',
   },
   profileInfo: {
     padding: theme.spacing.lg,

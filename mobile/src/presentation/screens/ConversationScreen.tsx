@@ -262,33 +262,33 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <View style={styles.content}>
-        <View style={styles.header}>
-          {onBack && (
-            <TouchableOpacity style={styles.backButton} onPress={onBack}>
-              <Text style={styles.backButtonText}>← Retour</Text>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        {onBack && (
+          <TouchableOpacity style={styles.backButton} onPress={onBack}>
+            <Text style={styles.backButtonText}>← Retour</Text>
+          </TouchableOpacity>
+        )}
+        <View style={styles.headerContent}>
+          {onOpenProfile ? (
+            <TouchableOpacity
+              onPress={onOpenProfile}
+              accessibilityRole="button"
+              accessibilityLabel={`Ouvrir le profil de ${resolvedOtherUserName}`}>
+              <Text style={[styles.headerTitle, styles.headerLink]}>
+                {resolvedOtherUserName}
+              </Text>
             </TouchableOpacity>
+          ) : (
+            <Text style={styles.headerTitle}>{resolvedOtherUserName}</Text>
           )}
-          <View style={styles.headerContent}>
-            {onOpenProfile ? (
-              <TouchableOpacity
-                onPress={onOpenProfile}
-                accessibilityRole="button"
-                accessibilityLabel={`Ouvrir le profil de ${resolvedOtherUserName}`}>
-                <Text style={[styles.headerTitle, styles.headerLink]}>
-                  {resolvedOtherUserName}
-                </Text>
-              </TouchableOpacity>
-            ) : (
-              <Text style={styles.headerTitle}>{resolvedOtherUserName}</Text>
-            )}
-            <Text style={styles.headerSubtitle}>Conversation privée</Text>
-          </View>
+          <Text style={styles.headerSubtitle}>Conversation privée</Text>
         </View>
+      </View>
 
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoiding}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <FlatList
           ref={flatListRef}
           data={dedupedMessages}
@@ -325,8 +325,8 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
             <Text style={styles.sendButtonText}>Envoyer</Text>
           </TouchableOpacity>
         </View>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </View>
   );
 };
 
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  content: {
+  keyboardAvoiding: {
     flex: 1,
   },
   centerContainer: {
@@ -389,6 +389,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   messageList: {
+    flexGrow: 1,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.md,
   },
