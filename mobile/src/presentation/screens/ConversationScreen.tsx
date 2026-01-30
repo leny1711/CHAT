@@ -388,7 +388,7 @@ const styles = StyleSheet.create({
   messageList: {
     flexGrow: 1,
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.md,
+    paddingTop: theme.spacing.md,
   },
   messageListContainer: {
     flex: 1,
@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+    paddingTop: theme.spacing.sm,
     backgroundColor: theme.colors.surface,
     borderTopWidth: 1,
     borderTopColor: theme.colors.border,
