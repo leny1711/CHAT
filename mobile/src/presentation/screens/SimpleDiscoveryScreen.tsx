@@ -116,11 +116,7 @@ export const SimpleDiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
       </View>
 
       <View style={styles.card}>
-        <View style={styles.photoPlaceholder}>
-          <Text style={styles.photoPlaceholderText}>
-            Les photos se révèlent en discutant
-          </Text>
-        </View>
+        <View style={styles.photoPlaceholder} />
 
         <View style={styles.profileInfo}>
           <Text style={styles.name}>{currentProfile.name}</Text>
@@ -221,13 +217,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.lg,
     overflow: 'hidden',
     position: 'relative',
-  },
-  photoPlaceholderText: {
-    fontSize: theme.typography.fontSize.md,
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
-    fontStyle: 'italic',
-    maxWidth: '100%',
   },
   profileInfo: {
     padding: theme.spacing.lg,
