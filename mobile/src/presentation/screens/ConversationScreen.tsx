@@ -43,7 +43,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   onBack,
   onOpenProfile,
 }) => {
-  const inputContainerHeight = theme.spacing.xl + theme.spacing.lg;
+  const inputContainerHeight = theme.spacing.xxl + theme.spacing.md;
   const resolvedOtherUserName =
     otherUserName && otherUserName.trim()
       ? otherUserName.trim()
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.md,
   },
   messageListContainer: {
-    flexGrow: 1,
+    flex: 1,
   },
   messageContainer: {
     marginVertical: theme.spacing.xs,
@@ -443,6 +443,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
     backgroundColor: theme.colors.surface,
     borderTopWidth: 1,
     borderTopColor: theme.colors.border,
@@ -457,7 +458,7 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.sm,
     fontSize: theme.typography.fontSize.md,
     color: theme.colors.text,
-    maxHeight: 100,
+    maxHeight: theme.spacing.xxl,
     borderWidth: 1,
     borderColor: theme.colors.border,
   },

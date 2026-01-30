@@ -113,6 +113,6 @@ describe('ConversationScreen', () => {
     });
     const containerStyle = StyleSheet.flatten(inputContainer.props.style);
 
-    expect(containerStyle.height).toBe(theme.spacing.xl + theme.spacing.lg);
+    expect(containerStyle.height).toBe(theme.spacing.xxl + theme.spacing.md);
   });
 });
