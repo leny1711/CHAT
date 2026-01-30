@@ -6,7 +6,15 @@
  */
 
 import React, {useState, useEffect} from 'react';
-import {SafeAreaView, StatusBar, StyleSheet, View, Text} from 'react-native';
+import {
+  BackHandler,
+  Platform,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  View,
+  Text,
+} from 'react-native';
 
 // Screens
 import {LoginScreen} from './src/presentation/screens/LoginScreen';
@@ -128,6 +136,29 @@ const TabBar: React.FC<TabBarProps> = ({currentScreen, onNavigate}) => (
   </View>
 );
 
+export type AppScreen = Screen;
+
+export const getAndroidBackAction = (
+  currentScreen: AppScreen,
+  setCurrentScreen: (screen: AppScreen) => void,
+  setReadOnlyProfileParams: (params: ReadOnlyProfileParams | null) => void,
+) => {
+  if (currentScreen === 'Register') {
+    setCurrentScreen('Login');
+    return true;
+  }
+  if (currentScreen === 'ReadOnlyProfile') {
+    setReadOnlyProfileParams(null);
+    setCurrentScreen('Conversation');
+    return true;
+  }
+  if (currentScreen === 'Conversation') {
+    setCurrentScreen('Matches');
+    return true;
+  }
+  return false;
+};
+
 function App(): React.JSX.Element {
   const [currentScreen, setCurrentScreen] = useState<Screen>('Login');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -170,6 +201,23 @@ function App(): React.JSX.Element {
 
     initializeAuth();
   }, []);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') {
+      return;
+    }
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        return getAndroidBackAction(
+          currentScreen,
+          setCurrentScreen,
+          setReadOnlyProfileParams,
+        );
+      },
+    );
+    return () => subscription.remove();
+  }, [currentScreen]);
 
   const handleLogin = async (email: string, password: string) => {
     const user = await loginUseCase.execute(email, password);
