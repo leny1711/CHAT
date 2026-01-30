@@ -1,12 +1,13 @@
 import React from 'react';
 import renderer, {act} from 'react-test-renderer';
-import {FlatList} from 'react-native';
+import {FlatList, KeyboardAvoidingView, StyleSheet} from 'react-native';
 import {ConversationScreen} from '../ConversationScreen';
 import {
   Message,
   MessageStatus,
   MessageType,
 } from '../../../domain/entities/Message';
+import {theme} from '../../theme/theme';
 
 const buildMessage = (overrides?: Partial<Message>): Message => ({
   id: 'msg_1',
@@ -53,6 +54,7 @@ const renderConversation = async (messages: Message[]) => {
   return {
     data: list.props.data as Message[],
     keyExtractor: list.props.keyExtractor as (item: Message) => string,
+    tree: tree!,
   };
 };
 
@@ -88,5 +90,29 @@ describe('ConversationScreen', () => {
       }`,
     );
     warnSpy.mockRestore();
+  });
+
+  it('wraps the list and input in a single keyboard avoiding view', async () => {
+    const {tree} = await renderConversation([]);
+    const keyboardViews = tree.root.findAllByType(KeyboardAvoidingView);
+
+    expect(keyboardViews).toHaveLength(1);
+    const keyboardRoot = keyboardViews[0];
+    expect(keyboardRoot.findByType(FlatList)).toBeTruthy();
+    expect(
+      keyboardRoot.findByProps({
+        testID: 'conversation-input-container',
+      }),
+    ).toBeTruthy();
+  });
+
+  it('uses a fixed height for the input container', async () => {
+    const {tree} = await renderConversation([]);
+    const inputContainer = tree.root.findByProps({
+      testID: 'conversation-input-container',
+    });
+    const containerStyle = StyleSheet.flatten(inputContainer.props.style);
+
+    expect(containerStyle.height).toBe(theme.spacing.xxl + theme.spacing.md);
   });
 });

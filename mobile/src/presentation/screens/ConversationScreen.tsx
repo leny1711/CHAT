@@ -43,6 +43,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   onBack,
   onOpenProfile,
 }) => {
+  const inputContainerHeight = theme.spacing.xxl + theme.spacing.md;
   const resolvedOtherUserName =
     otherUserName && otherUserName.trim()
       ? otherUserName.trim()
@@ -262,7 +263,9 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   }
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <View style={styles.header}>
         {onBack && (
           <TouchableOpacity style={styles.backButton} onPress={onBack}>
@@ -286,47 +289,44 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
         </View>
       </View>
 
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoiding}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <FlatList
-          ref={flatListRef}
-          data={dedupedMessages}
-          renderItem={renderMessage}
-          keyExtractor={getMessageKey}
-          inverted
-          style={styles.messageListContainer}
-          contentContainerStyle={styles.messageList}
-          onEndReached={loadMoreMessages}
-          onEndReachedThreshold={0.5}
-          ListFooterComponent={renderFooter}
-          keyboardShouldPersistTaps="handled"
-        />
+      <FlatList
+        ref={flatListRef}
+        data={dedupedMessages}
+        renderItem={renderMessage}
+        keyExtractor={getMessageKey}
+        inverted
+        style={styles.messageListContainer}
+        contentContainerStyle={styles.messageList}
+        onEndReached={loadMoreMessages}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={renderFooter}
+        keyboardShouldPersistTaps="handled"
+      />
 
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Écrivez votre message..."
-            placeholderTextColor={theme.colors.textLight}
-            value={inputText}
-            onChangeText={setInputText}
-            multiline
-            maxLength={1000}
-            editable={!!conversationId}
-          />
-          <TouchableOpacity
-            style={[
-              styles.sendButton,
-              (!inputText.trim() || !conversationId) &&
-                styles.sendButtonDisabled,
-            ]}
-            onPress={handleSend}
-            disabled={!inputText.trim() || !conversationId}>
-            <Text style={styles.sendButtonText}>Envoyer</Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </View>
+      <View
+        testID="conversation-input-container"
+        style={[styles.inputContainer, {height: inputContainerHeight}]}>
+        <TextInput
+          style={styles.input}
+          placeholder="Écrivez votre message..."
+          placeholderTextColor={theme.colors.textLight}
+          value={inputText}
+          onChangeText={setInputText}
+          multiline
+          maxLength={1000}
+          editable={!!conversationId}
+        />
+        <TouchableOpacity
+          style={[
+            styles.sendButton,
+            (!inputText.trim() || !conversationId) && styles.sendButtonDisabled,
+          ]}
+          onPress={handleSend}
+          disabled={!inputText.trim() || !conversationId}>
+          <Text style={styles.sendButtonText}>Envoyer</Text>
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -341,9 +341,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
-  },
-  keyboardAvoiding: {
-    flex: 1,
   },
   centerContainer: {
     flex: 1,
@@ -450,9 +447,8 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface,
     borderTopWidth: 1,
     borderTopColor: theme.colors.border,
-    alignItems: 'flex-end',
+    alignItems: 'center',
     gap: theme.spacing.sm,
-    paddingBottom: theme.spacing.md,
   },
   input: {
     flex: 1,
@@ -462,7 +458,7 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.sm,
     fontSize: theme.typography.fontSize.md,
     color: theme.colors.text,
-    maxHeight: 100,
+    maxHeight: theme.spacing.xxl,
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
