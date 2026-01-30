@@ -63,7 +63,7 @@ describe('ConversationScreen', () => {
     const {keyExtractor} = await renderConversation([message]);
 
     expect(keyExtractor(message)).toBe('msg_unique');
-  }, 10000);
+  });
 
   it('deduplicates messages with the same identifier', async () => {
     const first = buildMessage({id: 'msg_1'});
@@ -76,7 +76,7 @@ describe('ConversationScreen', () => {
 
     expect(data).toHaveLength(1);
     expect(data[0]).toBe(first);
-  }, 10000);
+  });
 
   it('falls back to message metadata when id is missing', async () => {
     const message = buildMessage({id: ''});
@@ -89,7 +89,7 @@ describe('ConversationScreen', () => {
       }`,
     );
     warnSpy.mockRestore();
-  }, 10000);
+  });
 
   it('wraps the list and input in a single keyboard avoiding view', async () => {
     const {tree} = await renderConversation([]);
@@ -103,7 +103,7 @@ describe('ConversationScreen', () => {
         testID: 'conversation-input-container',
       }),
     ).toBeTruthy();
-  }, 10000);
+  });
 
   it('uses a flexible input container height', async () => {
     const {tree} = await renderConversation([]);
@@ -113,7 +113,7 @@ describe('ConversationScreen', () => {
     const containerStyle = StyleSheet.flatten(inputContainer.props.style);
 
     expect(containerStyle.height).toBeUndefined();
-  }, 10000);
+  });
 
   it('does not add bottom padding to the input container or message list', async () => {
     const {tree} = await renderConversation([]);
@@ -126,5 +126,5 @@ describe('ConversationScreen', () => {
 
     expect(containerStyle.paddingBottom).toBeUndefined();
     expect(listStyle.paddingBottom).toBeUndefined();
-  }, 10000);
+  });
 });

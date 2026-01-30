@@ -9,10 +9,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  act(() => {
-    jest.runOnlyPendingTimers();
-    jest.clearAllTimers();
-  });
+  jest.clearAllTimers();
   jest.useRealTimers();
 });
 
@@ -97,15 +94,10 @@ describe('RegisterScreen', () => {
     (launchImageLibrary as jest.Mock).mockResolvedValueOnce({
       assets: [{uri: 'file://photo.jpg'}],
     });
-    let tree: renderer.ReactTestRenderer;
-    await act(async () => {
-      tree = renderer.create(
-        <RegisterScreen
-          onRegister={onRegister}
-          onNavigateToLogin={jest.fn()}
-        />,
-      );
-    });
+    const tree = renderer.create(
+      <RegisterScreen onRegister={onRegister} onNavigateToLogin={jest.fn()} />,
+    );
+    await act(async () => {});
 
     const [nameInput, emailInput, passwordInput, bioInput] =
       tree.root.findAllByType(TextInput);
@@ -125,7 +117,7 @@ describe('RegisterScreen', () => {
       menPreferenceButton?.props.onPress();
       await addPhotoButton?.props.onPress();
     });
-    const updatedSubmitButton = findButtonByText(tree!, 'Créer un compte');
+    const updatedSubmitButton = findButtonByText(tree, 'Créer un compte');
     await act(async () => {
       await updatedSubmitButton?.props.onPress();
     });
@@ -135,7 +127,7 @@ describe('RegisterScreen', () => {
     expect(payload[4]).toBe('female');
     expect(payload[5]).toContain('male');
     await act(async () => {
-      tree!.unmount();
+      tree.unmount();
     });
   });
 });

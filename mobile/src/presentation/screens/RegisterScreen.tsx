@@ -23,7 +23,7 @@ interface RegisterScreenProps {
     bio: string,
     gender: 'male' | 'female',
     lookingFor: Array<'male' | 'female'>,
-    profilePhoto?: ProfilePhotoAsset | null,
+    profilePhoto: ProfilePhotoAsset,
   ) => Promise<void>;
   onNavigateToLogin: () => void;
 }
@@ -93,18 +93,13 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       setError('La description doit contenir au moins 10 caractères');
       return;
     }
+    if (!profilePhoto) {
+      setPhotoError('Veuillez ajouter une photo de profil.');
+      setError('Veuillez ajouter une photo de profil.');
+      return;
+    }
 
     try {
-      if (!profilePhoto) {
-        setPhotoError('Veuillez ajouter une photo de profil.');
-        setError('Veuillez ajouter une photo de profil.');
-        return;
-      }
-
-      if (!gender) {
-        throw new Error('Gender is required');
-      }
-
       setLoading(true);
       setError('');
       setPhotoError('');
