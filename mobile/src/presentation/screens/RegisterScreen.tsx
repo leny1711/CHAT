@@ -41,8 +41,10 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [profilePhoto, setProfilePhoto] = useState<ProfilePhotoAsset | null>(
     null,
   );
+  const [photoError, setPhotoError] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const canSubmit = !loading && !!profilePhoto;
 
   const handlePickPhoto = async () => {
     const result = await launchImageLibrary({
@@ -62,15 +64,18 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
     const asset = result.assets?.[0];
     if (asset) {
       setProfilePhoto(asset);
+      setPhotoError('');
       setError('');
       return;
     }
 
+    setPhotoError('Veuillez sélectionner une photo de profil.');
     setError("Aucune photo n'a été sélectionnée.");
   };
 
   const handleRemovePhoto = () => {
     setProfilePhoto(null);
+    setPhotoError('Veuillez sélectionner une photo de profil.');
     setError('');
   };
 
@@ -89,13 +94,20 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       return;
     }
 
-    setLoading(true);
-    setError('');
-
     try {
+      if (!profilePhoto) {
+        setPhotoError('Veuillez ajouter une photo de profil.');
+        setError('Veuillez ajouter une photo de profil.');
+        return;
+      }
+
       if (!gender) {
         throw new Error('Gender is required');
       }
+
+      setLoading(true);
+      setError('');
+      setPhotoError('');
       await onRegister(
         email,
         password,
@@ -259,7 +271,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                 <TouchableOpacity
                   style={[
                     styles.optionButton,
-                    lookingFor.includes('female') && styles.optionButtonSelected,
+                    lookingFor.includes('female') &&
+                      styles.optionButtonSelected,
                   ]}
                   onPress={() =>
                     setLookingFor(current =>
@@ -272,7 +285,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                   <Text
                     style={[
                       styles.optionText,
-                      lookingFor.includes('female') && styles.optionTextSelected,
+                      lookingFor.includes('female') &&
+                        styles.optionTextSelected,
                     ]}>
                     Femmes
                   </Text>
@@ -291,6 +305,9 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                     : 'Ajouter une photo de profil'}
                 </Text>
               </TouchableOpacity>
+              {photoError ? (
+                <Text style={styles.photoError}>{photoError}</Text>
+              ) : null}
               {profilePhoto?.uri ? (
                 <>
                   <Image
@@ -305,19 +322,15 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                     <Text style={styles.removePhotoText}>Retirer la photo</Text>
                   </TouchableOpacity>
                 </>
-              ) : (
-                <Text style={styles.photoHint}>
-                  Cette étape est facultative
-                </Text>
-              )}
+              ) : null}
             </View>
 
             {error ? <Text style={styles.error}>{error}</Text> : null}
 
             <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
+              style={[styles.button, !canSubmit && styles.buttonDisabled]}
               onPress={handleRegister}
-              disabled={loading}>
+              disabled={!canSubmit}>
               {loading ? (
                 <ActivityIndicator color={theme.colors.surface} />
               ) : (
@@ -464,6 +477,11 @@ const styles = StyleSheet.create({
   },
   photoHint: {
     color: theme.colors.textSecondary,
+    fontSize: theme.typography.fontSize.sm,
+    textAlign: 'center',
+  },
+  photoError: {
+    color: theme.colors.error,
     fontSize: theme.typography.fontSize.sm,
     textAlign: 'center',
   },
