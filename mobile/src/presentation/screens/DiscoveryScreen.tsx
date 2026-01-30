@@ -129,11 +129,7 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
       </View>
 
       <Animated.View style={[styles.card, {opacity: fadeAnim}]}>
-        <View style={styles.photoPlaceholder}>
-          <Text style={styles.photoPlaceholderText}>
-            Les photos se révèlent en discutant
-          </Text>
-        </View>
+        <View style={styles.photoPlaceholder} />
 
         <View style={styles.profileInfo}>
           <Text style={styles.name}>{currentProfile.name}</Text>

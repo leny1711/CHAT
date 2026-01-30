@@ -264,8 +264,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}>
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <View style={styles.content}>
         <View style={styles.header}>
           {onBack && (
@@ -296,6 +295,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
           renderItem={renderMessage}
           keyExtractor={getMessageKey}
           inverted
+          style={styles.messageListContainer}
           contentContainerStyle={styles.messageList}
           onEndReached={loadMoreMessages}
           onEndReachedThreshold={0.5}
@@ -391,6 +391,9 @@ const styles = StyleSheet.create({
   messageList: {
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.md,
+  },
+  messageListContainer: {
+    flex: 1,
   },
   messageContainer: {
     marginVertical: theme.spacing.xs,

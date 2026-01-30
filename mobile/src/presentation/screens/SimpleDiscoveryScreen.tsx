@@ -116,11 +116,7 @@ export const SimpleDiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
       </View>
 
       <View style={styles.card}>
-        <View style={styles.photoPlaceholder}>
-          <Text style={styles.photoPlaceholderText}>
-            Les photos se révèlent en discutant
-          </Text>
-        </View>
+        <View style={styles.photoPlaceholder} />
 
         <View style={styles.profileInfo}>
           <Text style={styles.name}>{currentProfile.name}</Text>
