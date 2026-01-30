@@ -9,7 +9,6 @@ import React, {useState, useEffect} from 'react';
 import {
   BackHandler,
   Platform,
-  SafeAreaView,
   StatusBar,
   StyleSheet,
   View,
@@ -458,13 +457,13 @@ function App(): React.JSX.Element {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar
         barStyle="dark-content"
         backgroundColor={theme.colors.background}
       />
       {renderScreen()}
-    </SafeAreaView>
+    </View>
   );
 }
 

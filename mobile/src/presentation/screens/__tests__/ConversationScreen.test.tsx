@@ -115,4 +115,17 @@ describe('ConversationScreen', () => {
 
     expect(containerStyle.height).toBe(theme.spacing.xxl + theme.spacing.md);
   });
+
+  it('does not add bottom padding to the input container or message list', async () => {
+    const {tree} = await renderConversation([]);
+    const inputContainer = tree.root.findByProps({
+      testID: 'conversation-input-container',
+    });
+    const containerStyle = StyleSheet.flatten(inputContainer.props.style);
+    const list = tree.root.findByType(FlatList);
+    const listStyle = StyleSheet.flatten(list.props.contentContainerStyle);
+
+    expect(containerStyle.paddingBottom).toBeUndefined();
+    expect(listStyle.paddingBottom).toBeUndefined();
+  });
 });
