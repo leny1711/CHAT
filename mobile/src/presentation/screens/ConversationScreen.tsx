@@ -9,7 +9,7 @@ import {
   KeyboardAvoidingView,
   ActivityIndicator,
 } from 'react-native';
-import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {theme} from '../theme/theme';
 import {
   Message,
@@ -47,7 +47,6 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   onBack,
   onOpenProfile,
 }) => {
-  const insets = useSafeAreaInsets();
   const resolvedOtherUserName =
     otherUserName && otherUserName.trim()
       ? otherUserName.trim()
@@ -338,8 +337,8 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
       <SafeAreaView
         testID="conversation-input-safe-area"
-        edges={[]}
-        style={[styles.inputSafeArea, {paddingBottom: insets.bottom}]}>
+        edges={['bottom']}
+        style={styles.inputSafeArea}>
         <View
           testID="conversation-input-container"
           style={styles.inputContainer}>
