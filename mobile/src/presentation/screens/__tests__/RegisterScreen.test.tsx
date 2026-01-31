@@ -1,8 +1,17 @@
 import React from 'react';
 import renderer, {act} from 'react-test-renderer';
-import {Text, TouchableOpacity} from 'react-native';
+import {Text, TextInput, TouchableOpacity} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {RegisterScreen} from '../RegisterScreen';
+
+beforeEach(() => {
+  jest.useFakeTimers();
+});
+
+afterEach(() => {
+  jest.clearAllTimers();
+  jest.useRealTimers();
+});
 
 const findButtonByText = (tree: renderer.ReactTestRenderer, label: string) =>
   tree.root
@@ -55,7 +64,9 @@ describe('RegisterScreen', () => {
     });
 
     expect(
-      tree.root.findByProps({children: 'Cette étape est facultative'}),
+      tree.root.findByProps({
+        children: 'Veuillez sélectionner une photo de profil.',
+      }),
     ).toBeTruthy();
     expect(() =>
       tree.root.findByProps({
@@ -80,26 +91,43 @@ describe('RegisterScreen', () => {
 
   it('transmet le genre et les préférences à l’inscription', async () => {
     const onRegister = jest.fn().mockResolvedValue(undefined);
+    (launchImageLibrary as jest.Mock).mockResolvedValueOnce({
+      assets: [{uri: 'file://photo.jpg'}],
+    });
     const tree = renderer.create(
-      <RegisterScreen
-        onRegister={onRegister}
-        onNavigateToLogin={jest.fn()}
-      />,
+      <RegisterScreen onRegister={onRegister} onNavigateToLogin={jest.fn()} />,
     );
+    await act(async () => {});
 
+    const [nameInput, emailInput, passwordInput, bioInput] =
+      tree.root.findAllByType(TextInput);
     const genderButton = findButtonByText(tree, 'Femme');
     const menPreferenceButton = findButtonByText(tree, 'Hommes');
-    const submitButton = findButtonByText(tree, 'Créer un compte');
+    const addPhotoButton = findButtonByText(
+      tree,
+      'Ajouter une photo de profil',
+    );
 
     await act(async () => {
+      nameInput?.props.onChangeText('Alice');
+      emailInput?.props.onChangeText('alice@example.com');
+      passwordInput?.props.onChangeText('password123');
+      bioInput?.props.onChangeText('Bio suffisamment longue');
       genderButton?.props.onPress();
       menPreferenceButton?.props.onPress();
-      submitButton?.props.onPress();
+      await addPhotoButton?.props.onPress();
+    });
+    const updatedSubmitButton = findButtonByText(tree, 'Créer un compte');
+    await act(async () => {
+      await updatedSubmitButton?.props.onPress();
     });
 
     expect(onRegister).toHaveBeenCalled();
     const payload = onRegister.mock.calls[0];
     expect(payload[4]).toBe('female');
     expect(payload[5]).toContain('male');
+    await act(async () => {
+      tree.unmount();
+    });
   });
 });

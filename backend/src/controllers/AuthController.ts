@@ -42,6 +42,10 @@ export class AuthController {
         res.status(400).json({ error: 'Missing gender or preferences' });
         return;
       }
+      if (!req.file) {
+        res.status(400).json({ error: 'Profile photo is required' });
+        return;
+      }
 
       const data: RegisterRequest = {
         email,
@@ -51,12 +55,10 @@ export class AuthController {
         bio: body.bio,
         gender,
         lookingFor: filteredLookingFor,
-        profilePhoto: req.file
-          ? `${req.protocol}://${req.get('host')}${path.posix.join(
-              '/uploads/profile-photos',
-              req.file.filename,
-            )}`
-          : null,
+        profilePhoto: `${req.protocol}://${req.get('host')}${path.posix.join(
+          '/uploads/profile-photos',
+          req.file.filename,
+        )}`,
       };
 
       const user = await authService.register(data);

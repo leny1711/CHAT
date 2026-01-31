@@ -43,7 +43,6 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   onBack,
   onOpenProfile,
 }) => {
-  const inputContainerHeight = theme.spacing.xxl + theme.spacing.md;
   const resolvedOtherUserName =
     otherUserName && otherUserName.trim()
       ? otherUserName.trim()
@@ -303,9 +302,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
         keyboardShouldPersistTaps="handled"
       />
 
-      <View
-        testID="conversation-input-container"
-        style={[styles.inputContainer, {height: inputContainerHeight}]}>
+      <View testID="conversation-input-container" style={styles.inputContainer}>
         <TextInput
           style={styles.input}
           placeholder="Écrivez votre message..."

@@ -297,8 +297,9 @@ function ConversationScreenWrapper({route, navigation}: any) {
         }
         if (!resolvedPhotoUrl?.trim()) {
           try {
-            const conversation =
-              await messageRepository.getConversation(conversationId);
+            const conversation = await messageRepository.getConversation(
+              conversationId,
+            );
             if (conversation?.otherUser) {
               resolvedPhotoUrl = conversation.otherUser.profilePhotoUrl;
               resolvedName = conversation.otherUser.name || resolvedName;
@@ -379,24 +380,24 @@ export function AppNavigation() {
               </Stack.Screen>
               <Stack.Screen name="Register">
                 {({navigation}) => (
-                    <RegisterScreen
-                      onRegister={async (
-                        email,
-                        password,
+                  <RegisterScreen
+                    onRegister={async (
+                      email,
+                      password,
+                      name,
+                      bio,
+                      gender,
+                      lookingFor,
+                      profilePhoto,
+                    ) => {
+                      await registerUseCase.execute(email, password, {
                         name,
                         bio,
                         gender,
                         lookingFor,
                         profilePhoto,
-                      ) => {
-                        await registerUseCase.execute(email, password, {
-                          name,
-                          bio,
-                          gender,
-                          lookingFor,
-                          profilePhoto,
-                        });
-                        setIsAuthenticated(true);
+                      });
+                      setIsAuthenticated(true);
                     }}
                     onNavigateToLogin={() => navigation.navigate('Login')}
                   />

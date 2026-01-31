@@ -7,7 +7,6 @@ import {
   MessageStatus,
   MessageType,
 } from '../../../domain/entities/Message';
-import {theme} from '../../theme/theme';
 
 const buildMessage = (overrides?: Partial<Message>): Message => ({
   id: 'msg_1',
@@ -106,14 +105,14 @@ describe('ConversationScreen', () => {
     ).toBeTruthy();
   });
 
-  it('uses a fixed height for the input container', async () => {
+  it('uses a flexible input container height', async () => {
     const {tree} = await renderConversation([]);
     const inputContainer = tree.root.findByProps({
       testID: 'conversation-input-container',
     });
     const containerStyle = StyleSheet.flatten(inputContainer.props.style);
 
-    expect(containerStyle.height).toBe(theme.spacing.xxl + theme.spacing.md);
+    expect(containerStyle.height).toBeUndefined();
   });
 
   it('does not add bottom padding to the input container or message list', async () => {
