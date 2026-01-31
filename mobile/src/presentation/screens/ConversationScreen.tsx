@@ -9,7 +9,7 @@ import {
   KeyboardAvoidingView,
   ActivityIndicator,
 } from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {theme} from '../theme/theme';
 import {
   Message,
@@ -66,6 +66,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const [cursor, setCursor] = useState<string | undefined>();
   const [shouldShowMatchMessage, setShouldShowMatchMessage] = useState(false);
   const flatListRef = useRef<FlatList>(null);
+  const insets = useSafeAreaInsets();
 
   // Load initial messages only when conversationId is ready.
   useEffect(() => {
@@ -218,6 +219,11 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
     return [...dedupedMessages, matchMessage];
   }, [dedupedMessages, matchMessage, shouldShowMatchMessage, conversationId]);
 
+  const inputContainerStyle = useMemo(
+    () => [styles.inputContainer, {paddingBottom: insets.bottom}],
+    [insets.bottom],
+  );
+
   const renderMessage = ({item}: {item: Message}) => {
     // Guard against invalid messages so rendering never crashes.
     if (!item || !item.senderId) {
@@ -337,11 +343,9 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
       <SafeAreaView
         testID="conversation-input-safe-area"
-        edges={['bottom']}
+        edges={[]}
         style={styles.inputSafeArea}>
-        <View
-          testID="conversation-input-container"
-          style={styles.inputContainer}>
+        <View testID="conversation-input-container" style={inputContainerStyle}>
           <TextInput
             style={styles.input}
             placeholder="Écrivez votre message..."

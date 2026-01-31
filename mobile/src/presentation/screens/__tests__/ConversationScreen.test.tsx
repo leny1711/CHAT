@@ -35,7 +35,7 @@ const renderConversation = async (messages: Message[]) => {
       <SafeAreaProvider
         initialMetrics={{
           frame: {x: 0, y: 0, width: 320, height: 640},
-          insets: {top: 0, bottom: 0, left: 0, right: 0},
+          insets: {top: 0, bottom: 12, left: 0, right: 0},
         }}>
         <ConversationScreen
           conversationId="conv_1"
@@ -120,6 +120,16 @@ describe('ConversationScreen', () => {
     const containerStyle = StyleSheet.flatten(inputContainer.props.style);
 
     expect(containerStyle.height).toBeUndefined();
+  });
+
+  it('adds safe area padding to the input container', async () => {
+    const {tree} = await renderConversation([]);
+    const inputContainer = tree.root.findByProps({
+      testID: 'conversation-input-container',
+    });
+    const containerStyle = StyleSheet.flatten(inputContainer.props.style);
+
+    expect(containerStyle.paddingBottom).toBe(12);
   });
 
   it('adds match message only when conversation is empty', async () => {
