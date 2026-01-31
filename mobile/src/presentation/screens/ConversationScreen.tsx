@@ -7,11 +7,15 @@ import {
   FlatList,
   StyleSheet,
   KeyboardAvoidingView,
-  Platform,
   ActivityIndicator,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {theme} from '../theme/theme';
-import {Message} from '../../domain/entities/Message';
+import {
+  Message,
+  MessageStatus,
+  MessageType,
+} from '../../domain/entities/Message';
 
 interface ConversationScreenProps {
   conversationId: string;
@@ -60,6 +64,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [cursor, setCursor] = useState<string | undefined>();
+  const [shouldShowMatchMessage, setShouldShowMatchMessage] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
   // Load initial messages only when conversationId is ready.
@@ -104,6 +109,9 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
       setMessages(result.messages);
       setHasMore(!!result.hasMore);
       setCursor(result.nextCursor);
+      setShouldShowMatchMessage(
+        result.messages.length === 0 && !!conversationId,
+      );
     } catch (error) {
       console.warn('ConversationScreen: error loading messages', error);
     } finally {
@@ -190,11 +198,38 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
     [getMessageIdentity],
   );
 
+  const matchMessage = useMemo<Message>(
+    () => ({
+      id: `system-match-${conversationId}`,
+      conversationId,
+      senderId: 'system',
+      content: '🎉 C’est un match ! Vous pouvez maintenant discuter.',
+      createdAt: new Date(0),
+      status: MessageStatus.SENT,
+      type: MessageType.SYSTEM,
+    }),
+    [conversationId],
+  );
+
+  const messagesWithMatchNotice = useMemo(() => {
+    if (!shouldShowMatchMessage || !conversationId) {
+      return dedupedMessages;
+    }
+    return [...dedupedMessages, matchMessage];
+  }, [dedupedMessages, matchMessage, shouldShowMatchMessage, conversationId]);
+
   const renderMessage = ({item}: {item: Message}) => {
     // Guard against invalid messages so rendering never crashes.
     if (!item || !item.senderId) {
       console.warn('ConversationScreen: skipping invalid message payload');
       return null;
+    }
+    if (item.type === MessageType.SYSTEM) {
+      return (
+        <View style={styles.systemMessageContainer}>
+          <Text style={styles.systemMessageText}>{item.content ?? ''}</Text>
+        </View>
+      );
     }
     const isOwn = item.senderId === currentUserId;
 
@@ -262,9 +297,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <KeyboardAvoidingView style={styles.container} behavior="padding">
       <View style={styles.header}>
         {onBack && (
           <TouchableOpacity style={styles.backButton} onPress={onBack}>
@@ -290,7 +323,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
       <FlatList
         ref={flatListRef}
-        data={dedupedMessages}
+        data={messagesWithMatchNotice}
         renderItem={renderMessage}
         keyExtractor={getMessageKey}
         inverted
@@ -302,27 +335,35 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
         keyboardShouldPersistTaps="handled"
       />
 
-      <View testID="conversation-input-container" style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Écrivez votre message..."
-          placeholderTextColor={theme.colors.textLight}
-          value={inputText}
-          onChangeText={setInputText}
-          multiline
-          maxLength={1000}
-          editable={!!conversationId}
-        />
-        <TouchableOpacity
-          style={[
-            styles.sendButton,
-            (!inputText.trim() || !conversationId) && styles.sendButtonDisabled,
-          ]}
-          onPress={handleSend}
-          disabled={!inputText.trim() || !conversationId}>
-          <Text style={styles.sendButtonText}>Envoyer</Text>
-        </TouchableOpacity>
-      </View>
+      <SafeAreaView
+        testID="conversation-input-safe-area"
+        edges={['bottom']}
+        style={styles.inputSafeArea}>
+        <View
+          testID="conversation-input-container"
+          style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Écrivez votre message..."
+            placeholderTextColor={theme.colors.textLight}
+            value={inputText}
+            onChangeText={setInputText}
+            multiline
+            maxLength={1000}
+            editable={!!conversationId}
+          />
+          <TouchableOpacity
+            style={[
+              styles.sendButton,
+              (!inputText.trim() || !conversationId) &&
+                styles.sendButtonDisabled,
+            ]}
+            onPress={handleSend}
+            disabled={!inputText.trim() || !conversationId}>
+            <Text style={styles.sendButtonText}>Envoyer</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 };
@@ -447,6 +488,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: theme.spacing.sm,
   },
+  inputSafeArea: {
+    backgroundColor: theme.colors.surface,
+  },
   input: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -473,6 +517,20 @@ const styles = StyleSheet.create({
     color: theme.colors.surface,
     fontSize: theme.typography.fontSize.md,
     fontWeight: '500',
+  },
+  systemMessageContainer: {
+    alignSelf: 'center',
+    backgroundColor: theme.colors.surfaceAlt,
+    borderRadius: theme.borderRadius.md,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    marginVertical: theme.spacing.sm,
+    maxWidth: '85%',
+  },
+  systemMessageText: {
+    textAlign: 'center',
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.fontSize.sm,
   },
   loadingMore: {
     paddingVertical: theme.spacing.md,
