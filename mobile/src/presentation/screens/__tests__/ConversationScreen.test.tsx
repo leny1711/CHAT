@@ -7,6 +7,7 @@ import {
   MessageStatus,
   MessageType,
 } from '../../../domain/entities/Message';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 const buildMessage = (overrides?: Partial<Message>): Message => ({
   id: 'msg_1',
@@ -31,14 +32,20 @@ const renderConversation = async (messages: Message[]) => {
   let tree: renderer.ReactTestRenderer;
   await act(async () => {
     tree = renderer.create(
-      <ConversationScreen
-        conversationId="conv_1"
-        otherUserName="Alex"
-        currentUserId="user_1"
-        onSendMessage={onSendMessage}
-        onLoadMessages={onLoadMessages}
-        onSubscribe={onSubscribe}
-      />,
+      <SafeAreaProvider
+        initialMetrics={{
+          frame: {x: 0, y: 0, width: 320, height: 640},
+          insets: {top: 0, bottom: 0, left: 0, right: 0},
+        }}>
+        <ConversationScreen
+          conversationId="conv_1"
+          otherUserName="Alex"
+          currentUserId="user_1"
+          onSendMessage={onSendMessage}
+          onLoadMessages={onLoadMessages}
+          onSubscribe={onSubscribe}
+        />
+      </SafeAreaProvider>,
     );
   });
 
@@ -100,7 +107,7 @@ describe('ConversationScreen', () => {
     expect(keyboardRoot.findByType(FlatList)).toBeTruthy();
     expect(
       keyboardRoot.findByProps({
-        testID: 'conversation-input-container',
+        testID: 'conversation-input-safe-area',
       }),
     ).toBeTruthy();
   });
@@ -115,16 +122,16 @@ describe('ConversationScreen', () => {
     expect(containerStyle.height).toBeUndefined();
   });
 
-  it('does not add bottom padding to the input container or message list', async () => {
-    const {tree} = await renderConversation([]);
-    const inputContainer = tree.root.findByProps({
-      testID: 'conversation-input-container',
-    });
-    const containerStyle = StyleSheet.flatten(inputContainer.props.style);
-    const list = tree.root.findByType(FlatList);
-    const listStyle = StyleSheet.flatten(list.props.contentContainerStyle);
+  it('adds match message only when conversation is empty', async () => {
+    const {data} = await renderConversation([]);
+    expect(data).toHaveLength(1);
+    expect(data[0].type).toBe(MessageType.SYSTEM);
+  });
 
-    expect(containerStyle.paddingBottom).toBeUndefined();
-    expect(listStyle.paddingBottom).toBeUndefined();
+  it('does not inject a match message when conversation has history', async () => {
+    const message = buildMessage();
+    const {data} = await renderConversation([message]);
+    expect(data).toHaveLength(1);
+    expect(data[0]).toBe(message);
   });
 });
