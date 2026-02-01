@@ -68,7 +68,9 @@ export class InMemoryMatchRepository implements IMatchRepository {
       }));
   }
 
-  async likeUser(targetUserId: string): Promise<Like> {
+  async likeUser(
+    targetUserId: string,
+  ): Promise<{like: Like; match?: Match}> {
     if (!this.currentUserId) {
       throw new Error('No user logged in');
     }
@@ -89,10 +91,11 @@ export class InMemoryMatchRepository implements IMatchRepository {
 
     // Check if it's a mutual match
     const targetLikes = this.likes.get(targetUserId);
+    let match: Match | undefined;
     if (targetLikes && targetLikes.has(this.currentUserId)) {
       // Create match
       const matchId = `match_${this.nextMatchId++}`;
-      const match: Match = {
+      match = {
         id: matchId,
         userIds: [this.currentUserId, targetUserId],
         conversationId: `conv_${matchId}`,
@@ -103,7 +106,7 @@ export class InMemoryMatchRepository implements IMatchRepository {
       this.matches.set(matchId, match);
     }
 
-    return like;
+    return {like, match};
   }
 
   async passUser(targetUserId: string): Promise<void> {
@@ -130,15 +133,6 @@ export class InMemoryMatchRepository implements IMatchRepository {
 
   async getMatch(matchId: string): Promise<Match | null> {
     return this.matches.get(matchId) || null;
-  }
-
-  async checkMatch(userId1: string, userId2: string): Promise<Match | null> {
-    return (
-      Array.from(this.matches.values()).find(
-        match =>
-          match.userIds.includes(userId1) && match.userIds.includes(userId2),
-      ) || null
-    );
   }
 
   async ensureConversation(matchId: string): Promise<string> {

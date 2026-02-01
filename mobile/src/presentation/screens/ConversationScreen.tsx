@@ -67,7 +67,6 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [cursor, setCursor] = useState<string | undefined>();
-  const [shouldShowIntroMessage, setShouldShowIntroMessage] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const insets = useSafeAreaInsets();
 
@@ -113,9 +112,6 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
       setMessages(result.messages);
       setHasMore(!!result.hasMore);
       setCursor(result.nextCursor);
-      setShouldShowIntroMessage(
-        result.messages.length === 0 && !!conversationId,
-      );
     } catch (error) {
       console.warn('ConversationScreen: error loading messages', error);
     } finally {
@@ -215,12 +211,30 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
     [conversationId],
   );
 
+  const hasIntroMessage = useMemo(() => {
+    if (dedupedMessages.length === 0) {
+      return false;
+    }
+    const lastMessage = dedupedMessages[dedupedMessages.length - 1];
+    if (
+      lastMessage?.type === MessageType.SYSTEM &&
+      lastMessage?.content === CONVERSATION_INTRO_MESSAGE
+    ) {
+      return true;
+    }
+    return dedupedMessages.some(
+      message =>
+        message?.type === MessageType.SYSTEM &&
+        message?.content === CONVERSATION_INTRO_MESSAGE,
+    );
+  }, [dedupedMessages]);
+
   const messagesWithIntroNotice = useMemo(() => {
-    if (!shouldShowIntroMessage || !conversationId) {
+    if (!conversationId || hasIntroMessage) {
       return dedupedMessages;
     }
     return [...dedupedMessages, introMessage];
-  }, [dedupedMessages, introMessage, shouldShowIntroMessage, conversationId]);
+  }, [dedupedMessages, introMessage, conversationId, hasIntroMessage]);
 
   const inputContainerStyle = useMemo(
     () => [

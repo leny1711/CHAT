@@ -19,15 +19,7 @@ export class LikeUserUseCase {
   constructor(private matchRepository: IMatchRepository) {}
 
   async execute(userId: string): Promise<{like: Like; match?: Match}> {
-    const like = await this.matchRepository.likeUser(userId);
-
-    // Check if this creates a match
-    const match = await this.matchRepository.checkMatch(
-      like.fromUserId,
-      userId,
-    );
-
-    return {like, match: match || undefined};
+    return this.matchRepository.likeUser(userId);
   }
 }
 
