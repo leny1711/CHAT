@@ -78,7 +78,7 @@ describe('DiscoveryScreen', () => {
     jest.useRealTimers();
   });
 
-  it('maintient la notice de match pendant un rafraichissement simple', async () => {
+  it('maintient la notice de match pendant un rafraîchissement simple', async () => {
     jest.useFakeTimers();
     const onLike = jest.fn().mockResolvedValue(buildMatch());
     const onPass = jest.fn().mockResolvedValue(undefined);
