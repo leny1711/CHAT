@@ -8,6 +8,10 @@ import {
 } from 'react-native';
 import {theme} from '../theme/theme';
 import {DiscoveryProfile, Match} from '../../domain/entities/Match';
+import {
+  MATCH_NOTICE_DURATION_MS,
+  MATCH_NOTICE_MESSAGE,
+} from '../constants/matchNotice';
 
 interface DiscoveryScreenProps {
   onLike: (userId: string) => Promise<Match | null | undefined>;
@@ -70,15 +74,13 @@ export const SimpleDiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
       if (action === 'like') {
         const match = await onLike(currentProfile.userId);
         if (match) {
-          setMatchNotice(
-            '🎉 C’est un match 🎉 Une nouvelle histoire commence.',
-          );
+          setMatchNotice(MATCH_NOTICE_MESSAGE);
           if (matchTimeoutRef.current) {
             clearTimeout(matchTimeoutRef.current);
           }
           matchTimeoutRef.current = setTimeout(() => {
             setMatchNotice(null);
-          }, 2500);
+          }, MATCH_NOTICE_DURATION_MS);
         }
       } else {
         await onPass(currentProfile.userId);
