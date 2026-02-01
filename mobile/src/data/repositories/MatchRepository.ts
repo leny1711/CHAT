@@ -91,9 +91,12 @@ export class MatchRepository implements IMatchRepository {
           conversationId: response.conversationId,
         });
       }
+      if (response.matched && !response.matchId) {
+        throw new Error('Match response missing matchId');
+      }
       const match: Match | undefined = response.matched
         ? {
-            id: response.matchId ?? `match_${Date.now()}`,
+            id: response.matchId!,
             userIds: ['current_user', userId] as [string, string],
             createdAt: new Date(),
             conversationId: response.conversationId,

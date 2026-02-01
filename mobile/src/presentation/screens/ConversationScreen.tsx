@@ -211,17 +211,30 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
     [conversationId],
   );
 
-  const messagesWithIntroNotice = useMemo(() => {
-    const hasIntroMessage = dedupedMessages.some(
+  const hasIntroMessage = useMemo(() => {
+    if (dedupedMessages.length === 0) {
+      return false;
+    }
+    const lastMessage = dedupedMessages[dedupedMessages.length - 1];
+    if (
+      lastMessage?.type === MessageType.SYSTEM &&
+      lastMessage?.content === CONVERSATION_INTRO_MESSAGE
+    ) {
+      return true;
+    }
+    return dedupedMessages.some(
       message =>
         message?.type === MessageType.SYSTEM &&
         message?.content === CONVERSATION_INTRO_MESSAGE,
     );
+  }, [dedupedMessages]);
+
+  const messagesWithIntroNotice = useMemo(() => {
     if (!conversationId || hasIntroMessage) {
       return dedupedMessages;
     }
     return [...dedupedMessages, introMessage];
-  }, [dedupedMessages, introMessage, conversationId]);
+  }, [dedupedMessages, introMessage, conversationId, hasIntroMessage]);
 
   const inputContainerStyle = useMemo(
     () => [
