@@ -145,5 +145,6 @@ describe('ConversationScreen', () => {
     const {data} = await renderConversation([message]);
     expect(data).toHaveLength(1);
     expect(data[0]).toBe(message);
+    expect(data[0].content).not.toBe(CONVERSATION_INTRO_MESSAGE);
   });
 });

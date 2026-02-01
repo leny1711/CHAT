@@ -225,7 +225,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
       styles.inputContainer,
       {paddingBottom: insets.bottom + theme.spacing.sm},
     ],
-    [insets.bottom, theme.spacing.sm],
+    [insets.bottom],
   );
 
   const renderMessage = ({item}: {item: Message}) => {
