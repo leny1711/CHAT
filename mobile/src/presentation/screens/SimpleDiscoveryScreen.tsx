@@ -9,6 +9,7 @@ import {
 import {theme} from '../theme/theme';
 import {DiscoveryProfile, Match} from '../../domain/entities/Match';
 import {useMatchNotice} from '../hooks/useMatchNotice';
+import {matchNoticeStyles} from '../styles/matchNoticeStyles';
 
 interface DiscoveryScreenProps {
   onLike: (userId: string) => Promise<Match | null | undefined>;
@@ -148,8 +149,8 @@ export const SimpleDiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
       </View>
 
       {matchNotice ? (
-        <View style={styles.matchNotice}>
-          <Text style={styles.matchNoticeText}>{matchNotice}</Text>
+        <View style={matchNoticeStyles.matchNotice}>
+          <Text style={matchNoticeStyles.matchNoticeText}>{matchNotice}</Text>
         </View>
       ) : null}
 
@@ -240,20 +241,6 @@ const styles = StyleSheet.create({
     gap: theme.spacing.lg,
     paddingVertical: theme.spacing.xl,
     paddingHorizontal: theme.spacing.xl,
-  },
-  matchNotice: {
-    alignSelf: 'center',
-    backgroundColor: theme.colors.surfaceAlt,
-    borderRadius: theme.borderRadius.md,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    marginBottom: theme.spacing.md,
-    maxWidth: '85%',
-  },
-  matchNoticeText: {
-    textAlign: 'center',
-    color: theme.colors.textSecondary,
-    fontSize: theme.typography.fontSize.sm,
   },
   actionButton: {
     flex: 1,
