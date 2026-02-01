@@ -145,7 +145,7 @@ describe('ConversationScreen', () => {
     expect(data[0].content).toBe(CONVERSATION_INTRO_MESSAGE);
   });
 
-  it('does not inject a match message when conversation has history', async () => {
+  it('keeps history messages as non-system entries', async () => {
     const message = buildMessage();
     const {data} = await renderConversation([message]);
     expect(data).toHaveLength(1);
