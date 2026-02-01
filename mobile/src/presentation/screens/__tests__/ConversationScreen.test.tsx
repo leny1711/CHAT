@@ -151,6 +151,5 @@ describe('ConversationScreen', () => {
     expect(data).toHaveLength(1);
     expect(data[0]).toBe(message);
     expect(data[0].content).not.toBe(CONVERSATION_INTRO_MESSAGE);
-    expect(data[0].content).toBe(message.content);
   });
 });

@@ -227,7 +227,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
       styles.inputContainer,
       {paddingBottom: insets.bottom + CHAT_INPUT_EXTRA_BOTTOM_PADDING},
     ],
-    [insets.bottom, CHAT_INPUT_EXTRA_BOTTOM_PADDING],
+    [insets.bottom],
   );
 
   const renderMessage = ({item}: {item: Message}) => {
