@@ -68,7 +68,7 @@ export class MatchRepository implements IMatchRepository {
     }
   }
 
-  async likeUser(userId: string): Promise<Like> {
+  async likeUser(userId: string): Promise<{like: Like; match?: Match}> {
     try {
       const response = await apiClient.post<MatchResponse>(
         '/api/matches/like',
@@ -91,8 +91,17 @@ export class MatchRepository implements IMatchRepository {
           conversationId: response.conversationId,
         });
       }
+      const match: Match | undefined = response.matched
+        ? {
+            id: response.matchId ?? `match_${Date.now()}`,
+            userIds: ['current_user', userId] as [string, string],
+            createdAt: new Date(),
+            conversationId: response.conversationId,
+            status: MatchStatus.ACTIVE,
+          }
+        : undefined;
 
-      return like;
+      return {like, match};
     } catch (error) {
       console.error('Error liking user:', error);
       throw error;
@@ -149,12 +158,6 @@ export class MatchRepository implements IMatchRepository {
   async getMatch(matchId: string): Promise<Match | null> {
     const matches = await this.getMatches();
     return matches.find(m => m.id === matchId) || null;
-  }
-
-  async checkMatch(_userId1: string, _userId2: string): Promise<Match | null> {
-    // This is handled automatically by the backend when users like each other
-    // We just return null here as this method is not needed with the backend
-    return null;
   }
 
   async ensureConversation(matchId: string): Promise<string> {

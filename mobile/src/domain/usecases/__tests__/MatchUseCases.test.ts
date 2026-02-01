@@ -9,12 +9,14 @@ class MockMatchRepository implements IMatchRepository {
     return [];
   }
 
-  async likeUser(_userId: string): Promise<Like> {
+  async likeUser(_userId: string): Promise<{like: Like; match?: Match}> {
     return {
-      id: 'like_1',
-      fromUserId: 'user_1',
-      toUserId: 'user_2',
-      createdAt: new Date(),
+      like: {
+        id: 'like_1',
+        fromUserId: 'user_1',
+        toUserId: 'user_2',
+        createdAt: new Date(),
+      },
     };
   }
 
@@ -35,10 +37,6 @@ class MockMatchRepository implements IMatchRepository {
   async getMatch(matchId: string): Promise<Match | null> {
     const matches = await this.getMatches();
     return matches.find(match => match.id === matchId) || null;
-  }
-
-  async checkMatch(_userId1: string, _userId2: string): Promise<Match | null> {
-    return null;
   }
 
   async ensureConversation(matchId: string): Promise<string> {

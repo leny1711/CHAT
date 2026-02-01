@@ -12,7 +12,7 @@ export interface IMatchRepository {
   /**
    * Like a user
    */
-  likeUser(userId: string): Promise<Like>;
+  likeUser(userId: string): Promise<{like: Like; match?: Match}>;
 
   /**
    * Pass on a user
@@ -28,11 +28,6 @@ export interface IMatchRepository {
    * Get a specific match
    */
   getMatch(matchId: string): Promise<Match | null>;
-
-  /**
-   * Check if two users have matched
-   */
-  checkMatch(userId1: string, userId2: string): Promise<Match | null>;
 
   /**
    * Ensure conversation exists for a match and return its ID
