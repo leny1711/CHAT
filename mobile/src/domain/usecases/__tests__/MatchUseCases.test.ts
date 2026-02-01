@@ -1,9 +1,14 @@
-import {EnsureConversationUseCase, GetMatchesUseCase} from '../MatchUseCases';
+import {
+  EnsureConversationUseCase,
+  GetMatchesUseCase,
+  LikeUserUseCase,
+} from '../MatchUseCases';
 import {IMatchRepository} from '../../repositories/IMatchRepository';
 import {DiscoveryProfile, Like, Match, MatchStatus} from '../../entities/Match';
 
 class MockMatchRepository implements IMatchRepository {
   ensureConversationCalls: string[] = [];
+  matchForLike?: Match;
 
   async getDiscoveryProfiles(): Promise<DiscoveryProfile[]> {
     return [];
@@ -17,6 +22,7 @@ class MockMatchRepository implements IMatchRepository {
         toUserId: 'user_2',
         createdAt: new Date(),
       },
+      match: this.matchForLike,
     };
   }
 
@@ -64,5 +70,20 @@ describe('MatchUseCases', () => {
 
     expect(matches).toHaveLength(1);
     expect(matches[0].conversationId).toBeUndefined();
+  });
+
+  it('returns match info when like creates a match', async () => {
+    const repository = new MockMatchRepository();
+    repository.matchForLike = {
+      id: 'match_2',
+      userIds: ['user_1', 'user_2'],
+      createdAt: new Date(),
+      status: MatchStatus.ACTIVE,
+    };
+    const useCase = new LikeUserUseCase(repository);
+
+    const result = await useCase.execute('user_2');
+
+    expect(result.match?.id).toBe('match_2');
   });
 });
