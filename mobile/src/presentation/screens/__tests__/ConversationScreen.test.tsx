@@ -145,7 +145,7 @@ describe('ConversationScreen', () => {
     expect(data[0].content).toBe(CONVERSATION_INTRO_MESSAGE);
   });
 
-  it('keeps history messages as non-system entries', async () => {
+  it('does not add intro message when conversation has history', async () => {
     const message = buildMessage();
     const {data} = await renderConversation([message]);
     expect(data).toHaveLength(1);
