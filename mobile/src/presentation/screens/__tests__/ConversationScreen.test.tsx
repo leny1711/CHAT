@@ -8,6 +8,7 @@ import {
   MessageType,
 } from '../../../domain/entities/Message';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {CONVERSATION_INTRO_MESSAGE} from '../../constants/conversationMessages';
 
 const buildMessage = (overrides?: Partial<Message>): Message => ({
   id: 'msg_1',
@@ -136,9 +137,7 @@ describe('ConversationScreen', () => {
     const {data} = await renderConversation([]);
     expect(data).toHaveLength(1);
     expect(data[0].type).toBe(MessageType.SYSTEM);
-    expect(data[0].content).toBe(
-      '📖 Une nouvelle page s’ouvre. Prenez le temps d’écrire la suite.',
-    );
+    expect(data[0].content).toBe(CONVERSATION_INTRO_MESSAGE);
   });
 
   it('does not inject a match message when conversation has history', async () => {

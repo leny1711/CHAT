@@ -16,6 +16,7 @@ import {
   MessageStatus,
   MessageType,
 } from '../../domain/entities/Message';
+import {CONVERSATION_INTRO_MESSAGE} from '../constants/conversationMessages';
 
 interface ConversationScreenProps {
   conversationId: string;
@@ -204,8 +205,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
       id: `system-intro-${conversationId}`,
       conversationId,
       senderId: 'system',
-      content:
-        '📖 Une nouvelle page s’ouvre. Prenez le temps d’écrire la suite.',
+      content: CONVERSATION_INTRO_MESSAGE,
       createdAt: new Date(0),
       status: MessageStatus.SENT,
       type: MessageType.SYSTEM,
@@ -225,7 +225,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
       styles.inputContainer,
       {paddingBottom: insets.bottom + theme.spacing.sm},
     ],
-    [insets.bottom],
+    [insets.bottom, theme.spacing.sm],
   );
 
   const renderMessage = ({item}: {item: Message}) => {
