@@ -18,6 +18,8 @@ import {
 } from '../../domain/entities/Message';
 import {CONVERSATION_INTRO_MESSAGE} from '../constants/conversationMessages';
 
+export const CHAT_INPUT_EXTRA_BOTTOM_PADDING = theme.spacing.sm;
+
 interface ConversationScreenProps {
   conversationId: string;
   otherUserName: string;
@@ -223,9 +225,9 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const inputContainerStyle = useMemo(
     () => [
       styles.inputContainer,
-      {paddingBottom: insets.bottom + theme.spacing.sm},
+      {paddingBottom: insets.bottom + CHAT_INPUT_EXTRA_BOTTOM_PADDING},
     ],
-    [insets.bottom],
+    [insets.bottom, CHAT_INPUT_EXTRA_BOTTOM_PADDING],
   );
 
   const renderMessage = ({item}: {item: Message}) => {
