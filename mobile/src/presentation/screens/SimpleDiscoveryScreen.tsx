@@ -149,8 +149,12 @@ export const SimpleDiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
       </View>
 
       {matchNotice ? (
-        <View style={matchNoticeStyles.matchNotice}>
-          <Text style={matchNoticeStyles.matchNoticeText}>{matchNotice}</Text>
+        <View
+          style={matchNoticeStyles.matchNoticeOverlay}
+          pointerEvents="none">
+          <View style={matchNoticeStyles.matchNotice}>
+            <Text style={matchNoticeStyles.matchNoticeText}>{matchNotice}</Text>
+          </View>
         </View>
       ) : null}
 

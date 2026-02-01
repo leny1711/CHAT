@@ -16,8 +16,8 @@ This document describes two critical UI components in the CHAT mobile applicatio
 The match popup appears when a user likes another user and a mutual match is confirmed. It provides immediate visual feedback of a successful connection.
 
 ### Location
-- Centered below the profile card on the Discovery Screen
-- Positioned above the action buttons (Pass/Like)
+- Overlay at the top of the Discovery Screen
+- Centered horizontally above the profile content
 
 ### Trigger Condition
 Appears when:
@@ -37,7 +37,7 @@ Appears when:
 
 **Message Content:**
 ```
-💝 C'est un match!
+🎉 C’est un match 🎉 Une nouvelle histoire commence.
 ```
 
 ### Animation
