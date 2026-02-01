@@ -14,6 +14,7 @@ import {
   View,
   Text,
 } from 'react-native';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 // Screens
 import {LoginScreen} from './src/presentation/screens/LoginScreen';
@@ -457,13 +458,15 @@ function App(): React.JSX.Element {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor={theme.colors.background}
-      />
-      {renderScreen()}
-    </View>
+    <SafeAreaProvider>
+      <View style={styles.container}>
+        <StatusBar
+          barStyle="dark-content"
+          backgroundColor={theme.colors.background}
+        />
+        {renderScreen()}
+      </View>
+    </SafeAreaProvider>
   );
 }
 

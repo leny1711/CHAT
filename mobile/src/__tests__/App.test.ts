@@ -1,4 +1,4 @@
-import {getAndroidBackAction} from '../../../App';
+import {getAndroidBackAction} from '../../App';
 
 describe('getAndroidBackAction', () => {
   const setCurrentScreen = jest.fn();
