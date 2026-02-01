@@ -7,10 +7,12 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import {theme} from '../theme/theme';
-import {DiscoveryProfile} from '../../domain/entities/Match';
+import {DiscoveryProfile, Match} from '../../domain/entities/Match';
+import {useMatchNotice} from '../hooks/useMatchNotice';
+import {matchNoticeStyles} from '../styles/matchNoticeStyles';
 
 interface DiscoveryScreenProps {
-  onLike: (userId: string) => Promise<void>;
+  onLike: (userId: string) => Promise<Match | null | undefined>;
   onPass: (userId: string) => Promise<void>;
   getProfiles: () => Promise<DiscoveryProfile[]>;
 }
@@ -28,6 +30,7 @@ export const SimpleDiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const {matchNotice, showMatchNotice} = useMatchNotice();
 
   useEffect(() => {
     loadProfiles();
@@ -58,7 +61,10 @@ export const SimpleDiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
 
     try {
       if (action === 'like') {
-        await onLike(currentProfile.userId);
+        const match = await onLike(currentProfile.userId);
+        if (match) {
+          showMatchNotice();
+        }
       } else {
         await onPass(currentProfile.userId);
       }
@@ -141,6 +147,12 @@ export const SimpleDiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
           </Text>
         </TouchableOpacity>
       </View>
+
+      {matchNotice ? (
+        <View style={matchNoticeStyles.matchNotice}>
+          <Text style={matchNoticeStyles.matchNoticeText}>{matchNotice}</Text>
+        </View>
+      ) : null}
 
       <Text style={styles.counter}>
         {currentIndex + 1} sur {profiles.length}

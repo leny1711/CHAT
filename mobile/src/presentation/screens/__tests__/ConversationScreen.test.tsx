@@ -8,6 +8,10 @@ import {
   MessageType,
 } from '../../../domain/entities/Message';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {
+  CHAT_INPUT_EXTRA_BOTTOM_PADDING,
+} from '../ConversationScreen';
+import {CONVERSATION_INTRO_MESSAGE} from '../../constants/conversationMessages';
 
 const buildMessage = (overrides?: Partial<Message>): Message => ({
   id: 'msg_1',
@@ -129,19 +133,23 @@ describe('ConversationScreen', () => {
     });
     const containerStyle = StyleSheet.flatten(inputContainer.props.style);
 
-    expect(containerStyle.paddingBottom).toBe(12);
+    expect(containerStyle.paddingBottom).toBe(
+      12 + CHAT_INPUT_EXTRA_BOTTOM_PADDING,
+    );
   });
 
-  it('adds match message only when conversation is empty', async () => {
+  it('adds intro message only when conversation is empty', async () => {
     const {data} = await renderConversation([]);
     expect(data).toHaveLength(1);
     expect(data[0].type).toBe(MessageType.SYSTEM);
+    expect(data[0].content).toBe(CONVERSATION_INTRO_MESSAGE);
   });
 
-  it('does not inject a match message when conversation has history', async () => {
+  it('does not add intro message when conversation has history', async () => {
     const message = buildMessage();
     const {data} = await renderConversation([message]);
     expect(data).toHaveLength(1);
     expect(data[0]).toBe(message);
+    expect(data[0].type).toBe(MessageType.TEXT);
   });
 });

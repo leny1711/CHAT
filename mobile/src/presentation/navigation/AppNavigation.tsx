@@ -122,7 +122,8 @@ function DiscoveryScreenWrapper() {
   return (
     <DiscoveryScreen
       onLike={async userId => {
-        await likeUserUseCase.execute(userId);
+        const result = await likeUserUseCase.execute(userId);
+        return result.match ?? null;
       }}
       onPass={async userId => {
         await passUserUseCase.execute(userId);
