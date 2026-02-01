@@ -10,35 +10,40 @@ import {RegisterScreen} from '../src/presentation/screens/RegisterScreen';
 import {User} from '../src/domain/entities/User';
 import {UserRepository} from '../src/data/repositories/UserRepository';
 import {MatchRepository} from '../src/data/repositories/MatchRepository';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
+
+const mockUserRepository = {
+  initializeAuth: jest.fn(),
+  createUser: jest.fn(),
+  login: jest.fn(),
+  logout: jest.fn(),
+  getUserById: jest.fn(),
+};
+const mockMatchRepository = {
+  getDiscoveryProfiles: jest.fn(),
+  likeUser: jest.fn(),
+  passUser: jest.fn(),
+  getMatches: jest.fn(),
+};
+const mockMessageRepository = {
+  getMessages: jest.fn(),
+  sendMessage: jest.fn(),
+  subscribeToConversation: jest.fn(),
+};
 
 jest.mock('../src/data/repositories/UserRepository', () => ({
-  UserRepository: jest.fn().mockImplementation(() => ({
-    initializeAuth: jest.fn(),
-    createUser: jest.fn(),
-    login: jest.fn(),
-    logout: jest.fn(),
-    getUserById: jest.fn(),
-  })),
+  UserRepository: jest.fn(() => mockUserRepository),
 }));
 
 jest.mock('../src/data/repositories/MatchRepository', () => ({
-  MatchRepository: jest.fn().mockImplementation(() => ({
-    getDiscoveryProfiles: jest.fn(),
-    likeUser: jest.fn(),
-    passUser: jest.fn(),
-    getMatches: jest.fn(),
-  })),
+  MatchRepository: jest.fn(() => mockMatchRepository),
 }));
 
 jest.mock('../src/data/repositories/MessageRepository', () => ({
-  MessageRepository: jest.fn().mockImplementation(() => ({
-    getMessages: jest.fn(),
-    sendMessage: jest.fn(),
-    subscribeToConversation: jest.fn(),
-  })),
+  MessageRepository: jest.fn(() => mockMessageRepository),
 }));
 
-import App from '../App';
+const App = require('../App').default;
 
 const buildUser = (overrides: Partial<User> = {}): User => ({
   id: 'user_1',
@@ -53,52 +58,52 @@ const buildUser = (overrides: Partial<User> = {}): User => ({
   ...overrides,
 });
 
-const getOrCreateUserRepository = () => {
-  const existing = (UserRepository as jest.Mock).mock.instances[0];
-  return existing ?? new (UserRepository as jest.Mock)();
-};
-
-const getOrCreateMatchRepository = () => {
-  const existing = (MatchRepository as jest.Mock).mock.instances[0];
-  return existing ?? new (MatchRepository as jest.Mock)();
-};
-
 beforeEach(() => {
-  const userRepository = getOrCreateUserRepository();
-  userRepository.initializeAuth.mockReset();
-  userRepository.createUser.mockReset();
-  userRepository.login.mockReset();
-  userRepository.logout.mockReset();
-  userRepository.getUserById.mockReset();
-  userRepository.initializeAuth.mockResolvedValue(null);
-  userRepository.createUser.mockResolvedValue(buildUser());
-  userRepository.login.mockResolvedValue(buildUser());
-  userRepository.logout.mockResolvedValue(undefined);
-  userRepository.getUserById.mockResolvedValue(null);
+  mockUserRepository.initializeAuth.mockReset();
+  mockUserRepository.createUser.mockReset();
+  mockUserRepository.login.mockReset();
+  mockUserRepository.logout.mockReset();
+  mockUserRepository.getUserById.mockReset();
+  mockUserRepository.initializeAuth.mockResolvedValue(null);
+  mockUserRepository.createUser.mockResolvedValue(buildUser());
+  mockUserRepository.login.mockResolvedValue(buildUser());
+  mockUserRepository.logout.mockResolvedValue(undefined);
+  mockUserRepository.getUserById.mockResolvedValue(null);
 
-  const matchRepository = getOrCreateMatchRepository();
-  matchRepository.getDiscoveryProfiles.mockReset();
-  matchRepository.likeUser.mockReset();
-  matchRepository.passUser.mockReset();
-  matchRepository.getMatches.mockReset();
-  matchRepository.getDiscoveryProfiles.mockResolvedValue([]);
-  matchRepository.likeUser.mockResolvedValue(undefined);
-  matchRepository.passUser.mockResolvedValue(undefined);
-  matchRepository.getMatches.mockResolvedValue([]);
+  mockMatchRepository.getDiscoveryProfiles.mockReset();
+  mockMatchRepository.likeUser.mockReset();
+  mockMatchRepository.passUser.mockReset();
+  mockMatchRepository.getMatches.mockReset();
+  mockMatchRepository.getDiscoveryProfiles.mockResolvedValue([]);
+  mockMatchRepository.likeUser.mockResolvedValue(undefined);
+  mockMatchRepository.passUser.mockResolvedValue(undefined);
+  mockMatchRepository.getMatches.mockResolvedValue([]);
+
+  mockMessageRepository.getMessages.mockReset();
+  mockMessageRepository.sendMessage.mockReset();
+  mockMessageRepository.subscribeToConversation.mockReset();
 });
 
 it('renders correctly', async () => {
   await act(async () => {
-    renderer.create(<App />);
+    renderer.create(
+      <SafeAreaProvider>
+        <App />
+      </SafeAreaProvider>,
+    );
   });
 });
 
 it('transmet le genre et les préférences via App', async () => {
-  const userRepository = getOrCreateUserRepository();
+  const userRepository = mockUserRepository;
   let tree: renderer.ReactTestRenderer;
 
   await act(async () => {
-    tree = renderer.create(<App />);
+    tree = renderer.create(
+      <SafeAreaProvider>
+        <App />
+      </SafeAreaProvider>,
+    );
   });
 
   const loginScreen = tree!.root.findByType(LoginScreen);

@@ -4,6 +4,37 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 
 jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
 
+jest.mock('react-native-safe-area-context', () => {
+  const React = require('react');
+  const SafeAreaContext = jest.requireActual('react-native-safe-area-context');
+  return {
+    ...SafeAreaContext,
+    SafeAreaProvider: ({
+      children,
+      initialMetrics,
+    }: {
+      children: React.ReactNode;
+      initialMetrics?: {
+        frame: {x: number; y: number; width: number; height: number};
+        insets: {top: number; right: number; bottom: number; left: number};
+      };
+    }) => (
+      <SafeAreaContext.SafeAreaFrameContext.Provider
+        value={
+          initialMetrics?.frame ?? {x: 0, y: 0, width: 320, height: 640}
+        }>
+        <SafeAreaContext.SafeAreaInsetsContext.Provider
+          value={
+            initialMetrics?.insets ?? {top: 0, right: 0, bottom: 0, left: 0}
+          }>
+          {children}
+        </SafeAreaContext.SafeAreaInsetsContext.Provider>
+      </SafeAreaContext.SafeAreaFrameContext.Provider>
+    ),
+    useSafeAreaInsets: () => ({top: 0, right: 0, bottom: 12, left: 0}),
+  };
+});
+
 jest.mock('react-native-image-picker', () => ({
   launchImageLibrary: jest.fn(),
 }));
