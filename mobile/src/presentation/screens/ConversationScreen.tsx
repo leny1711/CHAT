@@ -64,7 +64,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [cursor, setCursor] = useState<string | undefined>();
-  const [shouldShowMatchMessage, setShouldShowMatchMessage] = useState(false);
+  const [shouldShowIntroMessage, setShouldShowIntroMessage] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const insets = useSafeAreaInsets();
 
@@ -110,7 +110,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
       setMessages(result.messages);
       setHasMore(!!result.hasMore);
       setCursor(result.nextCursor);
-      setShouldShowMatchMessage(
+      setShouldShowIntroMessage(
         result.messages.length === 0 && !!conversationId,
       );
     } catch (error) {
@@ -199,12 +199,13 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
     [getMessageIdentity],
   );
 
-  const matchMessage = useMemo<Message>(
+  const introMessage = useMemo<Message>(
     () => ({
-      id: `system-match-${conversationId}`,
+      id: `system-intro-${conversationId}`,
       conversationId,
       senderId: 'system',
-      content: '🎉 C’est un match ! Vous pouvez maintenant discuter.',
+      content:
+        '📖 Une nouvelle page s’ouvre. Prenez le temps d’écrire la suite.',
       createdAt: new Date(0),
       status: MessageStatus.SENT,
       type: MessageType.SYSTEM,
@@ -212,15 +213,18 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
     [conversationId],
   );
 
-  const messagesWithMatchNotice = useMemo(() => {
-    if (!shouldShowMatchMessage || !conversationId) {
+  const messagesWithIntroNotice = useMemo(() => {
+    if (!shouldShowIntroMessage || !conversationId) {
       return dedupedMessages;
     }
-    return [...dedupedMessages, matchMessage];
-  }, [dedupedMessages, matchMessage, shouldShowMatchMessage, conversationId]);
+    return [...dedupedMessages, introMessage];
+  }, [dedupedMessages, introMessage, shouldShowIntroMessage, conversationId]);
 
   const inputContainerStyle = useMemo(
-    () => [styles.inputContainer, {paddingBottom: insets.bottom}],
+    () => [
+      styles.inputContainer,
+      {paddingBottom: insets.bottom + theme.spacing.sm},
+    ],
     [insets.bottom],
   );
 
@@ -329,7 +333,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({
 
       <FlatList
         ref={flatListRef}
-        data={messagesWithMatchNotice}
+        data={messagesWithIntroNotice}
         renderItem={renderMessage}
         keyExtractor={getMessageKey}
         inverted

@@ -129,13 +129,16 @@ describe('ConversationScreen', () => {
     });
     const containerStyle = StyleSheet.flatten(inputContainer.props.style);
 
-    expect(containerStyle.paddingBottom).toBe(12);
+    expect(containerStyle.paddingBottom).toBe(20);
   });
 
-  it('adds match message only when conversation is empty', async () => {
+  it('adds intro message only when conversation is empty', async () => {
     const {data} = await renderConversation([]);
     expect(data).toHaveLength(1);
     expect(data[0].type).toBe(MessageType.SYSTEM);
+    expect(data[0].content).toBe(
+      '📖 Une nouvelle page s’ouvre. Prenez le temps d’écrire la suite.',
+    );
   });
 
   it('does not inject a match message when conversation has history', async () => {

@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -8,10 +8,10 @@ import {
   Animated,
 } from 'react-native';
 import {theme} from '../theme/theme';
-import {DiscoveryProfile} from '../../domain/entities/Match';
+import {DiscoveryProfile, Match} from '../../domain/entities/Match';
 
 interface DiscoveryScreenProps {
-  onLike: (userId: string) => Promise<void>;
+  onLike: (userId: string) => Promise<Match | null | undefined>;
   onPass: (userId: string) => Promise<void>;
   getProfiles: () => Promise<DiscoveryProfile[]>;
 }
@@ -25,11 +25,21 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [matchNotice, setMatchNotice] = useState<string | null>(null);
+  const matchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fadeAnim = useState(new Animated.Value(1))[0];
 
   useEffect(() => {
     loadProfiles();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (matchTimeoutRef.current) {
+        clearTimeout(matchTimeoutRef.current);
+      }
+    };
   }, []);
 
   const loadProfiles = async () => {
@@ -62,7 +72,18 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
     }).start(async () => {
       try {
         if (action === 'like') {
-          await onLike(currentProfile.userId);
+          const match = await onLike(currentProfile.userId);
+          if (match) {
+            setMatchNotice(
+              '🎉 C’est un match 🎉 Une nouvelle histoire commence.',
+            );
+            if (matchTimeoutRef.current) {
+              clearTimeout(matchTimeoutRef.current);
+            }
+            matchTimeoutRef.current = setTimeout(() => {
+              setMatchNotice(null);
+            }, 2500);
+          }
         } else {
           await onPass(currentProfile.userId);
         }
@@ -155,6 +176,12 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
         </TouchableOpacity>
       </View>
 
+      {matchNotice ? (
+        <View style={styles.matchNotice}>
+          <Text style={styles.matchNoticeText}>{matchNotice}</Text>
+        </View>
+      ) : null}
+
       <Text style={styles.counter}>
         {currentIndex + 1} sur {profiles.length}
       </Text>
@@ -238,6 +265,20 @@ const styles = StyleSheet.create({
     gap: theme.spacing.lg,
     paddingVertical: theme.spacing.xl,
     paddingHorizontal: theme.spacing.xl,
+  },
+  matchNotice: {
+    alignSelf: 'center',
+    backgroundColor: theme.colors.surfaceAlt,
+    borderRadius: theme.borderRadius.md,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
+    maxWidth: '85%',
+  },
+  matchNoticeText: {
+    textAlign: 'center',
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.fontSize.sm,
   },
   actionButton: {
     flex: 1,
