@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -9,10 +9,7 @@ import {
 } from 'react-native';
 import {theme} from '../theme/theme';
 import {DiscoveryProfile, Match} from '../../domain/entities/Match';
-import {
-  MATCH_NOTICE_DURATION_MS,
-  MATCH_NOTICE_MESSAGE,
-} from '../constants/matchNotice';
+import {useMatchNotice} from '../hooks/useMatchNotice';
 
 interface DiscoveryScreenProps {
   onLike: (userId: string) => Promise<Match | null | undefined>;
@@ -29,21 +26,12 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-  const [matchNotice, setMatchNotice] = useState<string | null>(null);
-  const matchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const {matchNotice, showMatchNotice} = useMatchNotice();
   const fadeAnim = useState(new Animated.Value(1))[0];
 
   useEffect(() => {
     loadProfiles();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (matchTimeoutRef.current) {
-        clearTimeout(matchTimeoutRef.current);
-      }
-    };
   }, []);
 
   const loadProfiles = async () => {
@@ -78,13 +66,7 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
         if (action === 'like') {
           const match = await onLike(currentProfile.userId);
           if (match) {
-            setMatchNotice(MATCH_NOTICE_MESSAGE);
-            if (matchTimeoutRef.current) {
-              clearTimeout(matchTimeoutRef.current);
-            }
-            matchTimeoutRef.current = setTimeout(() => {
-              setMatchNotice(null);
-            }, MATCH_NOTICE_DURATION_MS);
+            showMatchNotice();
           }
         } else {
           await onPass(currentProfile.userId);
