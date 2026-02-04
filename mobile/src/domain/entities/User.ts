@@ -9,6 +9,10 @@ export interface User {
   age?: number;
   bio: string;
   citySlug: string;
+  cityName?: string;
+  cityLatitude?: number;
+  cityLongitude?: number;
+  cityDepartmentCode?: string;
   gender: 'male' | 'female';
   lookingFor: Array<'male' | 'female'>;
   profilePhotoUrl?: string;

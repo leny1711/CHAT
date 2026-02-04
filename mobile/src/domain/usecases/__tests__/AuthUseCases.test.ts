@@ -56,6 +56,10 @@ class MockUserRepository implements IUserRepository {
       age: userData.age || 25,
       bio: userData.bio || 'Test bio',
       citySlug: userData.citySlug || 'toulouse',
+      cityName: userData.cityName,
+      cityLatitude: userData.cityLatitude,
+      cityLongitude: userData.cityLongitude,
+      cityDepartmentCode: userData.cityDepartmentCode,
       gender: userData.gender ?? 'male',
       lookingFor: userData.lookingFor ?? [],
       profilePhoto: userData.profilePhoto,
@@ -99,6 +103,10 @@ describe('AuthUseCases', () => {
         bio: 'Test bio for user',
         gender: 'male',
         lookingFor: ['female'],
+        cityName: 'Paris',
+        cityLatitude: 48.8566,
+        cityLongitude: 2.3522,
+        cityDepartmentCode: '75',
         profilePhoto,
       });
 
@@ -109,6 +117,8 @@ describe('AuthUseCases', () => {
       expect(user.gender).toBe('male');
       expect(user.lookingFor).toEqual(['female']);
       expect(user.profilePhoto).toEqual(profilePhoto);
+      expect(user.cityName).toBe('Paris');
+      expect(user.cityDepartmentCode).toBe('75');
     });
 
     it('should throw timeout error when request times out', async () => {

@@ -2,7 +2,14 @@ import React from 'react';
 import renderer, {act} from 'react-test-renderer';
 import {Text, TextInput, TouchableOpacity} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
+import {apiClient} from '../../../infrastructure/api/client';
 import {RegisterScreen} from '../RegisterScreen';
+
+jest.mock('../../../infrastructure/api/client', () => ({
+  apiClient: {
+    get: jest.fn(),
+  },
+}));
 
 beforeEach(() => {
   jest.useFakeTimers();
@@ -75,7 +82,7 @@ describe('RegisterScreen', () => {
     ).toThrow();
   });
 
-  it('affiche les choix de genre et de préférences', () => {
+  it('affiche les choix de genre et de préférences', async () => {
     const tree = renderer.create(
       <RegisterScreen
         onRegister={jest.fn().mockResolvedValue(undefined)}
@@ -83,9 +90,26 @@ describe('RegisterScreen', () => {
       />,
     );
 
+    (apiClient.get as jest.Mock).mockResolvedValueOnce({
+      cities: [
+        {
+          id: 'fr-toulouse',
+          name: 'Toulouse',
+          slug: 'toulouse',
+          latitude: 43.6047,
+          longitude: 1.4442,
+          departmentCode: '31',
+        },
+      ],
+    });
+
     const cityInput = tree.root.findAllByType(TextInput)[4];
-    act(() => {
+    await act(async () => {
       cityInput?.props.onFocus();
+      cityInput?.props.onChangeText('Tou');
+    });
+    await act(async () => {
+      jest.runAllTimers();
     });
 
     expect(findButtonByText(tree, 'Homme')).toBeTruthy();
@@ -99,6 +123,18 @@ describe('RegisterScreen', () => {
     const onRegister = jest.fn().mockResolvedValue(undefined);
     (launchImageLibrary as jest.Mock).mockResolvedValueOnce({
       assets: [{uri: 'file://photo.jpg'}],
+    });
+    (apiClient.get as jest.Mock).mockResolvedValueOnce({
+      cities: [
+        {
+          id: 'fr-toulouse',
+          name: 'Toulouse',
+          slug: 'toulouse',
+          latitude: 43.6047,
+          longitude: 1.4442,
+          departmentCode: '31',
+        },
+      ],
     });
     const tree = renderer.create(
       <RegisterScreen onRegister={onRegister} onNavigateToLogin={jest.fn()} />,
@@ -119,10 +155,14 @@ describe('RegisterScreen', () => {
       emailInput?.props.onChangeText('alice@example.com');
       passwordInput?.props.onChangeText('password123');
       bioInput?.props.onChangeText('Bio suffisamment longue');
+      cityInput?.props.onFocus();
       cityInput?.props.onChangeText('Toulouse');
       genderButton?.props.onPress();
       menPreferenceButton?.props.onPress();
       await addPhotoButton?.props.onPress();
+    });
+    await act(async () => {
+      jest.runAllTimers();
     });
     await act(async () => {
       const cityOption = findButtonByText(tree, 'Toulouse');
@@ -137,7 +177,7 @@ describe('RegisterScreen', () => {
     const payload = onRegister.mock.calls[0];
     expect(payload[4]).toBe('female');
     expect(payload[5]).toContain('male');
-    expect(payload[6]).toBe('toulouse');
+    expect(payload[6]?.slug).toBe('toulouse');
     await act(async () => {
       tree.unmount();
     });

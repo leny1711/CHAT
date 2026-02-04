@@ -53,6 +53,18 @@ export class Database {
     await this.query(
       'ALTER TABLE users ADD COLUMN IF NOT EXISTS city_slug TEXT',
     );
+    await this.query(
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS city_name TEXT',
+    );
+    await this.query(
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS city_latitude DOUBLE PRECISION',
+    );
+    await this.query(
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS city_longitude DOUBLE PRECISION',
+    );
+    await this.query(
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS city_department_code TEXT',
+    );
     const citySlugColumn = await this.get<{ is_nullable: string }>(
       `SELECT is_nullable
        FROM information_schema.columns

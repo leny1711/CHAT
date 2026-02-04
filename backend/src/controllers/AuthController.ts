@@ -1,9 +1,15 @@
 import { Request, Response } from 'express';
 import path from 'path';
 import { AuthService } from '../services/AuthService';
-import { CITY_SLUGS } from '../constants/cities';
+import { CITY_SLUGS, CITY_BY_SLUG } from '../constants/cities';
 import { generateToken } from '../middleware/auth';
 import { AuthRequest, RegisterRequest, RegisterFormData } from '../types';
+
+// Accept minor rounding from client-side float formatting (~7-11 meters precision).
+const COORDINATE_TOLERANCE = 0.0001;
+const coordinatesMatch = (expected: number, received: number) =>
+  Number.isFinite(received) &&
+  Math.abs(expected - received) < COORDINATE_TOLERANCE;
 
 const authService = new AuthService();
 
@@ -30,6 +36,16 @@ export class AuthController {
         value => value === 'male' || value === 'female',
       ) as Array<'male' | 'female'>;
       const citySlug = (body.citySlug || '').toLowerCase().trim();
+      const cityName = (body.cityName || '').trim();
+      const departmentCode = (body.departmentCode || '').trim();
+      const parseNumber = (value?: string | number): number => {
+        if (value === undefined || value === null || value === '') {
+          return NaN;
+        }
+        return Number(value);
+      };
+      const latitude = parseNumber(body.latitude);
+      const longitude = parseNumber(body.longitude);
 
       const email = body.email || '';
       const password = body.password || '';
@@ -44,7 +60,27 @@ export class AuthController {
         res.status(400).json({ error: 'Missing gender or preferences' });
         return;
       }
-      if (!citySlug || !CITY_SLUGS.has(citySlug)) {
+      if (
+        !citySlug ||
+        !CITY_SLUGS.has(citySlug) ||
+        !cityName ||
+        !departmentCode ||
+        !Number.isFinite(latitude) ||
+        !Number.isFinite(longitude)
+      ) {
+        res.status(400).json({ error: 'Missing or invalid city' });
+        return;
+      }
+      const cityRecord = CITY_BY_SLUG.get(citySlug);
+      const normalizedCityName = cityName.toLowerCase();
+      const normalizedDepartment = departmentCode.toLowerCase();
+      if (
+        !cityRecord ||
+        cityRecord.name.toLowerCase() !== normalizedCityName ||
+        cityRecord.departmentCode.toLowerCase() !== normalizedDepartment ||
+        !coordinatesMatch(cityRecord.latitude, latitude) ||
+        !coordinatesMatch(cityRecord.longitude, longitude)
+      ) {
         res.status(400).json({ error: 'Missing or invalid city' });
         return;
       }
@@ -62,6 +98,10 @@ export class AuthController {
         gender,
         lookingFor: filteredLookingFor,
         citySlug,
+        cityName: cityRecord.name,
+        latitude: cityRecord.latitude,
+        longitude: cityRecord.longitude,
+        departmentCode: cityRecord.departmentCode,
         profilePhoto: `${req.protocol}://${req.get('host')}${path.posix.join(
           '/uploads/profile-photos',
           req.file.filename,

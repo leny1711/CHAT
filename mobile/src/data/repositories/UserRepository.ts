@@ -16,6 +16,10 @@ interface AuthResponse {
     looking_for?: Array<'male' | 'female'> | null;
     profile_photo?: string | null;
     city_slug?: string | null;
+    city_name?: string | null;
+    city_latitude?: number | null;
+    city_longitude?: number | null;
+    city_department_code?: string | null;
     created_at: string;
     last_active: string;
   };
@@ -125,6 +129,18 @@ export class UserRepository implements IUserRepository {
       if (userData.citySlug) {
         formData.append('citySlug', userData.citySlug);
       }
+      if (userData.cityName) {
+        formData.append('cityName', userData.cityName);
+      }
+      if (typeof userData.cityLatitude === 'number') {
+        formData.append('latitude', String(userData.cityLatitude));
+      }
+      if (typeof userData.cityLongitude === 'number') {
+        formData.append('longitude', String(userData.cityLongitude));
+      }
+      if (userData.cityDepartmentCode) {
+        formData.append('departmentCode', userData.cityDepartmentCode);
+      }
 
       const photoAsset = userData.profilePhoto as ProfilePhotoAsset | undefined;
       if (photoAsset?.uri) {
@@ -152,6 +168,10 @@ export class UserRepository implements IUserRepository {
         age: response.user.age || this.FALLBACK_AGE,
         bio: response.user.bio,
         citySlug: response.user.city_slug || this.DEFAULT_CITY_SLUG,
+        cityName: response.user.city_name ?? undefined,
+        cityLatitude: response.user.city_latitude ?? undefined,
+        cityLongitude: response.user.city_longitude ?? undefined,
+        cityDepartmentCode: response.user.city_department_code ?? undefined,
         gender: response.user.gender ?? 'male',
         lookingFor: response.user.looking_for ?? [],
         profilePhotoUrl: response.user.profile_photo ?? undefined,
@@ -201,6 +221,10 @@ export class UserRepository implements IUserRepository {
         age: response.user.age || this.FALLBACK_AGE,
         bio: response.user.bio,
         citySlug: response.user.city_slug || this.DEFAULT_CITY_SLUG,
+        cityName: response.user.city_name ?? undefined,
+        cityLatitude: response.user.city_latitude ?? undefined,
+        cityLongitude: response.user.city_longitude ?? undefined,
+        cityDepartmentCode: response.user.city_department_code ?? undefined,
         gender: response.user.gender ?? 'male',
         lookingFor: response.user.looking_for ?? [],
         profilePhotoUrl: response.user.profile_photo ?? undefined,
@@ -250,6 +274,10 @@ export class UserRepository implements IUserRepository {
           age: number;
           bio: string;
           city_slug?: string | null;
+          city_name?: string | null;
+          city_latitude?: number | null;
+          city_longitude?: number | null;
+          city_department_code?: string | null;
           gender?: 'male' | 'female' | null;
           looking_for?: Array<'male' | 'female'> | null;
           profile_photo?: string | null;
@@ -267,6 +295,10 @@ export class UserRepository implements IUserRepository {
         age: response.user.age || this.FALLBACK_AGE,
         bio: response.user.bio,
         citySlug: response.user.city_slug || this.DEFAULT_CITY_SLUG,
+        cityName: response.user.city_name ?? undefined,
+        cityLatitude: response.user.city_latitude ?? undefined,
+        cityLongitude: response.user.city_longitude ?? undefined,
+        cityDepartmentCode: response.user.city_department_code ?? undefined,
         gender: response.user.gender ?? 'male',
         lookingFor: response.user.looking_for ?? [],
         profilePhotoUrl: response.user.profile_photo ?? undefined,
