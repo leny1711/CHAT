@@ -8,8 +8,6 @@ import renderer, {act} from 'react-test-renderer';
 import {LoginScreen} from '../src/presentation/screens/LoginScreen';
 import {RegisterScreen} from '../src/presentation/screens/RegisterScreen';
 import {User} from '../src/domain/entities/User';
-import {UserRepository} from '../src/data/repositories/UserRepository';
-import {MatchRepository} from '../src/data/repositories/MatchRepository';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 const mockUserRepository = {
@@ -50,6 +48,7 @@ const buildUser = (overrides: Partial<User> = {}): User => ({
   email: 'test@example.com',
   name: 'Alex',
   bio: 'Description assez longue',
+  citySlug: 'toulouse',
   gender: 'female',
   lookingFor: ['male'],
   photos: [],

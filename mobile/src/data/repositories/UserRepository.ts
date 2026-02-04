@@ -242,18 +242,18 @@ export class UserRepository implements IUserRepository {
       apiClient.setToken(token);
 
       // Verify token by fetching current user
-  interface MeResponse {
-    user: {
-      id: string;
-      email: string;
-      name: string;
-      age: number;
-      bio: string;
-      city_slug?: string | null;
-      gender?: 'male' | 'female' | null;
-      looking_for?: Array<'male' | 'female'> | null;
-      profile_photo?: string | null;
-      created_at: string;
+      interface MeResponse {
+        user: {
+          id: string;
+          email: string;
+          name: string;
+          age: number;
+          bio: string;
+          city_slug?: string | null;
+          gender?: 'male' | 'female' | null;
+          looking_for?: Array<'male' | 'female'> | null;
+          profile_photo?: string | null;
+          created_at: string;
           last_active: string;
         };
       }

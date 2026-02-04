@@ -71,9 +71,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
     if (!query) {
       return CITY_OPTIONS;
     }
-    return CITY_OPTIONS.filter(city =>
-      city.name.toLowerCase().includes(query),
-    );
+    return CITY_OPTIONS.filter(city => city.name.toLowerCase().includes(query));
   }, [citySearch]);
 
   const handlePickPhoto = async () => {

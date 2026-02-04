@@ -15,3 +15,4 @@ export const CITY_OPTIONS: City[] = [
 ];
 
 export const CITY_SLUGS = new Set(CITY_OPTIONS.map(city => city.slug));
+export const DEFAULT_CITY_SLUG = 'toulouse';

@@ -87,7 +87,12 @@ describe('ConversationScreen', () => {
 
     expect(data).toHaveLength(2);
     const textMessages = data.filter(item => item.type === MessageType.TEXT);
+    const systemMessages = data.filter(
+      item => item.type === MessageType.SYSTEM,
+    );
     expect(textMessages).toHaveLength(1);
+    expect(systemMessages).toHaveLength(1);
+    expect(systemMessages[0].content).toBe(CONVERSATION_INTRO_MESSAGE);
     expect(textMessages[0]).toBe(first);
   });
 
@@ -147,12 +152,17 @@ describe('ConversationScreen', () => {
     expect(data[0].content).toBe(CONVERSATION_INTRO_MESSAGE);
   });
 
-  it('does not add intro message when conversation has history', async () => {
+  it('includes intro message alongside conversation history', async () => {
     const message = buildMessage();
     const {data} = await renderConversation([message]);
     expect(data).toHaveLength(2);
     const textMessages = data.filter(item => item.type === MessageType.TEXT);
+    const systemMessages = data.filter(
+      item => item.type === MessageType.SYSTEM,
+    );
     expect(textMessages).toHaveLength(1);
+    expect(systemMessages).toHaveLength(1);
+    expect(systemMessages[0].content).toBe(CONVERSATION_INTRO_MESSAGE);
     expect(textMessages[0]).toBe(message);
     expect(textMessages[0].type).toBe(MessageType.TEXT);
   });

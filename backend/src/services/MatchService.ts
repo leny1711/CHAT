@@ -200,26 +200,27 @@ export class MatchService {
     // 2. Haven't been liked or passed by the current user
     // 3. Haven't been matched with the current user
     // 4. Match mutual compatibility preferences
+    // 5. Restrict discovery to exact city matches
     const profiles = await db.all<UserResponse>(
        `SELECT id, email, name, age, bio, profile_photo, gender, looking_for, city_slug, created_at, last_active 
         FROM users 
         WHERE id != $1 
-        AND city_slug = $8
         AND id NOT IN (
           SELECT to_user_id FROM likes WHERE from_user_id = $2
         )
         AND id NOT IN (
-         SELECT user_id_1 FROM matches WHERE user_id_2 = $3
-         UNION
-         SELECT user_id_2 FROM matches WHERE user_id_1 = $4
-       )
-       AND gender IS NOT NULL
-       AND looking_for IS NOT NULL
+          SELECT user_id_1 FROM matches WHERE user_id_2 = $3
+          UNION
+          SELECT user_id_2 FROM matches WHERE user_id_1 = $4
+        )
+        AND gender IS NOT NULL
+        AND looking_for IS NOT NULL
         AND COALESCE(array_length(looking_for, 1), 0) > 0
+        AND city_slug = $7
         AND gender = ANY($5::text[])
         AND $6 = ANY(looking_for)
         ORDER BY RANDOM()
-        LIMIT $7`,
+        LIMIT $8`,
       [
         userId,
         userId,
@@ -227,8 +228,8 @@ export class MatchService {
         userId,
         currentUser.looking_for,
         currentUser.gender,
-        limit,
         currentUser.city_slug,
+        limit,
       ],
     );
 
