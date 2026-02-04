@@ -51,6 +51,8 @@ import {
 import {ProfilePhotoAsset, User} from './src/domain/entities/User';
 import {Match} from './src/domain/entities/Match';
 import {theme} from './src/presentation/theme/theme';
+import {useMatchNotice} from './src/presentation/hooks/useMatchNotice';
+import {matchNoticeStyles} from './src/presentation/styles/matchNoticeStyles';
 
 // Initialize repositories
 const userRepository = new UserRepository();
@@ -170,6 +172,7 @@ function App(): React.JSX.Element {
   const [conversationMessageIds, setConversationMessageIds] = useState<
     Set<string>
   >(new Set());
+  const {matchNotice, showMatchNotice} = useMatchNotice();
 
   const addMessageId = (messageId?: string) => {
     if (!messageId) {
@@ -322,7 +325,11 @@ function App(): React.JSX.Element {
           <>
             <SimpleDiscoveryScreen
               onLike={async userId => {
-                await likeUserUseCase.execute(userId);
+                const result = await likeUserUseCase.execute(userId);
+                if (result?.match) {
+                  showMatchNotice();
+                }
+                return result?.match ?? null;
               }}
               onPass={async userId => {
                 await passUserUseCase.execute(userId);
@@ -330,6 +337,7 @@ function App(): React.JSX.Element {
               getProfiles={async () => {
                 return getDiscoveryProfilesUseCase.execute();
               }}
+              onMatchNotice={showMatchNotice}
             />
             <TabBar
               currentScreen={currentScreen}
@@ -465,6 +473,15 @@ function App(): React.JSX.Element {
           backgroundColor={theme.colors.background}
         />
         {renderScreen()}
+        {matchNotice ? (
+          <View style={matchNoticeStyles.matchNoticeOverlay} pointerEvents="none">
+            <View style={matchNoticeStyles.matchNotice}>
+              <Text style={matchNoticeStyles.matchNoticeText}>
+                {matchNotice}
+              </Text>
+            </View>
+          </View>
+        ) : null}
       </View>
     </SafeAreaProvider>
   );

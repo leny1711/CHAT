@@ -8,8 +8,8 @@ export const matchNoticeStyles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: 'center',
-    zIndex: 10,
-    elevation: 6,
+    zIndex: 200,
+    elevation: 24,
   },
   matchNotice: {
     alignSelf: 'center',
