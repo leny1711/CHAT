@@ -96,89 +96,98 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({
     });
   };
 
-  if (loading) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.loadingText}>Recherche de connexions...</Text>
-      </View>
-    );
-  }
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={styles.loadingText}>Recherche de connexions...</Text>
+        </View>
+      );
+    }
 
-  if (!currentProfile) {
+    if (!currentProfile) {
+      return (
+        <View style={styles.centerContainer}>
+          <Text style={styles.emptyTitle}>Plus de profils</Text>
+          <Text style={styles.emptyText}>
+            Revenez plus tard pour de nouvelles connexions
+          </Text>
+          <TouchableOpacity style={styles.reloadButton} onPress={loadProfiles}>
+            <Text style={styles.reloadButtonText}>Actualiser</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.emptyTitle}>Plus de profils</Text>
-        <Text style={styles.emptyText}>
-          Revenez plus tard pour de nouvelles connexions
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.headerText}>
+            <Text style={styles.headerTitle}>Découvrir</Text>
+            <Text style={styles.headerSubtitle}>Prenez votre temps</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.refreshButton}
+            onPress={loadProfiles}
+            disabled={loading}>
+            <Text style={styles.refreshButtonText}>Actualiser</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Animated.View style={[styles.card, {opacity: fadeAnim}]}>
+          <View style={styles.profileInfo}>
+            <Text style={styles.name}>{currentProfile.name}</Text>
+            <Text style={styles.bio}>{currentProfile.bio}</Text>
+          </View>
+        </Animated.View>
+
+        <View style={styles.actions}>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.passButton]}
+            onPress={() => handleAction('pass')}
+            disabled={actionLoading}>
+            <Text style={[styles.actionButtonText, styles.passButtonText]}>
+              Passer
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, styles.likeButton]}
+            onPress={() => handleAction('like')}
+            disabled={actionLoading}>
+            <Text style={[styles.actionButtonText, styles.likeButtonText]}>
+              J'aime
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.counter}>
+          {currentIndex + 1} sur {profiles.length}
         </Text>
-        <TouchableOpacity style={styles.reloadButton} onPress={loadProfiles}>
-          <Text style={styles.reloadButtonText}>Actualiser</Text>
-        </TouchableOpacity>
       </View>
     );
-  }
+  };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerText}>
-          <Text style={styles.headerTitle}>Découvrir</Text>
-          <Text style={styles.headerSubtitle}>Prenez votre temps</Text>
-        </View>
-        <TouchableOpacity
-          style={styles.refreshButton}
-          onPress={loadProfiles}
-          disabled={loading}>
-          <Text style={styles.refreshButtonText}>Actualiser</Text>
-        </TouchableOpacity>
-      </View>
-
-      <Animated.View style={[styles.card, {opacity: fadeAnim}]}>
-        <View style={styles.profileInfo}>
-          <Text style={styles.name}>{currentProfile.name}</Text>
-          <Text style={styles.bio}>{currentProfile.bio}</Text>
-        </View>
-      </Animated.View>
-
-      <View style={styles.actions}>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.passButton]}
-          onPress={() => handleAction('pass')}
-          disabled={actionLoading}>
-          <Text style={[styles.actionButtonText, styles.passButtonText]}>
-            Passer
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.actionButton, styles.likeButton]}
-          onPress={() => handleAction('like')}
-          disabled={actionLoading}>
-          <Text style={[styles.actionButtonText, styles.likeButtonText]}>
-            J'aime
-          </Text>
-        </TouchableOpacity>
-      </View>
-
+    <View style={styles.screen}>
+      {renderContent()}
       {matchNotice ? (
-        <View
-          style={matchNoticeStyles.matchNoticeOverlay}
-          pointerEvents="none">
+        <View style={matchNoticeStyles.matchNoticeOverlay} pointerEvents="none">
           <View style={matchNoticeStyles.matchNotice}>
             <Text style={matchNoticeStyles.matchNoticeText}>{matchNotice}</Text>
           </View>
         </View>
       ) : null}
-
-      <Text style={styles.counter}>
-        {currentIndex + 1} sur {profiles.length}
-      </Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
