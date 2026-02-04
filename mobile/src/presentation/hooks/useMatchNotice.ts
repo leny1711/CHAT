@@ -4,6 +4,8 @@ import {
   MATCH_NOTICE_MESSAGE,
 } from '../constants/matchNotice';
 
+export type MatchNoticeTrigger = () => void;
+
 export const useMatchNotice = () => {
   const [matchNotice, setMatchNotice] = useState<string | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);

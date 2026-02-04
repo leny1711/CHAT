@@ -35,6 +35,7 @@ describe('DiscoveryScreen', () => {
     const onLike = jest.fn().mockResolvedValue(buildMatch());
     const onPass = jest.fn().mockResolvedValue(undefined);
     const getProfiles = jest.fn().mockResolvedValue([buildProfile()]);
+    const onMatchNotice = jest.fn();
 
     let tree: renderer.ReactTestRenderer;
     await act(async () => {
@@ -43,6 +44,7 @@ describe('DiscoveryScreen', () => {
           onLike={onLike}
           onPass={onPass}
           getProfiles={getProfiles}
+          onMatchNotice={onMatchNotice}
         />,
       );
     });
@@ -63,11 +65,7 @@ describe('DiscoveryScreen', () => {
       await likeButton?.props.onPress();
     });
 
-    expect(
-      tree!.root.findByProps({
-        children: '🎉 C’est un match 🎉 Une nouvelle histoire commence.',
-      }),
-    ).toBeTruthy();
+    expect(onMatchNotice).toHaveBeenCalledTimes(1);
     act(() => {
       jest.runOnlyPendingTimers();
     });
@@ -86,6 +84,7 @@ describe('DiscoveryScreen', () => {
       .fn()
       .mockResolvedValueOnce([buildProfile()])
       .mockResolvedValueOnce([]);
+    const onMatchNotice = jest.fn();
 
     let tree: renderer.ReactTestRenderer;
     await act(async () => {
@@ -94,6 +93,7 @@ describe('DiscoveryScreen', () => {
           onLike={onLike}
           onPass={onPass}
           getProfiles={getProfiles}
+          onMatchNotice={onMatchNotice}
         />,
       );
     });
@@ -119,11 +119,7 @@ describe('DiscoveryScreen', () => {
     });
 
     expect(getProfiles).toHaveBeenCalledTimes(2);
-    expect(
-      tree!.root.findByProps({
-        children: '🎉 C’est un match 🎉 Une nouvelle histoire commence.',
-      }),
-    ).toBeTruthy();
+    expect(onMatchNotice).toHaveBeenCalledTimes(1);
     expect(
       tree!.root.findByProps({
         children: 'Plus de profils',
@@ -134,11 +130,7 @@ describe('DiscoveryScreen', () => {
       jest.advanceTimersByTime(2000);
     });
 
-    expect(
-      tree!.root.findByProps({
-        children: '🎉 C’est un match 🎉 Une nouvelle histoire commence.',
-      }),
-    ).toBeTruthy();
+    expect(onMatchNotice).toHaveBeenCalledTimes(1);
 
     act(() => {
       jest.runOnlyPendingTimers();

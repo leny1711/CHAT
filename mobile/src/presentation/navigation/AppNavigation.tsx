@@ -41,7 +41,9 @@ import {
 import {User} from '../../domain/entities/User';
 import {Match} from '../../domain/entities/Match';
 import {theme} from '../theme/theme';
-import {ActivityIndicator, View, StyleSheet} from 'react-native';
+import {ActivityIndicator, View, StyleSheet, Text} from 'react-native';
+import {useMatchNotice} from '../hooks/useMatchNotice';
+import {matchNoticeStyles} from '../styles/matchNoticeStyles';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -51,6 +53,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  appContainer: {
+    flex: 1,
   },
 });
 
@@ -81,7 +86,7 @@ const ensureConversationUseCase = new EnsureConversationUseCase(
   matchRepository,
 );
 
-function MainTabs() {
+function MainTabs({onMatchNotice}: {onMatchNotice: () => void}) {
   return (
     <Tab.Navigator
       screenOptions={{
@@ -101,9 +106,9 @@ function MainTabs() {
       }}>
       <Tab.Screen
         name="Discover"
-        component={DiscoveryScreenWrapper}
-        options={{tabBarLabel: 'Découvrir'}}
-      />
+        options={{tabBarLabel: 'Découvrir'}}>
+        {() => <DiscoveryScreenWrapper onMatchNotice={onMatchNotice} />}
+      </Tab.Screen>
       <Tab.Screen
         name="Matches"
         component={MatchesScreenWrapper}
@@ -118,7 +123,11 @@ function MainTabs() {
   );
 }
 
-function DiscoveryScreenWrapper() {
+function DiscoveryScreenWrapper({
+  onMatchNotice,
+}: {
+  onMatchNotice: () => void;
+}) {
   return (
     <DiscoveryScreen
       onLike={async userId => {
@@ -131,6 +140,7 @@ function DiscoveryScreenWrapper() {
       getProfiles={async () => {
         return getDiscoveryProfilesUseCase.execute();
       }}
+      onMatchNotice={onMatchNotice}
     />
   );
 }
@@ -343,6 +353,7 @@ function ConversationScreenWrapper({route, navigation}: any) {
 }
 
 export function AppNavigation() {
+  const {matchNotice, showMatchNotice} = useMatchNotice();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -364,70 +375,85 @@ export function AppNavigation() {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
-        <Stack.Navigator screenOptions={{headerShown: false}}>
-          {!isAuthenticated ? (
-            <>
-              <Stack.Screen name="Login">
-                {({navigation}) => (
-                  <LoginScreen
-                    onLogin={async (email, password) => {
-                      await loginUseCase.execute(email, password);
-                      setIsAuthenticated(true);
-                    }}
-                    onNavigateToRegister={() => navigation.navigate('Register')}
-                  />
-                )}
-              </Stack.Screen>
-              <Stack.Screen name="Register">
-                {({navigation}) => (
-                  <RegisterScreen
-                    onRegister={async (
-                      email,
-                      password,
-                      name,
-                      bio,
-                      gender,
-                      lookingFor,
-                      profilePhoto,
-                    ) => {
-                      await registerUseCase.execute(email, password, {
+      <View style={styles.appContainer}>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{headerShown: false}}>
+            {!isAuthenticated ? (
+              <>
+                <Stack.Screen name="Login">
+                  {({navigation}) => (
+                    <LoginScreen
+                      onLogin={async (email, password) => {
+                        await loginUseCase.execute(email, password);
+                        setIsAuthenticated(true);
+                      }}
+                      onNavigateToRegister={() =>
+                        navigation.navigate('Register')
+                      }
+                    />
+                  )}
+                </Stack.Screen>
+                <Stack.Screen name="Register">
+                  {({navigation}) => (
+                    <RegisterScreen
+                      onRegister={async (
+                        email,
+                        password,
                         name,
                         bio,
                         gender,
                         lookingFor,
                         profilePhoto,
-                      });
-                      setIsAuthenticated(true);
-                    }}
-                    onNavigateToLogin={() => navigation.navigate('Login')}
-                  />
-                )}
-              </Stack.Screen>
-            </>
-          ) : (
-            <>
-              <Stack.Screen name="Main" component={MainTabs} />
-              <Stack.Screen
-                name="Conversation"
-                component={ConversationScreenWrapper}
-              />
-              <Stack.Screen name="Profile">
-                {({route, navigation}) => (
-                  <ProfileScreen
-                    userId={route.params?.userId || UNKNOWN_PROFILE_ID}
-                    name={route.params?.name || 'Utilisateur'}
-                    description={route.params?.description || ''}
-                    photoUrl={route.params?.photoUrl}
-                    messageCount={route.params?.messageCount || 0}
-                    onBack={() => navigation.goBack()}
-                  />
-                )}
-              </Stack.Screen>
-            </>
-          )}
-        </Stack.Navigator>
-      </NavigationContainer>
+                      ) => {
+                        await registerUseCase.execute(email, password, {
+                          name,
+                          bio,
+                          gender,
+                          lookingFor,
+                          profilePhoto,
+                        });
+                        setIsAuthenticated(true);
+                      }}
+                      onNavigateToLogin={() => navigation.navigate('Login')}
+                    />
+                  )}
+                </Stack.Screen>
+              </>
+            ) : (
+              <>
+                <Stack.Screen name="Main">
+                  {() => <MainTabs onMatchNotice={showMatchNotice} />}
+                </Stack.Screen>
+                <Stack.Screen
+                  name="Conversation"
+                  component={ConversationScreenWrapper}
+                />
+                <Stack.Screen name="Profile">
+                  {({route, navigation}) => (
+                    <ProfileScreen
+                      userId={route.params?.userId || UNKNOWN_PROFILE_ID}
+                      name={route.params?.name || 'Utilisateur'}
+                      description={route.params?.description || ''}
+                      photoUrl={route.params?.photoUrl}
+                      messageCount={route.params?.messageCount || 0}
+                      onBack={() => navigation.goBack()}
+                    />
+                  )}
+                </Stack.Screen>
+              </>
+            )}
+          </Stack.Navigator>
+        </NavigationContainer>
+        {matchNotice ? (
+          <View style={matchNoticeStyles.matchNoticeOverlay} pointerEvents="none">
+            <View style={matchNoticeStyles.matchNotice}>
+              <Text style={matchNoticeStyles.matchNoticeText}>
+                {matchNotice}
+              </Text>
+            </View>
+          </View>
+        ) : null}
+      </View>
     </SafeAreaProvider>
   );
 }
