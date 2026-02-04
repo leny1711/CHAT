@@ -67,6 +67,7 @@ export class InMemoryUserRepository implements IUserRepository {
       email,
       name: userData.name || 'User',
       bio: userData.bio || '',
+      citySlug: userData.citySlug || 'toulouse',
       gender: userData.gender ?? 'male',
       lookingFor: userData.lookingFor ?? [],
       profilePhotoUrl: userData.profilePhotoUrl,

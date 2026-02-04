@@ -83,10 +83,16 @@ describe('RegisterScreen', () => {
       />,
     );
 
+    const cityInput = tree.root.findAllByType(TextInput)[4];
+    act(() => {
+      cityInput?.props.onFocus();
+    });
+
     expect(findButtonByText(tree, 'Homme')).toBeTruthy();
     expect(findButtonByText(tree, 'Femme')).toBeTruthy();
     expect(findButtonByText(tree, 'Hommes')).toBeTruthy();
     expect(findButtonByText(tree, 'Femmes')).toBeTruthy();
+    expect(findButtonByText(tree, 'Toulouse')).toBeTruthy();
   });
 
   it('transmet le genre et les préférences à l’inscription', async () => {
@@ -99,7 +105,7 @@ describe('RegisterScreen', () => {
     );
     await act(async () => {});
 
-    const [nameInput, emailInput, passwordInput, bioInput] =
+    const [nameInput, emailInput, passwordInput, bioInput, cityInput] =
       tree.root.findAllByType(TextInput);
     const genderButton = findButtonByText(tree, 'Femme');
     const menPreferenceButton = findButtonByText(tree, 'Hommes');
@@ -113,9 +119,14 @@ describe('RegisterScreen', () => {
       emailInput?.props.onChangeText('alice@example.com');
       passwordInput?.props.onChangeText('password123');
       bioInput?.props.onChangeText('Bio suffisamment longue');
+      cityInput?.props.onChangeText('Toulouse');
       genderButton?.props.onPress();
       menPreferenceButton?.props.onPress();
       await addPhotoButton?.props.onPress();
+    });
+    await act(async () => {
+      const cityOption = findButtonByText(tree, 'Toulouse');
+      cityOption?.props.onPress();
     });
     const updatedSubmitButton = findButtonByText(tree, 'Créer un compte');
     await act(async () => {
@@ -126,6 +137,7 @@ describe('RegisterScreen', () => {
     const payload = onRegister.mock.calls[0];
     expect(payload[4]).toBe('female');
     expect(payload[5]).toContain('male');
+    expect(payload[6]).toBe('toulouse');
     await act(async () => {
       tree.unmount();
     });

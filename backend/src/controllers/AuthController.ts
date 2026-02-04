@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import path from 'path';
 import { AuthService } from '../services/AuthService';
+import { CITY_SLUGS } from '../constants/cities';
 import { generateToken } from '../middleware/auth';
 import { AuthRequest, RegisterRequest, RegisterFormData } from '../types';
 
@@ -28,6 +29,7 @@ export class AuthController {
       const filteredLookingFor = lookingFor.filter(
         value => value === 'male' || value === 'female',
       ) as Array<'male' | 'female'>;
+      const citySlug = (body.citySlug || '').toLowerCase().trim();
 
       const email = body.email || '';
       const password = body.password || '';
@@ -40,6 +42,10 @@ export class AuthController {
       }
       if (!gender || filteredLookingFor.length === 0) {
         res.status(400).json({ error: 'Missing gender or preferences' });
+        return;
+      }
+      if (!citySlug || !CITY_SLUGS.has(citySlug)) {
+        res.status(400).json({ error: 'Missing or invalid city' });
         return;
       }
       if (!req.file) {
@@ -55,6 +61,7 @@ export class AuthController {
         bio: body.bio,
         gender,
         lookingFor: filteredLookingFor,
+        citySlug,
         profilePhoto: `${req.protocol}://${req.get('host')}${path.posix.join(
           '/uploads/profile-photos',
           req.file.filename,

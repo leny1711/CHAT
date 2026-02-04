@@ -15,6 +15,7 @@ interface AuthResponse {
     gender?: 'male' | 'female' | null;
     looking_for?: Array<'male' | 'female'> | null;
     profile_photo?: string | null;
+    city_slug?: string | null;
     created_at: string;
     last_active: string;
   };
@@ -28,6 +29,7 @@ export class UserRepository implements IUserRepository {
   private readonly CURRENT_USER_KEY = '@current_user';
   private readonly DEFAULT_AGE = 25;
   private readonly FALLBACK_AGE = 0;
+  private readonly DEFAULT_CITY_SLUG = 'toulouse';
 
   async getCurrentUser(): Promise<User | null> {
     try {
@@ -120,6 +122,9 @@ export class UserRepository implements IUserRepository {
       if (userData.lookingFor?.length) {
         formData.append('lookingFor', userData.lookingFor.join(','));
       }
+      if (userData.citySlug) {
+        formData.append('citySlug', userData.citySlug);
+      }
 
       const photoAsset = userData.profilePhoto as ProfilePhotoAsset | undefined;
       if (photoAsset?.uri) {
@@ -146,6 +151,7 @@ export class UserRepository implements IUserRepository {
         name: response.user.name,
         age: response.user.age || this.FALLBACK_AGE,
         bio: response.user.bio,
+        citySlug: response.user.city_slug || this.DEFAULT_CITY_SLUG,
         gender: response.user.gender ?? 'male',
         lookingFor: response.user.looking_for ?? [],
         profilePhotoUrl: response.user.profile_photo ?? undefined,
@@ -194,6 +200,7 @@ export class UserRepository implements IUserRepository {
         name: response.user.name,
         age: response.user.age || this.FALLBACK_AGE,
         bio: response.user.bio,
+        citySlug: response.user.city_slug || this.DEFAULT_CITY_SLUG,
         gender: response.user.gender ?? 'male',
         lookingFor: response.user.looking_for ?? [],
         profilePhotoUrl: response.user.profile_photo ?? undefined,
@@ -235,17 +242,18 @@ export class UserRepository implements IUserRepository {
       apiClient.setToken(token);
 
       // Verify token by fetching current user
-      interface MeResponse {
-        user: {
-          id: string;
-          email: string;
-          name: string;
-          age: number;
-          bio: string;
-          gender?: 'male' | 'female' | null;
-          looking_for?: Array<'male' | 'female'> | null;
-          profile_photo?: string | null;
-          created_at: string;
+  interface MeResponse {
+    user: {
+      id: string;
+      email: string;
+      name: string;
+      age: number;
+      bio: string;
+      city_slug?: string | null;
+      gender?: 'male' | 'female' | null;
+      looking_for?: Array<'male' | 'female'> | null;
+      profile_photo?: string | null;
+      created_at: string;
           last_active: string;
         };
       }
@@ -258,6 +266,7 @@ export class UserRepository implements IUserRepository {
         name: response.user.name,
         age: response.user.age || this.FALLBACK_AGE,
         bio: response.user.bio,
+        citySlug: response.user.city_slug || this.DEFAULT_CITY_SLUG,
         gender: response.user.gender ?? 'male',
         lookingFor: response.user.looking_for ?? [],
         profilePhotoUrl: response.user.profile_photo ?? undefined,

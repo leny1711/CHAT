@@ -85,8 +85,10 @@ describe('ConversationScreen', () => {
     });
     const {data} = await renderConversation([first, second]);
 
-    expect(data).toHaveLength(1);
-    expect(data[0]).toBe(first);
+    expect(data).toHaveLength(2);
+    const textMessages = data.filter(item => item.type === MessageType.TEXT);
+    expect(textMessages).toHaveLength(1);
+    expect(textMessages[0]).toBe(first);
   });
 
   it('falls back to message metadata when id is missing', async () => {
@@ -148,8 +150,10 @@ describe('ConversationScreen', () => {
   it('does not add intro message when conversation has history', async () => {
     const message = buildMessage();
     const {data} = await renderConversation([message]);
-    expect(data).toHaveLength(1);
-    expect(data[0]).toBe(message);
-    expect(data[0].type).toBe(MessageType.TEXT);
+    expect(data).toHaveLength(2);
+    const textMessages = data.filter(item => item.type === MessageType.TEXT);
+    expect(textMessages).toHaveLength(1);
+    expect(textMessages[0]).toBe(message);
+    expect(textMessages[0].type).toBe(MessageType.TEXT);
   });
 });

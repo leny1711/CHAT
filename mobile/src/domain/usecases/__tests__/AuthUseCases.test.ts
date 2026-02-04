@@ -55,6 +55,7 @@ class MockUserRepository implements IUserRepository {
       name: userData.name || 'Test User',
       age: userData.age || 25,
       bio: userData.bio || 'Test bio',
+      citySlug: userData.citySlug || 'toulouse',
       gender: userData.gender ?? 'male',
       lookingFor: userData.lookingFor ?? [],
       profilePhoto: userData.profilePhoto,

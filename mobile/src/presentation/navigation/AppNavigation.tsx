@@ -403,11 +403,13 @@ export function AppNavigation() {
                         bio,
                         gender,
                         lookingFor,
+                        citySlug,
                         profilePhoto,
                       ) => {
                         await registerUseCase.execute(email, password, {
                           name,
                           bio,
+                          citySlug,
                           gender,
                           lookingFor,
                           profilePhoto,

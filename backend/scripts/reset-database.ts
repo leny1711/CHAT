@@ -71,6 +71,7 @@ async function resetDatabase() {
         age INTEGER,
         bio TEXT,
         profile_photo TEXT,
+        city_slug TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -134,6 +135,7 @@ async function resetDatabase() {
     await pool.query('CREATE INDEX idx_messages_conversation ON messages(conversation_id, created_at DESC)');
     await pool.query('CREATE INDEX idx_matches_users ON matches(user_id_1, user_id_2)');
     await pool.query('CREATE INDEX idx_likes_users ON likes(from_user_id, to_user_id)');
+    await pool.query('CREATE INDEX idx_users_city_slug ON users(city_slug)');
     
     console.log('✅ Database schema created successfully');
     console.log('');
