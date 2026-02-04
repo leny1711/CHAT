@@ -19,6 +19,7 @@ const buildUser = (overrides?: Partial<User>): User => ({
   name: 'Camille',
   age: 28,
   bio: 'Bio',
+  citySlug: 'toulouse',
   photos: [],
   createdAt: new Date('2024-01-01T00:00:00.000Z'),
   lastActive: new Date('2024-01-01T00:00:00.000Z'),

@@ -1,4 +1,5 @@
 import { Pool, PoolClient } from 'pg';
+import { DEFAULT_CITY_SLUG } from '../constants/cities';
 
 export class Database {
   private pool: Pool | null = null;
@@ -49,6 +50,29 @@ export class Database {
     await this.query(
       'ALTER TABLE users ADD COLUMN IF NOT EXISTS looking_for TEXT[]',
     );
+    await this.query(
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS city_slug TEXT',
+    );
+    const citySlugColumn = await this.get<{ is_nullable: string }>(
+      `SELECT is_nullable
+       FROM information_schema.columns
+       WHERE table_name = 'users'
+       AND column_name = 'city_slug'`,
+    );
+    if (citySlugColumn?.is_nullable === 'YES') {
+      await this.query(
+        'UPDATE users SET city_slug = $1 WHERE city_slug IS NULL',
+        [DEFAULT_CITY_SLUG],
+      );
+      const remainingNull = await this.get<{ count: string }>(
+        'SELECT COUNT(*) as count FROM users WHERE city_slug IS NULL',
+      );
+      if (Number(remainingNull?.count || 0) === 0) {
+        await this.query(
+          'ALTER TABLE users ALTER COLUMN city_slug SET NOT NULL',
+        );
+      }
+    }
 
     // Matches table
     await this.query(`
@@ -110,6 +134,7 @@ export class Database {
     await this.query('CREATE INDEX IF NOT EXISTS idx_matches_users ON matches(user_id_1, user_id_2)');
     await this.query('CREATE INDEX IF NOT EXISTS idx_likes_users ON likes(from_user_id, to_user_id)');
     await this.query('CREATE INDEX IF NOT EXISTS idx_users_gender ON users(gender)');
+    await this.query('CREATE INDEX IF NOT EXISTS idx_users_city_slug ON users(city_slug)');
 
     console.log('PostgreSQL database initialized successfully');
   }

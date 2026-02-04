@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {
   View,
   Text,
@@ -23,10 +23,27 @@ interface RegisterScreenProps {
     bio: string,
     gender: 'male' | 'female',
     lookingFor: Array<'male' | 'female'>,
+    citySlug: string,
     profilePhoto: ProfilePhotoAsset,
   ) => Promise<void>;
   onNavigateToLogin: () => void;
 }
+
+interface CityOption {
+  id: string;
+  name: string;
+  slug: string;
+  country: string;
+}
+
+const CITY_OPTIONS: CityOption[] = [
+  {id: 'fr-toulouse', name: 'Toulouse', slug: 'toulouse', country: 'FR'},
+  {id: 'fr-paris', name: 'Paris', slug: 'paris', country: 'FR'},
+  {id: 'fr-lyon', name: 'Lyon', slug: 'lyon', country: 'FR'},
+  {id: 'fr-marseille', name: 'Marseille', slug: 'marseille', country: 'FR'},
+  {id: 'fr-bordeaux', name: 'Bordeaux', slug: 'bordeaux', country: 'FR'},
+  {id: 'fr-lille', name: 'Lille', slug: 'lille', country: 'FR'},
+];
 
 export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   onRegister,
@@ -38,6 +55,9 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [bio, setBio] = useState('');
   const [gender, setGender] = useState<'male' | 'female' | null>(null);
   const [lookingFor, setLookingFor] = useState<Array<'male' | 'female'>>([]);
+  const [citySlug, setCitySlug] = useState<string | null>(null);
+  const [citySearch, setCitySearch] = useState('');
+  const [showCityOptions, setShowCityOptions] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<ProfilePhotoAsset | null>(
     null,
   );
@@ -45,6 +65,14 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const canSubmit = !loading && !!profilePhoto;
+  const selectedCity = CITY_OPTIONS.find(city => city.slug === citySlug);
+  const filteredCities = useMemo(() => {
+    const query = citySearch.trim().toLowerCase();
+    if (!query) {
+      return CITY_OPTIONS;
+    }
+    return CITY_OPTIONS.filter(city => city.name.toLowerCase().includes(query));
+  }, [citySearch]);
 
   const handlePickPhoto = async () => {
     const result = await launchImageLibrary({
@@ -89,6 +117,10 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       setError('Veuillez sélectionner votre genre et vos préférences');
       return;
     }
+    if (!citySlug) {
+      setError('Veuillez sélectionner votre ville');
+      return;
+    }
     if (bio.length < 10) {
       setError('La description doit contenir au moins 10 caractères');
       return;
@@ -110,6 +142,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
         bio,
         gender,
         lookingFor,
+        citySlug,
         profilePhoto,
       );
       // Success - the parent component will handle navigation
@@ -202,6 +235,64 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
               textAlignVertical="top"
               editable={!loading}
             />
+
+            <View style={styles.optionGroup}>
+              <Text style={styles.optionLabel}>Votre ville</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Rechercher votre ville"
+                placeholderTextColor={theme.colors.textLight}
+                value={citySearch}
+                onChangeText={value => {
+                  setCitySearch(value);
+                  setShowCityOptions(true);
+                }}
+                onFocus={() => setShowCityOptions(true)}
+                editable={!loading}
+              />
+              {showCityOptions ? (
+                <View style={styles.cityOptions}>
+                  {filteredCities.length === 0 ? (
+                    <Text style={styles.cityEmpty}>
+                      Aucune ville ne correspond à la recherche
+                    </Text>
+                  ) : (
+                    filteredCities.map(city => (
+                      <TouchableOpacity
+                        key={city.id}
+                        style={[
+                          styles.cityOption,
+                          city.slug === citySlug && styles.cityOptionSelected,
+                        ]}
+                        onPress={() => {
+                          setCitySlug(city.slug);
+                          setCitySearch(city.name);
+                          setShowCityOptions(false);
+                          setError('');
+                        }}
+                        disabled={loading}>
+                        <Text
+                          style={[
+                            styles.cityOptionText,
+                            city.slug === citySlug &&
+                              styles.cityOptionTextSelected,
+                          ]}>
+                          {city.name}
+                        </Text>
+                        <Text style={styles.cityOptionCountry}>
+                          {city.country}
+                        </Text>
+                      </TouchableOpacity>
+                    ))
+                  )}
+                </View>
+              ) : null}
+              {selectedCity ? (
+                <Text style={styles.citySelected}>
+                  Ville sélectionnée : {selectedCity.name}
+                </Text>
+              ) : null}
+            </View>
 
             <View style={styles.optionGroup}>
               <Text style={styles.optionLabel}>Votre genre</Text>
@@ -400,6 +491,45 @@ const styles = StyleSheet.create({
   optionRow: {
     flexDirection: 'row',
     gap: theme.spacing.sm,
+  },
+  cityOptions: {
+    borderRadius: theme.borderRadius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.surface,
+    maxHeight: 200,
+    overflow: 'hidden',
+  },
+  cityOption: {
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  cityOptionSelected: {
+    backgroundColor: theme.colors.primaryLight,
+  },
+  cityOptionText: {
+    color: theme.colors.text,
+    fontSize: theme.typography.fontSize.md,
+    fontWeight: '500',
+  },
+  cityOptionTextSelected: {
+    color: theme.colors.text,
+  },
+  cityOptionCountry: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.fontSize.sm,
+  },
+  citySelected: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.fontSize.sm,
+  },
+  cityEmpty: {
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.fontSize.sm,
   },
   optionButton: {
     flex: 1,
