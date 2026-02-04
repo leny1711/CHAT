@@ -20,7 +20,7 @@ export class AuthService {
     // Create user
     const userId = generateId('user_');
     await db.run(
-      'INSERT INTO users (id, email, password_hash, name, age, bio, profile_photo, gender, looking_for, city_slug) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
+      'INSERT INTO users (id, email, password_hash, name, age, bio, profile_photo, gender, looking_for, city_slug, city_name, city_latitude, city_longitude, city_department_code) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)',
       [
         userId,
         data.email,
@@ -32,6 +32,10 @@ export class AuthService {
         data.gender,
         data.lookingFor,
         data.citySlug,
+        data.cityName,
+        data.latitude,
+        data.longitude,
+        data.departmentCode,
       ],
     );
 
@@ -74,6 +78,10 @@ export class AuthService {
       bio: user.bio,
       profile_photo: user.profile_photo || null,
       city_slug: user.city_slug,
+      city_name: user.city_name ?? null,
+      city_latitude: user.city_latitude ?? null,
+      city_longitude: user.city_longitude ?? null,
+      city_department_code: user.city_department_code ?? null,
       gender: user.gender ?? null,
       looking_for: user.looking_for ?? null,
       created_at: user.created_at,

@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {ProfilePhotoAsset} from '../../domain/entities/User';
+import {apiClient} from '../../infrastructure/api/client';
 import {theme} from '../theme/theme';
 
 interface RegisterScreenProps {
@@ -23,7 +24,7 @@ interface RegisterScreenProps {
     bio: string,
     gender: 'male' | 'female',
     lookingFor: Array<'male' | 'female'>,
-    citySlug: string,
+    city: CityOption,
     profilePhoto: ProfilePhotoAsset,
   ) => Promise<void>;
   onNavigateToLogin: () => void;
@@ -33,17 +34,10 @@ interface CityOption {
   id: string;
   name: string;
   slug: string;
-  country: string;
+  latitude: number;
+  longitude: number;
+  departmentCode: string;
 }
-
-const CITY_OPTIONS: CityOption[] = [
-  {id: 'fr-toulouse', name: 'Toulouse', slug: 'toulouse', country: 'FR'},
-  {id: 'fr-paris', name: 'Paris', slug: 'paris', country: 'FR'},
-  {id: 'fr-lyon', name: 'Lyon', slug: 'lyon', country: 'FR'},
-  {id: 'fr-marseille', name: 'Marseille', slug: 'marseille', country: 'FR'},
-  {id: 'fr-bordeaux', name: 'Bordeaux', slug: 'bordeaux', country: 'FR'},
-  {id: 'fr-lille', name: 'Lille', slug: 'lille', country: 'FR'},
-];
 
 export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   onRegister,
@@ -55,9 +49,15 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [bio, setBio] = useState('');
   const [gender, setGender] = useState<'male' | 'female' | null>(null);
   const [lookingFor, setLookingFor] = useState<Array<'male' | 'female'>>([]);
-  const [citySlug, setCitySlug] = useState<string | null>(null);
+  const [city, setCity] = useState<CityOption | null>(null);
   const [citySearch, setCitySearch] = useState('');
   const [showCityOptions, setShowCityOptions] = useState(false);
+  const [isCityLoading, setIsCityLoading] = useState(false);
+  const [cityOptions, setCityOptions] = useState<CityOption[]>([]);
+  const lastCityQueryRef = useRef('');
+  const citySearchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const [profilePhoto, setProfilePhoto] = useState<ProfilePhotoAsset | null>(
     null,
   );
@@ -65,14 +65,70 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const canSubmit = !loading && !!profilePhoto;
-  const selectedCity = CITY_OPTIONS.find(city => city.slug === citySlug);
-  const filteredCities = useMemo(() => {
-    const query = citySearch.trim().toLowerCase();
-    if (!query) {
-      return CITY_OPTIONS;
+  const selectedCity = city;
+  const filteredCities = cityOptions;
+  const clearCitySearchTimeout = () => {
+    if (citySearchTimeoutRef.current) {
+      clearTimeout(citySearchTimeoutRef.current);
+      citySearchTimeoutRef.current = null;
     }
-    return CITY_OPTIONS.filter(city => city.name.toLowerCase().includes(query));
-  }, [citySearch]);
+  };
+  const handleCitySearch = async (value: string) => {
+    if (!value) {
+      clearCitySearchTimeout();
+      setCitySearch('');
+      setCity(null);
+      setCityOptions([]);
+      setShowCityOptions(false);
+      setIsCityLoading(false);
+      return;
+    }
+    if (city && value !== city.name) {
+      setCity(null);
+    }
+    setCitySearch(value);
+    setShowCityOptions(true);
+    setError('');
+
+    const query = value.trim();
+    clearCitySearchTimeout();
+    if (!query) {
+      setCityOptions([]);
+      setIsCityLoading(false);
+      return;
+    }
+    setIsCityLoading(true);
+    citySearchTimeoutRef.current = setTimeout(async () => {
+      lastCityQueryRef.current = query;
+
+      try {
+        const data = await apiClient.get<{cities: CityOption[]}>(
+          `/api/auth/cities?query=${encodeURIComponent(query)}`,
+        );
+        if (lastCityQueryRef.current === query) {
+          setCityOptions(data.cities ?? []);
+        }
+      } catch (err) {
+        console.warn('City search error:', err);
+        if (lastCityQueryRef.current === query) {
+          setCityOptions([]);
+        }
+      } finally {
+        if (lastCityQueryRef.current === query) {
+          setIsCityLoading(false);
+        }
+      }
+    }, 300);
+  };
+
+  const handleCityFocus = () => {
+    if (!citySearch) {
+      setShowCityOptions(false);
+      setCityOptions([]);
+      return;
+    }
+    setShowCityOptions(true);
+  };
 
   const handlePickPhoto = async () => {
     const result = await launchImageLibrary({
@@ -117,7 +173,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       setError('Veuillez sélectionner votre genre et vos préférences');
       return;
     }
-    if (!citySlug) {
+    if (!city) {
       setError('Veuillez sélectionner votre ville');
       return;
     }
@@ -142,7 +198,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
         bio,
         gender,
         lookingFor,
-        citySlug,
+        city,
         profilePhoto,
       );
       // Success - the parent component will handle navigation
@@ -243,44 +299,47 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                 placeholder="Rechercher votre ville"
                 placeholderTextColor={theme.colors.textLight}
                 value={citySearch}
-                onChangeText={value => {
-                  setCitySearch(value);
-                  setShowCityOptions(true);
-                }}
-                onFocus={() => setShowCityOptions(true)}
+                onChangeText={handleCitySearch}
+                onFocus={handleCityFocus}
                 editable={!loading}
+                autoCorrect={false}
+                autoCapitalize="words"
               />
               {showCityOptions ? (
                 <View style={styles.cityOptions}>
-                  {filteredCities.length === 0 ? (
+                  {isCityLoading ? (
+                    <Text style={styles.cityEmpty}>Recherche en cours...</Text>
+                  ) : filteredCities.length === 0 ? (
                     <Text style={styles.cityEmpty}>
                       Aucune ville ne correspond à la recherche
                     </Text>
                   ) : (
-                    filteredCities.map(city => (
+                    filteredCities.map(option => (
                       <TouchableOpacity
-                        key={city.id}
+                        key={option.id}
                         style={[
                           styles.cityOption,
-                          city.slug === citySlug && styles.cityOptionSelected,
+                          option.slug === selectedCity?.slug &&
+                            styles.cityOptionSelected,
                         ]}
                         onPress={() => {
-                          setCitySlug(city.slug);
-                          setCitySearch(city.name);
+                          setCity(option);
+                          setCitySearch(option.name);
                           setShowCityOptions(false);
+                          setCityOptions([]);
                           setError('');
                         }}
                         disabled={loading}>
                         <Text
                           style={[
                             styles.cityOptionText,
-                            city.slug === citySlug &&
+                            option.slug === selectedCity?.slug &&
                               styles.cityOptionTextSelected,
                           ]}>
-                          {city.name}
+                          {option.name}
                         </Text>
                         <Text style={styles.cityOptionCountry}>
-                          {city.country}
+                          Département {option.departmentCode}
                         </Text>
                       </TouchableOpacity>
                     ))
@@ -289,7 +348,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
               ) : null}
               {selectedCity ? (
                 <Text style={styles.citySelected}>
-                  Ville sélectionnée : {selectedCity.name}
+                  Ville sélectionnée : {selectedCity.name} (Département{' '}
+                  {selectedCity.departmentCode})
                 </Text>
               ) : null}
             </View>

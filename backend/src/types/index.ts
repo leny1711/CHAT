@@ -7,6 +7,10 @@ export interface User {
   bio: string;
   profile_photo?: string | null;
   city_slug: string;
+  city_name?: string | null;
+  city_latitude?: number | null;
+  city_longitude?: number | null;
+  city_department_code?: string | null;
   gender?: 'male' | 'female' | null;
   looking_for?: Array<'male' | 'female'> | null;
   created_at: Date;
@@ -21,6 +25,10 @@ export interface UserResponse {
   bio: string;
   profile_photo?: string | null;
   city_slug: string;
+  city_name?: string | null;
+  city_latitude?: number | null;
+  city_longitude?: number | null;
+  city_department_code?: string | null;
   gender?: 'male' | 'female' | null;
   looking_for?: Array<'male' | 'female'> | null;
   created_at: Date;
@@ -79,6 +87,10 @@ export interface RegisterRequest extends AuthRequest {
   gender: 'male' | 'female';
   lookingFor: Array<'male' | 'female'>;
   citySlug: string;
+  cityName: string;
+  latitude: number;
+  longitude: number;
+  departmentCode: string;
 }
 
 export interface RegisterFormData {
@@ -90,6 +102,10 @@ export interface RegisterFormData {
   gender?: string;
   lookingFor?: string | string[];
   citySlug?: string;
+  cityName?: string;
+  latitude?: string | number;
+  longitude?: string | number;
+  departmentCode?: string;
 }
 
 export interface AuthResponse {
