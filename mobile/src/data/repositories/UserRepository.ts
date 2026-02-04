@@ -33,7 +33,6 @@ export class UserRepository implements IUserRepository {
   private readonly CURRENT_USER_KEY = '@current_user';
   private readonly DEFAULT_AGE = 25;
   private readonly FALLBACK_AGE = 0;
-  private readonly DEFAULT_CITY_SLUG = 'toulouse';
 
   async getCurrentUser(): Promise<User | null> {
     try {
@@ -167,7 +166,7 @@ export class UserRepository implements IUserRepository {
         name: response.user.name,
         age: response.user.age || this.FALLBACK_AGE,
         bio: response.user.bio,
-        citySlug: response.user.city_slug || this.DEFAULT_CITY_SLUG,
+        citySlug: response.user.city_slug || '',
         cityName: response.user.city_name ?? undefined,
         cityLatitude: response.user.city_latitude ?? undefined,
         cityLongitude: response.user.city_longitude ?? undefined,
@@ -220,7 +219,7 @@ export class UserRepository implements IUserRepository {
         name: response.user.name,
         age: response.user.age || this.FALLBACK_AGE,
         bio: response.user.bio,
-        citySlug: response.user.city_slug || this.DEFAULT_CITY_SLUG,
+        citySlug: response.user.city_slug || '',
         cityName: response.user.city_name ?? undefined,
         cityLatitude: response.user.city_latitude ?? undefined,
         cityLongitude: response.user.city_longitude ?? undefined,
@@ -294,7 +293,7 @@ export class UserRepository implements IUserRepository {
         name: response.user.name,
         age: response.user.age || this.FALLBACK_AGE,
         bio: response.user.bio,
-        citySlug: response.user.city_slug || this.DEFAULT_CITY_SLUG,
+        citySlug: response.user.city_slug || '',
         cityName: response.user.city_name ?? undefined,
         cityLatitude: response.user.city_latitude ?? undefined,
         cityLongitude: response.user.city_longitude ?? undefined,
