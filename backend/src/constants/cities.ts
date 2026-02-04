@@ -7,8 +7,6 @@ export interface CityOption {
   departmentCode: string;
 }
 
-export const DEFAULT_CITY_SLUG = 'toulouse';
-
 export const normalizeCityName = (value: string): string =>
   value.trim().replace(/\s+/g, ' ');
 

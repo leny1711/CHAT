@@ -1,5 +1,4 @@
 import { Pool, PoolClient } from 'pg';
-import { DEFAULT_CITY_SLUG } from '../constants/cities';
 
 export class Database {
   private pool: Pool | null = null;
@@ -74,7 +73,7 @@ export class Database {
     if (citySlugColumn?.is_nullable === 'YES') {
       await this.query(
         'UPDATE users SET city_slug = $1 WHERE city_slug IS NULL',
-        [DEFAULT_CITY_SLUG],
+        ['toulouse-31'],
       );
       const remainingNull = await this.get<{ count: string }>(
         'SELECT COUNT(*) as count FROM users WHERE city_slug IS NULL',

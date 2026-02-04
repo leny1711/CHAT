@@ -51,11 +51,7 @@ const extractDepartmentFromPostcode = (
 };
 
 const buildCityOption = (feature: BanFeature): CityOption | null => {
-  const city = normalizeCityName(
-    feature.properties?.city ||
-      feature.properties?.label ||
-      '',
-  );
+  const city = normalizeCityName(feature.properties?.city || '');
   const departmentCode =
     extractDepartmentFromContext(feature.properties?.context) ||
     extractDepartmentFromPostcode(feature.properties?.postcode);

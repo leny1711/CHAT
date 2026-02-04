@@ -142,6 +142,9 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       return;
     }
     setCity(null);
+    setCitySearch('');
+    setCityOptions([]);
+    setShowCityOptions(false);
   };
 
   const handlePickPhoto = async () => {
