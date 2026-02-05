@@ -24,20 +24,34 @@ interface RegisterScreenProps {
     bio: string,
     gender: 'male' | 'female',
     lookingFor: Array<'male' | 'female'>,
-    city: CityOption,
+    city: SelectedCity,
     profilePhoto: ProfilePhotoAsset,
   ) => Promise<void>;
   onNavigateToLogin: () => void;
 }
 
-  interface CityOption {
-    id: string;
-    name: string;
-    slug: string;
-    latitude: number;
-    longitude: number;
-    departmentCode: string;
-  }
+interface CityOption {
+  properties?: {
+    label?: string;
+    city?: string;
+    name?: string;
+    postcode?: string;
+  };
+  geometry?: {
+    coordinates?: [number, number];
+  };
+  name?: string;
+  latitude?: number;
+  longitude?: number;
+  departmentCode?: string;
+}
+
+interface SelectedCity {
+  cityName: string;
+  departmentCode: string;
+  latitude: number;
+  longitude: number;
+}
 
 export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   onRegister,
@@ -49,7 +63,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [bio, setBio] = useState('');
   const [gender, setGender] = useState<'male' | 'female' | null>(null);
   const [lookingFor, setLookingFor] = useState<Array<'male' | 'female'>>([]);
-  const [city, setCity] = useState<CityOption | null>(null);
+  const [selectedCity, setSelectedCity] = useState<SelectedCity | null>(null);
   const [citySearch, setCitySearch] = useState('');
   const [showCityOptions, setShowCityOptions] = useState(false);
   const [isCityLoading, setIsCityLoading] = useState(false);
@@ -66,8 +80,48 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const canSubmit = !loading && !!profilePhoto;
-  const selectedCity = city;
-  const filteredCities = cityOptions;
+  const getCityName = (option: CityOption): string | null => {
+    const rawName =
+      option.properties?.city ?? option.properties?.name ?? option.name;
+    const trimmed = rawName?.trim();
+    return trimmed ? trimmed : null;
+  };
+  const getDepartmentCode = (option: CityOption): string | null => {
+    const postcode = option.properties?.postcode?.trim();
+    if (postcode) {
+      return postcode.substring(0, 2);
+    }
+    const departmentCode = option.departmentCode?.trim();
+    return departmentCode ? departmentCode : null;
+  };
+  const getCoordinates = (
+    option: CityOption,
+  ): {latitude: number; longitude: number} | null => {
+    const coordinates = option.geometry?.coordinates;
+    if (
+      coordinates &&
+      coordinates.length >= 2 &&
+      Number.isFinite(coordinates[0]) &&
+      Number.isFinite(coordinates[1])
+    ) {
+      return {longitude: coordinates[0], latitude: coordinates[1]};
+    }
+    if (
+      typeof option.latitude === 'number' &&
+      Number.isFinite(option.latitude) &&
+      typeof option.longitude === 'number' &&
+      Number.isFinite(option.longitude)
+    ) {
+      return {longitude: option.longitude, latitude: option.latitude};
+    }
+    return null;
+  };
+  const filteredCities = cityOptions.filter(
+    option =>
+      Boolean(getCityName(option)) &&
+      Boolean(getDepartmentCode(option)) &&
+      Boolean(getCoordinates(option)),
+  );
   const clearCitySearchTimeout = () => {
     if (citySearchTimeoutRef.current) {
       clearTimeout(citySearchTimeoutRef.current);
@@ -78,15 +132,15 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
     if (!value) {
       clearCitySearchTimeout();
       setCitySearch('');
-      setCity(null);
+      setSelectedCity(null);
       setCityOptions([]);
       setIsCityError(false);
       setShowCityOptions(false);
       setIsCityLoading(false);
       return;
     }
-    if (city && value !== city.name) {
-      setCity(null);
+    if (selectedCity && value !== selectedCity.cityName) {
+      setSelectedCity(null);
     }
     setCitySearch(value);
     setShowCityOptions(true);
@@ -107,11 +161,12 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       lastCityQueryRef.current = normalizedQuery;
 
       try {
-        const data = await apiClient.get<{cities: CityOption[]}>(
-          `/api/auth/cities?query=${encodeURIComponent(query)}`,
-        );
+        const data = await apiClient.get<{
+          cities?: CityOption[];
+          features?: CityOption[];
+        }>(`/api/auth/cities?query=${encodeURIComponent(query)}`);
         if (lastCityQueryRef.current === normalizedQuery) {
-          setCityOptions(data.cities ?? []);
+          setCityOptions(data.features ?? data.cities ?? []);
           setIsCityError(false);
         }
       } catch (err) {
@@ -138,13 +193,15 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   };
 
   const handleCityBlur = () => {
-    if (city && citySearch === city.name) {
-      return;
-    }
-    setCity(null);
-    setCitySearch('');
-    setCityOptions([]);
     setShowCityOptions(false);
+  };
+
+  const handleCitySelect = (city: SelectedCity) => {
+    setSelectedCity(city);
+    setCitySearch(city.cityName);
+    setShowCityOptions(false);
+    setCityOptions([]);
+    setError('');
   };
 
   const handlePickPhoto = async () => {
@@ -190,7 +247,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       setError('Veuillez sélectionner votre genre et vos préférences');
       return;
     }
-    if (!city) {
+    if (!selectedCity) {
       setError('Veuillez sélectionner votre ville');
       return;
     }
@@ -215,7 +272,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
         bio,
         gender,
         lookingFor,
-        city,
+        selectedCity,
         profilePhoto,
       );
       // Success - the parent component will handle navigation
@@ -336,41 +393,52 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                       Aucune ville ne correspond à la recherche
                     </Text>
                   ) : (
-                    filteredCities.map(option => (
-                      <TouchableOpacity
-                        key={option.id}
-                        style={[
-                          styles.cityOption,
-                          option.slug === selectedCity?.slug &&
-                            styles.cityOptionSelected,
-                        ]}
-                        onPress={() => {
-                          setCity(option);
-                          setCitySearch(option.name);
-                          setShowCityOptions(false);
-                          setCityOptions([]);
-                          setError('');
-                        }}
-                        disabled={loading}>
-                        <Text
+                    filteredCities.map(option => {
+                      const cityName = getCityName(option);
+                      const departmentCode = getDepartmentCode(option);
+                      const coordinates = getCoordinates(option);
+                      if (!cityName || !departmentCode || !coordinates) {
+                        return null;
+                      }
+                      const isSelected =
+                        selectedCity?.cityName === cityName &&
+                        selectedCity?.departmentCode === departmentCode;
+                      const cityPayload = {
+                        cityName,
+                        departmentCode,
+                        latitude: coordinates.latitude,
+                        longitude: coordinates.longitude,
+                      };
+                      const cityKey = `${cityName}-${departmentCode}-${coordinates.latitude}-${coordinates.longitude}`;
+
+                      return (
+                        <TouchableOpacity
+                          key={cityKey}
                           style={[
-                            styles.cityOptionText,
-                            option.slug === selectedCity?.slug &&
-                              styles.cityOptionTextSelected,
-                          ]}>
-                          {option.name}
-                        </Text>
-                        <Text style={styles.cityOptionCountry}>
-                          Département {option.departmentCode}
-                        </Text>
-                      </TouchableOpacity>
-                    ))
+                            styles.cityOption,
+                            isSelected && styles.cityOptionSelected,
+                          ]}
+                          onPress={() => handleCitySelect(cityPayload)}
+                          disabled={loading}>
+                          <Text
+                            style={[
+                              styles.cityOptionText,
+                              isSelected && styles.cityOptionTextSelected,
+                            ]}>
+                            {cityName}
+                          </Text>
+                          <Text style={styles.cityOptionCountry}>
+                            Département {departmentCode}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })
                   )}
                 </View>
               ) : null}
               {selectedCity ? (
                 <Text style={styles.citySelected}>
-                  Ville sélectionnée : {selectedCity.name} (Département{' '}
+                  Ville sélectionnée : {selectedCity.cityName} (Département{' '}
                   {selectedCity.departmentCode})
                 </Text>
               ) : null}

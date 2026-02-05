@@ -86,6 +86,19 @@ const ensureConversationUseCase = new EnsureConversationUseCase(
   matchRepository,
 );
 
+const normalizeCityName = (value: string): string =>
+  value.trim().replace(/\s+/g, ' ');
+
+const normalizeCitySlug = (value: string): string =>
+  value
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+
 function MainTabs({onMatchNotice}: {onMatchNotice: () => void}) {
   return (
     <Tab.Navigator
@@ -406,11 +419,17 @@ export function AppNavigation() {
                         city,
                         profilePhoto,
                       ) => {
+                        const normalizedCityName = normalizeCityName(
+                          city.cityName,
+                        );
+                        const citySlug = normalizeCitySlug(
+                          `${normalizedCityName}-${city.departmentCode}`,
+                        );
                         await registerUseCase.execute(email, password, {
                           name,
                           bio,
-                          citySlug: city.slug,
-                          cityName: city.name,
+                          citySlug,
+                          cityName: normalizedCityName,
                           cityLatitude: city.latitude,
                           cityLongitude: city.longitude,
                           cityDepartmentCode: city.departmentCode,

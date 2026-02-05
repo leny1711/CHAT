@@ -91,14 +91,15 @@ describe('RegisterScreen', () => {
     );
 
     (apiClient.get as jest.Mock).mockResolvedValueOnce({
-      cities: [
+      features: [
         {
-          id: 'fr-31555',
-          name: 'Toulouse',
-          slug: 'toulouse-31',
-          latitude: 43.6047,
-          longitude: 1.4442,
-          departmentCode: '31',
+          properties: {
+            city: 'Toulouse',
+            postcode: '31000',
+          },
+          geometry: {
+            coordinates: [1.4442, 43.6047],
+          },
         },
       ],
     });
@@ -159,14 +160,15 @@ describe('RegisterScreen', () => {
       assets: [{uri: 'file://photo.jpg'}],
     });
     (apiClient.get as jest.Mock).mockResolvedValueOnce({
-      cities: [
+      features: [
         {
-          id: 'fr-31555',
-          name: 'Toulouse',
-          slug: 'toulouse-31',
-          latitude: 43.6047,
-          longitude: 1.4442,
-          departmentCode: '31',
+          properties: {
+            city: 'Toulouse',
+            postcode: '31000',
+          },
+          geometry: {
+            coordinates: [1.4442, 43.6047],
+          },
         },
       ],
     });
@@ -202,6 +204,8 @@ describe('RegisterScreen', () => {
       const cityOption = findButtonByText(tree, 'Toulouse');
       cityOption?.props.onPress();
     });
+    const updatedCityInput = tree.root.findAllByType(TextInput)[4];
+    expect(updatedCityInput?.props.value).toBe('Toulouse');
     const updatedSubmitButton = findButtonByText(tree, 'Créer un compte');
     await act(async () => {
       await updatedSubmitButton?.props.onPress();
@@ -211,7 +215,12 @@ describe('RegisterScreen', () => {
     const payload = onRegister.mock.calls[0];
     expect(payload[4]).toBe('female');
     expect(payload[5]).toContain('male');
-    expect(payload[6]?.slug).toBe('toulouse-31');
+    expect(payload[6]).toEqual({
+      cityName: 'Toulouse',
+      departmentCode: '31',
+      latitude: 43.6047,
+      longitude: 1.4442,
+    });
     await act(async () => {
       tree.unmount();
     });
