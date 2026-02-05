@@ -140,11 +140,11 @@ describe('RegisterScreen', () => {
       jest.runAllTimers();
     });
 
-    expect(() =>
+    expect(
       tree.root.findByProps({
-        children: 'Aucune ville ne correspond à la recherche',
+        children: 'Impossible de récupérer les villes. Réessayez.',
       }),
-    ).toThrow();
+    ).toBeTruthy();
   });
 
   it('transmet le genre et les préférences à l’inscription', async () => {

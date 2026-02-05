@@ -327,7 +327,11 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                 <View style={styles.cityOptions}>
                   {isCityLoading ? (
                     <Text style={styles.cityEmpty}>Recherche en cours...</Text>
-                  ) : filteredCities.length === 0 && !isCityError ? (
+                  ) : isCityError ? (
+                    <Text style={styles.cityEmpty}>
+                      Impossible de récupérer les villes. Réessayez.
+                    </Text>
+                  ) : filteredCities.length === 0 ? (
                     <Text style={styles.cityEmpty}>
                       Aucune ville ne correspond à la recherche
                     </Text>
