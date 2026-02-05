@@ -93,9 +93,9 @@ describe('RegisterScreen', () => {
     (apiClient.get as jest.Mock).mockResolvedValueOnce({
       cities: [
         {
-          id: 'fr-toulouse',
+          id: 'fr-31555',
           name: 'Toulouse',
-          slug: 'toulouse',
+          slug: 'toulouse-31',
           latitude: 43.6047,
           longitude: 1.4442,
           departmentCode: '31',
@@ -119,6 +119,40 @@ describe('RegisterScreen', () => {
     expect(findButtonByText(tree, 'Toulouse')).toBeTruthy();
   });
 
+  it('affiche un message vide seulement quand aucun résultat', async () => {
+    const tree = renderer.create(
+      <RegisterScreen
+        onRegister={jest.fn().mockResolvedValue(undefined)}
+        onNavigateToLogin={jest.fn()}
+      />,
+    );
+
+    (apiClient.get as jest.Mock).mockRejectedValueOnce(
+      new Error('Network error'),
+    );
+
+    const cityInput = tree.root.findAllByType(TextInput)[4];
+    await act(async () => {
+      cityInput?.props.onFocus();
+      cityInput?.props.onChangeText('Car');
+    });
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(apiClient.get).toHaveBeenCalled();
+    expect(
+      tree.root.findByProps({
+        children: 'Impossible de récupérer les villes. Réessayez.',
+      }),
+    ).toBeTruthy();
+    expect(() =>
+      tree.root.findByProps({
+        children: 'Aucune ville ne correspond à la recherche',
+      }),
+    ).toThrow();
+  });
+
   it('transmet le genre et les préférences à l’inscription', async () => {
     const onRegister = jest.fn().mockResolvedValue(undefined);
     (launchImageLibrary as jest.Mock).mockResolvedValueOnce({
@@ -127,9 +161,9 @@ describe('RegisterScreen', () => {
     (apiClient.get as jest.Mock).mockResolvedValueOnce({
       cities: [
         {
-          id: 'fr-toulouse',
+          id: 'fr-31555',
           name: 'Toulouse',
-          slug: 'toulouse',
+          slug: 'toulouse-31',
           latitude: 43.6047,
           longitude: 1.4442,
           departmentCode: '31',
@@ -177,7 +211,7 @@ describe('RegisterScreen', () => {
     const payload = onRegister.mock.calls[0];
     expect(payload[4]).toBe('female');
     expect(payload[5]).toContain('male');
-    expect(payload[6]?.slug).toBe('toulouse');
+    expect(payload[6]?.slug).toBe('toulouse-31');
     await act(async () => {
       tree.unmount();
     });

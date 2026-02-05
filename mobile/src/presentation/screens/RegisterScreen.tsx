@@ -30,14 +30,14 @@ interface RegisterScreenProps {
   onNavigateToLogin: () => void;
 }
 
-interface CityOption {
-  id: string;
-  name: string;
-  slug: string;
-  latitude: number;
-  longitude: number;
-  departmentCode: string;
-}
+  interface CityOption {
+    id: string;
+    name: string;
+    slug: string;
+    latitude: number;
+    longitude: number;
+    departmentCode: string;
+  }
 
 export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   onRegister,
@@ -53,6 +53,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [citySearch, setCitySearch] = useState('');
   const [showCityOptions, setShowCityOptions] = useState(false);
   const [isCityLoading, setIsCityLoading] = useState(false);
+  const [isCityError, setIsCityError] = useState(false);
   const [cityOptions, setCityOptions] = useState<CityOption[]>([]);
   const lastCityQueryRef = useRef('');
   const citySearchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -79,6 +80,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       setCitySearch('');
       setCity(null);
       setCityOptions([]);
+      setIsCityError(false);
       setShowCityOptions(false);
       setIsCityLoading(false);
       return;
@@ -89,32 +91,37 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
     setCitySearch(value);
     setShowCityOptions(true);
     setError('');
+    setIsCityError(false);
 
     const query = value.trim();
+    const normalizedQuery = query.toLowerCase();
     clearCitySearchTimeout();
     if (!query) {
       setCityOptions([]);
+      setIsCityError(false);
       setIsCityLoading(false);
       return;
     }
     setIsCityLoading(true);
     citySearchTimeoutRef.current = setTimeout(async () => {
-      lastCityQueryRef.current = query;
+      lastCityQueryRef.current = normalizedQuery;
 
       try {
         const data = await apiClient.get<{cities: CityOption[]}>(
           `/api/auth/cities?query=${encodeURIComponent(query)}`,
         );
-        if (lastCityQueryRef.current === query) {
+        if (lastCityQueryRef.current === normalizedQuery) {
           setCityOptions(data.cities ?? []);
+          setIsCityError(false);
         }
       } catch (err) {
         console.warn('City search error:', err);
-        if (lastCityQueryRef.current === query) {
+        if (lastCityQueryRef.current === normalizedQuery) {
           setCityOptions([]);
+          setIsCityError(true);
         }
       } finally {
-        if (lastCityQueryRef.current === query) {
+        if (lastCityQueryRef.current === normalizedQuery) {
           setIsCityLoading(false);
         }
       }
@@ -128,6 +135,16 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       return;
     }
     setShowCityOptions(true);
+  };
+
+  const handleCityBlur = () => {
+    if (city && citySearch === city.name) {
+      return;
+    }
+    setCity(null);
+    setCitySearch('');
+    setCityOptions([]);
+    setShowCityOptions(false);
   };
 
   const handlePickPhoto = async () => {
@@ -301,6 +318,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                 value={citySearch}
                 onChangeText={handleCitySearch}
                 onFocus={handleCityFocus}
+                onBlur={handleCityBlur}
                 editable={!loading}
                 autoCorrect={false}
                 autoCapitalize="words"
@@ -309,6 +327,10 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                 <View style={styles.cityOptions}>
                   {isCityLoading ? (
                     <Text style={styles.cityEmpty}>Recherche en cours...</Text>
+                  ) : isCityError ? (
+                    <Text style={styles.cityEmpty}>
+                      Impossible de récupérer les villes. Réessayez.
+                    </Text>
                   ) : filteredCities.length === 0 ? (
                     <Text style={styles.cityEmpty}>
                       Aucune ville ne correspond à la recherche
