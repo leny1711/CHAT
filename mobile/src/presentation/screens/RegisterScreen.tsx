@@ -393,7 +393,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                       Aucune ville ne correspond à la recherche
                     </Text>
                   ) : (
-                    filteredCities.map(option => {
+                    filteredCities.map((option, index) => {
                       const cityName = getCityName(option);
                       const departmentCode = getDepartmentCode(option);
                       const coordinates = getCoordinates(option);
@@ -409,7 +409,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
                         latitude: coordinates.latitude,
                         longitude: coordinates.longitude,
                       };
-                      const cityKey = `${cityName}-${departmentCode}-${coordinates.latitude}-${coordinates.longitude}`;
+                      const cityKey = `${cityName}-${departmentCode}-${index}`;
 
                       return (
                         <TouchableOpacity
